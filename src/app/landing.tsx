@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { LOGO_DATA_URI } from "@/lib/logo";
 
 // MenaxhoRentin marketing landing. All styles are scoped under `.mr-landing`
 // so nothing here affects the signed-in app. Markup is kept as raw HTML to
@@ -32,7 +33,8 @@ const CSS = `
 .mr-landing header.nav.scrolled{background:rgba(244,248,246,.8);backdrop-filter:saturate(1.3) blur(14px);border-bottom:1px solid var(--line)}
 .mr-landing .nav-row{display:flex;align-items:center;justify-content:space-between;height:74px}
 .mr-landing .brand{display:flex;align-items:center;gap:11px;font-weight:800;color:var(--ink);font-size:19px;letter-spacing:-.02em}
-.mr-landing .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--primary),var(--primary-ink));display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(133,21,25,.7)}
+.mr-landing .mark{width:36px;height:36px;background:url(${LOGO_DATA_URI}) center/contain no-repeat;display:block}
+.mr-landing .mark svg{display:none}
 .mr-landing .brand .accent{color:var(--primary-ink)}
 .mr-landing .nav-links{display:flex;align-items:center;gap:34px}
 .mr-landing .nav-links a.link{font-weight:600;font-size:15px;color:var(--body);transition:color .2s}
