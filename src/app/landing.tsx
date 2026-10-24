@@ -166,7 +166,7 @@ const HTML = `
     <div class="reveal">
       <span class="eyebrow"><span class="dot"></span> Platforma për rent-a-car në Kosovë</span>
       <h1 style="margin-top:22px">Menaxho rent-a-car biznesin tënd. <span class="hl">Pa stres.</span></h1>
-      <p class="lead">Rezervime online, kalendar që përditësohet vetë, klientë dhe të ardhura — të gjitha në një platformë të qetë e të thjeshtë. Më pak telefonata, zero mbi-rezervime, më shumë kohë për ty.</p>
+      <p class="lead">Rezervime online, kalendar që përditësohet vetë, klientë dhe të ardhura — të gjitha në një platformë të qetë e të thjeshtë. Më pak telefonata, më shumë rregull dhe kohë për ty.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="/signup">Fillo falas <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <a class="btn btn-ghost" href="#mr-how">Shiko si funksionon</a>
@@ -189,7 +189,7 @@ const HTML = `
         <div class="cal"><span></span><span class="on"></span><span class="on"></span><span class="mid"></span><span></span><span class="on"></span><span></span><span class="mid"></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span class="mid"></span></div>
       </div>
       <div class="float-badge fb1"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Rezervim i ri online</div>
-      <div class="float-badge fb2"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 0 mbi-rezervime</div>
+      <div class="float-badge fb2"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Kalendar i qartë</div>
     </div>
   </div>
 </section>
@@ -198,7 +198,7 @@ const HTML = `
     <div class="sec-head reveal"><h2>Gjithçka që të duhet. Asgjë që të pengon.</h2><p>Një platformë e vetme për të mbajtur biznesin tënd të qetë e të organizuar — nga rezervimi i parë te raporti i fundit të muajit.</p></div>
     <div class="features">
       <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Faqe rezervimesh për ty</h3><p>Klientët rezervojnë online 24/7 nga faqja jote e personalizuar. Ti vetëm e konfirmon me një klik.</p></div>
-      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Kalendar i gjallë</h3><p>Shih menjëherë çfarë është e lirë dhe çfarë e zënë. Sistemi i bllokon mbi-rezervimet në mënyrë automatike.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Kalendar i gjallë</h3><p>Shih menjëherë çfarë është e lirë dhe çfarë e zënë. Gjithçka përditësohet vetvetiu, pa shënime me dorë.</p></div>
       <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 7l9-4 9 4-9 4-9-4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 7v6l9 4 9-4V7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div><h3>Makinat & klientët</h3><p>Flota, çmimet, fotot dhe historiku i çdo klienti — të gjitha të organizuara në një vend të vetëm.</p></div>
       <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Të ardhurat në dukje</h3><p>Raporte të thjeshta: sa je duke fituar, cilat makina punojnë më shumë dhe çfarë të pret këtë javë.</p></div>
     </div>
