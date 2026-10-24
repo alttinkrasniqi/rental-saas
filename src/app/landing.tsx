@@ -8,10 +8,10 @@ import { useEffect } from "react";
 
 const CSS = `
 .mr-landing{
-  --bg:#F4F8F6;--surface:#FFFFFF;--tint:#ECF4F1;--primary:#2F8E84;--primary-ink:#1F6B63;
-  --primary-soft:#79B8B0;--mist:#CDE7E1;--sky:#D9EAF0;--ink:#1E302E;--body:#4B5C5A;--muted:#7E8D8B;
-  --line:#E3ECE9;--radius:26px;--radius-sm:16px;--shadow:0 18px 50px -20px rgba(31,107,99,.28);
-  --shadow-soft:0 10px 30px -16px rgba(31,107,99,.22);--maxw:1140px;--ease:cubic-bezier(.22,.61,.36,1);
+  --bg:#FAF7F5;--surface:#FFFFFF;--tint:#F3EEEB;--primary:#A11E22;--primary-ink:#851519;
+  --primary-soft:#D99A9C;--mist:#F0DCDA;--sky:#EEE7E2;--ink:#2A2320;--body:#5B524E;--muted:#8C827D;
+  --line:#ECE4E0;--radius:26px;--radius-sm:16px;--shadow:0 18px 50px -20px rgba(133,21,25,.28);
+  --shadow-soft:0 10px 30px -16px rgba(133,21,25,.22);--maxw:1140px;--ease:cubic-bezier(.22,.61,.36,1);
   font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   color:var(--body);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.6;
   overflow-x:hidden;min-height:100vh;position:relative;
@@ -22,17 +22,17 @@ const CSS = `
 .mr-landing p{margin:0}
 .mr-landing .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 .mr-landing .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--primary-ink);background:var(--tint);padding:7px 14px;border-radius:999px;border:1px solid var(--line)}
-.mr-landing .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(47,142,132,.18)}
+.mr-landing .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(161,30,34,.18)}
 .mr-landing .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15px;padding:14px 24px;border-radius:14px;cursor:pointer;border:1px solid transparent;transition:transform .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease),color .2s}
-.mr-landing .btn-primary{background:var(--primary);color:#fff;box-shadow:0 12px 26px -12px rgba(47,142,132,.65)}
-.mr-landing .btn-primary:hover{background:var(--primary-ink);transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(47,142,132,.7)}
+.mr-landing .btn-primary{background:var(--primary);color:#fff;box-shadow:0 12px 26px -12px rgba(161,30,34,.65)}
+.mr-landing .btn-primary:hover{background:var(--primary-ink);transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(161,30,34,.7)}
 .mr-landing .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .mr-landing .btn-ghost:hover{background:var(--surface);transform:translateY(-2px);box-shadow:var(--shadow-soft)}
 .mr-landing header.nav{position:sticky;top:0;z-index:50;transition:background .3s,border-color .3s,box-shadow .3s}
 .mr-landing header.nav.scrolled{background:rgba(244,248,246,.8);backdrop-filter:saturate(1.3) blur(14px);border-bottom:1px solid var(--line)}
 .mr-landing .nav-row{display:flex;align-items:center;justify-content:space-between;height:74px}
 .mr-landing .brand{display:flex;align-items:center;gap:11px;font-weight:800;color:var(--ink);font-size:19px;letter-spacing:-.02em}
-.mr-landing .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--primary),var(--primary-ink));display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(31,107,99,.7)}
+.mr-landing .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--primary),var(--primary-ink));display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(133,21,25,.7)}
 .mr-landing .brand .accent{color:var(--primary-ink)}
 .mr-landing .nav-links{display:flex;align-items:center;gap:34px}
 .mr-landing .nav-links a.link{font-weight:600;font-size:15px;color:var(--body);transition:color .2s}
@@ -67,13 +67,13 @@ const CSS = `
 .mr-landing .booking{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px}
 .mr-landing .booking .car{font-weight:700;color:var(--ink);font-size:15px}
 .mr-landing .booking .date{font-size:13px;color:var(--muted);font-weight:500}
-.mr-landing .pill{font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(47,142,132,.12);color:var(--primary-ink)}
+.mr-landing .pill{font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(161,30,34,.12);color:var(--primary-ink)}
 .mr-landing .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:14px}
 .mr-landing .cal span{height:26px;border-radius:8px;background:var(--tint)}
 .mr-landing .cal span.on{background:var(--primary-soft)}
 .mr-landing .cal span.mid{background:var(--mist)}
 .mr-landing .float-badge{position:absolute;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-soft);padding:11px 15px;display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink);font-size:14px}
-.mr-landing .float-badge .ic{width:30px;height:30px;border-radius:9px;background:rgba(47,142,132,.14);display:grid;place-items:center;color:var(--primary)}
+.mr-landing .float-badge .ic{width:30px;height:30px;border-radius:9px;background:rgba(161,30,34,.14);display:grid;place-items:center;color:var(--primary)}
 .mr-landing .fb1{bottom:-18px;left:-26px;transform:rotate(-2deg)}
 .mr-landing .fb2{top:-20px;right:-18px;transform:rotate(2deg)}
 .mr-landing section{padding:84px 0;position:relative}
@@ -83,7 +83,7 @@ const CSS = `
 .mr-landing .features{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
 .mr-landing .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:30px;transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s}
 .mr-landing .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-soft);border-color:var(--mist)}
-.mr-landing .card .ic{width:48px;height:48px;border-radius:14px;background:var(--tint);display:grid;place-items:center;color:var(--primary);margin-bottom:18px}
+.mr-landing .card .ic{width:48px;height:48px;border-radius:14px;background:var(--tint);display:grid;place-items:center;color:var(--ink);margin-bottom:18px}
 .mr-landing .card h3{font-size:20px;margin-bottom:8px}
 .mr-landing .card p{font-size:15.5px}
 .mr-landing .tint-band{background:var(--tint)}
@@ -92,10 +92,10 @@ const CSS = `
 .mr-landing .step .num{width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;font-weight:800;display:grid;place-items:center;font-size:17px;margin-bottom:18px}
 .mr-landing .step h3{font-size:19px;margin-bottom:7px}
 .mr-landing .step p{font-size:15px}
-.mr-landing .calm{position:relative;overflow:hidden;border-radius:34px;background:linear-gradient(135deg,#F0F7F5,#E4F1EC 60%,#DBEBEF);border:1px solid var(--line);padding:64px;text-align:center}
+.mr-landing .calm{position:relative;overflow:hidden;border-radius:34px;background:linear-gradient(135deg,#FBF4F2,#F6EEEB 60%,#F1E9E4);border:1px solid var(--line);padding:64px;text-align:center}
 .mr-landing .calm h2{font-size:clamp(26px,3vw,38px)}
 .mr-landing .calm p{max-width:46em;margin:16px auto 0;font-size:17px;color:var(--body)}
-.mr-landing .cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-ink));border-radius:34px;padding:70px 40px;text-align:center;color:#fff;box-shadow:0 30px 60px -28px rgba(31,107,99,.8)}
+.mr-landing .cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-ink));border-radius:34px;padding:70px 40px;text-align:center;color:#fff;box-shadow:0 30px 60px -28px rgba(133,21,25,.8)}
 .mr-landing .cta-final h2{color:#fff;font-size:clamp(28px,3.4vw,44px)}
 .mr-landing .cta-final p{color:rgba(255,255,255,.85);margin:16px auto 0;max-width:34em;font-size:17px}
 .mr-landing .cta-final .btn-primary{background:#fff;color:var(--primary-ink);margin-top:30px;box-shadow:0 14px 30px -12px rgba(0,0,0,.3)}
