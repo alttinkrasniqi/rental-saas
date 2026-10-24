@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/submit-button";
-import { Car } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 const initial: AuthState = {};
 
@@ -19,9 +19,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Car className="h-6 w-6" />
-          </div>
+          <Logo className="h-12 w-12" />
           <span className="text-xl font-semibold">{APP_NAME}</span>
         </div>
         <Card>
