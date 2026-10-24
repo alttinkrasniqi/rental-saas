@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Car, Menu, X, LogOut, Plus } from "lucide-react";
+import { Menu, X, LogOut, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/nav";
 import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 export function MobileTopBar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
@@ -18,9 +19,7 @@ export function MobileTopBar({ businessName }: { businessName: string }) {
       {/* Top bar (mobile only) */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-white px-4 md:hidden">
         <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Car className="h-4 w-4" />
-          </div>
+          <Logo className="h-7 w-7" />
           <span className="font-semibold">{APP_NAME}</span>
         </Link>
         <button

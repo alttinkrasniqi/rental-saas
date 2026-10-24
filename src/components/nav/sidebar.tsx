@@ -2,21 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Car, LogOut, Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/nav";
 import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 export function Sidebar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-white md:flex">
-      <div className="flex h-16 items-center gap-2 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Car className="h-5 w-5" />
-        </div>
+      <div className="flex h-16 items-center gap-2.5 px-5">
+        <Logo className="h-8 w-8" />
         <span className="text-lg font-semibold">{APP_NAME}</span>
       </div>
 
