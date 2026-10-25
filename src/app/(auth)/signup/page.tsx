@@ -67,8 +67,8 @@ export default function SignupPage() {
               name="code"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={10}
-              placeholder="Shkruaj kodin"
+              maxLength={6}
+              placeholder="______"
               required
               style={{ textAlign: "center", letterSpacing: "6px", fontSize: "20px", fontWeight: 700 }}
             />
