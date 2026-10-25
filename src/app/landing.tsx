@@ -195,7 +195,7 @@ const HTML = `
 </section>
 <section id="mr-features">
   <div class="wrap">
-    <div class="sec-head reveal"><h2>Gjithçka që të duhet. Asgjë që të pengon.</h2><p>Një platformë e vetme për të mbajtur biznesin tënd të qetë e të organizuar — nga rezervimi i parë te raporti i fundit të muajit.</p></div>
+    <div class="sec-head reveal"><h2>Gjithçka që të duhet. Brenda një platforme.</h2><p>Një platformë e vetme për të mbajtur biznesin tënd të qetë e të organizuar — nga rezervimi i parë te raporti i fundit të muajit.</p></div>
     <div class="features">
       <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Faqe rezervimesh për ty</h3><p>Klientët rezervojnë online 24/7 nga faqja jote e personalizuar. Ti vetëm e konfirmon me një klik.</p></div>
       <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Kalendar i gjallë</h3><p>Shih menjëherë çfarë është e lirë dhe çfarë e zënë. Gjithçka përditësohet vetvetiu, pa shënime me dorë.</p></div>
