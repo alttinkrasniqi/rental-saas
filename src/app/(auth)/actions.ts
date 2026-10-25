@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = { error?: string };
+export type ResetState = { error?: string; sent?: boolean };
 
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") || "").trim();
@@ -68,4 +70,48 @@ export async function resendSignupCode(email: string): Promise<{ ok?: boolean; e
   const { error } = await supabase.auth.resend({ type: "signup", email: email.trim() });
   if (error) return { error: "Nuk u dërgua dot kodi. Provo pas pak." };
   return { ok: true };
+}
+
+// "Harrova fjalëkalimin": email a recovery link. The link lands on
+// /auth/confirm (type=recovery) which establishes a session, then forwards
+// to /reset-password where the new password is set.
+export async function requestPasswordReset(
+  _prev: ResetState,
+  formData: FormData
+): Promise<ResetState> {
+  const email = String(formData.get("email") || "").trim();
+  if (!email) return { error: "Shkruaj email-in tënd." };
+
+  const h = headers();
+  const origin = h.get("origin") || (h.get("host") ? `https://${h.get("host")}` : "");
+
+  const supabase = createClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=/reset-password`,
+  });
+
+  // Always report success — never reveal whether an email is registered.
+  return { sent: true };
+}
+
+// Set the new password. Requires the recovery session created by the link.
+export async function updatePassword(
+  _prev: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  const pw = String(formData.get("password") || "");
+  const pw2 = String(formData.get("password2") || "");
+  if (pw.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
+  if (pw !== pw2) return { error: "Fjalëkalimet nuk përputhen." };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Linku ka skaduar ose u hap në pajisje tjetër. Kërko një link të ri." };
+
+  const { error } = await supabase.auth.updateUser({ password: pw });
+  if (error) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
+
+  redirect("/dashboard");
 }
