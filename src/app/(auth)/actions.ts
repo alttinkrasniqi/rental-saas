@@ -9,11 +9,11 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
 
-  if (!email || !password) return { error: "Please enter your email and password." };
+  if (!email || !password) return { error: "Shkruaj email-in dhe fjalëkalimin." };
 
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Wrong email or password. Please try again." };
+  if (error) return { error: "Email ose fjalëkalim i gabuar. Provo përsëri." };
 
   redirect("/dashboard");
 }
@@ -22,8 +22,8 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
 
-  if (!email || !password) return { error: "Please enter an email and password." };
-  if (password.length < 6) return { error: "Password must be at least 6 characters." };
+  if (!email || !password) return { error: "Shkruaj një email dhe një fjalëkalim." };
+  if (password.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -35,7 +35,7 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
 
   return {
     error:
-      "Account created. Please check your email to confirm it, then log in. " +
-      "(Tip: you can turn off email confirmation in Supabase to skip this step.)",
+      "Llogaria u krijua. Kontrollo email-in për ta konfirmuar, pastaj kyçu. " +
+      "(Këshillë: mund ta çaktivizosh konfirmimin me email te Supabase për ta kaluar këtë hap.)",
   };
 }
