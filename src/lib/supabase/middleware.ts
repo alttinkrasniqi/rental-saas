@@ -12,6 +12,7 @@ export async function updateSession(request: NextRequest) {
     path === "/" ||
     path === "/s" ||
     path.startsWith("/s/") ||
+    path.startsWith("/auth/") ||   // email confirmation callback runs before a session exists
     path === "/login" ||
     path === "/signup";
 
