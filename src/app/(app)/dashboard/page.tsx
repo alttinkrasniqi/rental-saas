@@ -18,6 +18,7 @@ import { markReturned } from "../rentals/actions";
 import { getT } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n";
 import type { Vehicle } from "@/lib/types";
+import { GettingStarted } from "@/components/getting-started";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 
@@ -28,18 +29,28 @@ export default async function DashboardPage() {
   const supabase = createClient();
   const now = new Date();
 
-  const [{ data: vData }, { data: rData }, { data: pData }] = await Promise.all([
+  const [{ data: vData }, { data: rData }, { data: pData }, clientsRes, siteRes] = await Promise.all([
     supabase.from("vehicles").select("*").eq("archived", false),
     supabase
       .from("rentals")
       .select("id, vehicle_id, status, open_ended, source, created_at, pickup_at, return_at, vehicle:vehicles(make, model, plate), client:clients(full_name, phone)")
       .neq("status", "CANCELLED"),
     supabase.from("payments").select("amount_cents, paid_at"),
+    supabase.from("clients").select("id", { count: "exact", head: true }),
+    business?.id
+      ? supabase.from("site_settings").select("business_id").eq("business_id", business.id).maybeSingle()
+      : Promise.resolve({ data: null } as any),
   ]);
 
   const vehicles = (vData ?? []) as Vehicle[];
   const rentals = (rData ?? []) as any[];
   const payments = (pData ?? []) as any[];
+
+  // "Get started" checklist completion
+  const gsDetails = !!(business?.phone && business?.address);
+  const gsCar = vehicles.length > 0;
+  const gsWebsite = !!(siteRes as any)?.data;
+  const gsClient = ((clientsRes as any)?.count ?? 0) > 0;
 
   const openRentals = rentals.filter((r) => r.status === "ACTIVE" || r.status === "RESERVED");
   const outNow = carsOutNow(openRentals, now);
@@ -101,6 +112,8 @@ export default async function DashboardPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("Here's what's happening today.")}</p>
       </div>
+
+      <GettingStarted details={gsDetails} car={gsCar} website={gsWebsite} client={gsClient} />
 
       {recentOnline.length > 0 && (
         <Link
