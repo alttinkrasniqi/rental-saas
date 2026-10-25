@@ -38,7 +38,7 @@ export default function SignupPage() {
     start(async () => {
       const r = await verifySignup(email, code);
       if (r.error) return setErr(r.error);
-      router.push("/onboarding");
+      router.push("/onboarding?verified=1");
     });
   };
 
@@ -67,10 +67,10 @@ export default function SignupPage() {
               name="code"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="______"
+              maxLength={10}
+              placeholder="Shkruaj kodin"
               required
-              style={{ textAlign: "center", letterSpacing: "10px", fontSize: "22px", fontWeight: 700 }}
+              style={{ textAlign: "center", letterSpacing: "6px", fontSize: "20px", fontWeight: 700 }}
             />
           </div>
           {info && <p style={{ marginBottom: 12, fontSize: 13.5, color: "#1F6B63" }}>{info}</p>}
