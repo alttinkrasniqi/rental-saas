@@ -216,7 +216,7 @@ const HTML = `
 </section>
 <section>
   <div class="wrap">
-    <div class="calm reveal"><h2>Më pak kokëçarje. Më shumë kontroll.</h2><p>Pa fletore, pa mesazhe të humbura, pa dy klientë për të njëjtën makinë. MenaxhoRentin e mban gjithçka në rregull në sfond, që ti të merresh me atë që ka vërtet rëndësi — klientët e tu.</p></div>
+    <div class="calm reveal"><h2>Gjithçka nën kontrollin tuaj.</h2><p>Pa fletore, pa shënime, pa mesazhe të humbura dhe pa llogaritje manuale. Me MenaxhoRentin, menaxho biznesin tënd nga kudo, në çdo kohë.</p></div>
   </div>
 </section>
 <section id="mr-pricing" class="tint-band">
