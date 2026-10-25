@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = { error?: string };
-export type ResetState = { error?: string; sent?: boolean };
 
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") || "").trim();
@@ -72,26 +71,45 @@ export async function resendSignupCode(email: string): Promise<{ ok?: boolean; e
   return { ok: true };
 }
 
-// "Harrova fjalëkalimin": email a recovery link. The link lands on
-// /auth/confirm (type=recovery) which establishes a session, then forwards
-// to /reset-password where the new password is set.
+// "Harrova fjalëkalimin" — step 1: email a recovery code (and a one-click
+// link as a fallback). We always report success, never revealing whether an
+// email is registered.
 export async function requestPasswordReset(
-  _prev: ResetState,
-  formData: FormData
-): Promise<ResetState> {
-  const email = String(formData.get("email") || "").trim();
-  if (!email) return { error: "Shkruaj email-in tënd." };
+  email: string
+): Promise<{ ok?: boolean; error?: string }> {
+  const e = email.trim();
+  if (!e) return { error: "Shkruaj email-in tënd." };
 
   const h = headers();
   const origin = h.get("origin") || (h.get("host") ? `https://${h.get("host")}` : "");
 
   const supabase = createClient();
-  await supabase.auth.resetPasswordForEmail(email, {
+  await supabase.auth.resetPasswordForEmail(e, {
     redirectTo: `${origin}/auth/confirm?next=/reset-password`,
   });
+  return { ok: true };
+}
 
-  // Always report success — never reveal whether an email is registered.
-  return { sent: true };
+// Step 2: verify the recovery code, then set the new password. This works on
+// any device and avoids the "link expired" problems of one-click links.
+export async function resetWithCode(
+  email: string,
+  code: string,
+  password: string
+): Promise<{ ok?: boolean; error?: string }> {
+  const e = email.trim();
+  const token = code.trim();
+  if (token.length < 4) return { error: "Shkruaj kodin nga email-i." };
+  if (password.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
+
+  const supabase = createClient();
+  const { error: otpErr } = await supabase.auth.verifyOtp({ email: e, token, type: "recovery" });
+  if (otpErr) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
+
+  const { error: updErr } = await supabase.auth.updateUser({ password });
+  if (updErr) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
+
+  return { ok: true };
 }
 
 // Set the new password. Requires the recovery session created by the link.
