@@ -57,8 +57,7 @@ export default function SignupPage() {
       <AuthShell title="Konfirmo email-in" subtitle="Dërguam një kod në email-in tënd.">
         <form onSubmit={onVerify}>
           <p style={{ marginBottom: 16, fontSize: 14, color: "#5B524E", lineHeight: 1.6 }}>
-            Të dërguam një kod 6-shifror te <b style={{ color: "#2A2320" }}>{email}</b>. Shkruaje më poshtë për të vazhduar
-            (ose kliko butonin te emaili).
+            Të dërguam një kod 6-shifror te <b style={{ color: "#2A2320" }}>{email}</b>. Shkruaje më poshtë për të vazhduar.
           </p>
           <div className="field">
             <label htmlFor="code">Kodi nga emaili</label>
