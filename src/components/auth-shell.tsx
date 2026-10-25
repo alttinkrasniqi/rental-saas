@@ -113,8 +113,8 @@ export function AuthShell({
           MenaxhoRentin
         </a>
         <div className="aside-mid">
-          <h2>Mbaje rent-a-car biznesin tënd në rregull.</h2>
-          <p>Një platformë e qetë për flotën, rezervimet dhe klientët — gjithçka në një vend.</p>
+          <h2>Platforma e duhur për biznesin tuaj.</h2>
+          <p>Makinat, rezervimet dhe klientët, gjithçka në një vend.</p>
           <ul className="ticks">
             <li><span className="tk"><Check /></span> Rezervime online 24/7</li>
             <li><span className="tk"><Check /></span> Kalendar që përditësohet vetë</li>
