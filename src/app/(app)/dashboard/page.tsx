@@ -52,6 +52,7 @@ export default async function DashboardPage() {
   const gsCar = vehicles.length > 0;
   const gsWebsite = !!(siteRes as any)?.data;
   const gsClient = ((clientsRes as any)?.count ?? 0) > 0;
+  const firstStepHref = !gsDetails ? "/settings" : !gsCar ? "/cars/new" : !gsWebsite ? "/website" : !gsClient ? "/clients/new" : undefined;
 
   const openRentals = rentals.filter((r) => r.status === "ACTIVE" || r.status === "RESERVED");
   const outNow = carsOutNow(openRentals, now);
@@ -107,7 +108,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <WelcomeModal seen={!!(business as any)?.welcome_seen} />
+      <WelcomeModal seen={!!(business as any)?.welcome_seen} startHref={firstStepHref} />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {business ? business.name : t("Dashboard")}
