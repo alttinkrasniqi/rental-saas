@@ -3,29 +3,22 @@
 import { useEffect, useState } from "react";
 import { Rocket, LayoutGrid, ListChecks, X, ArrowRight, ArrowLeft } from "lucide-react";
 import { useT } from "@/lib/i18n/provider";
+import { markWelcomeSeen } from "@/app/actions";
 
-const SEEN_KEY = "mr_welcome_seen";
-
-// Shown once (first login after signup). A short slide-by-slide welcome,
-// centered on screen; dismiss sets a flag so it never shows again.
-export function WelcomeModal() {
+// Shown once per ACCOUNT (first login). When closed/finished we persist
+// `welcome_seen` on the business so it never appears again on any device.
+export function WelcomeModal({ seen }: { seen: boolean }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!seen);
   const [mounted, setMounted] = useState(false);
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(SEEN_KEY) !== "1") {
-        setOpen(true);
-        // next tick -> entrance animation
-        requestAnimationFrame(() => setMounted(true));
-      }
-    } catch {}
-  }, []);
+    if (open) requestAnimationFrame(() => setMounted(true));
+  }, [open]);
 
   const close = () => {
-    try { localStorage.setItem(SEEN_KEY, "1"); } catch {}
+    markWelcomeSeen().catch(() => {});
     setMounted(false);
     setTimeout(() => setOpen(false), 180);
   };
@@ -53,17 +46,11 @@ export function WelcomeModal() {
   const s = slides[i];
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      {/* backdrop */}
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div
         className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${mounted ? "opacity-100" : "opacity-0"}`}
         onClick={close}
       />
-      {/* card */}
       <div
         className={`relative w-full max-w-md rounded-2xl bg-white p-7 text-center shadow-2xl transition-all duration-200 ${
           mounted ? "translate-y-0 opacity-100 scale-100" : "translate-y-3 opacity-0 scale-95"
@@ -83,7 +70,6 @@ export function WelcomeModal() {
         <h2 className="text-xl font-bold text-foreground">{s.title}</h2>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">{s.text}</p>
 
-        {/* dots */}
         <div className="mt-6 flex items-center justify-center gap-1.5">
           {slides.map((_, idx) => (
             <span
@@ -93,7 +79,6 @@ export function WelcomeModal() {
           ))}
         </div>
 
-        {/* footer */}
         <div className="mt-6 flex items-center justify-between gap-3">
           {i > 0 ? (
             <button
