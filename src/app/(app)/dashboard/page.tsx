@@ -107,7 +107,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <WelcomeModal />
+      <WelcomeModal seen={!!(business as any)?.welcome_seen} />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {business ? business.name : t("Dashboard")}
