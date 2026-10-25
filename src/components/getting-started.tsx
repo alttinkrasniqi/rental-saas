@@ -1,23 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Check, ArrowRight, X, Rocket } from "lucide-react";
+import { Check, ArrowRight, Rocket } from "lucide-react";
 import { useT } from "@/lib/i18n/provider";
 
 type Props = { details: boolean; car: boolean; website: boolean; client: boolean };
 
-const DISMISS_KEY = "mr_gs_dismissed";
-
+// Stays on the dashboard until all steps are complete (no manual dismiss),
+// and because completion is read from account data it's consistent everywhere.
 export function GettingStarted({ details, car, website, client }: Props) {
   const t = useT();
-  const [hidden, setHidden] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") setHidden(true);
-    } catch {}
-  }, []);
 
   const steps = [
     { done: details, label: t("Business details"), desc: t("Add your phone, address and email."), href: "/settings" },
@@ -28,31 +20,21 @@ export function GettingStarted({ details, car, website, client }: Props) {
 
   const doneCount = steps.filter((s) => s.done).length;
   const allDone = doneCount === steps.length;
-  if (hidden || allDone) return null;
+  if (allDone) return null;
 
   const nextIdx = steps.findIndex((s) => !s.done);
   const pct = Math.round((doneCount / steps.length) * 100);
 
-  const dismiss = () => {
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
-    setHidden(true);
-  };
-
   return (
     <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Rocket className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-base font-semibold text-foreground">{t("Get started")}</h2>
-            <p className="text-xs text-muted-foreground">{t("A few steps to set up your rental business.")}</p>
-          </div>
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Rocket className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{t("Get started")}</h2>
+          <p className="text-xs text-muted-foreground">{t("A few steps to set up your rental business.")}</p>
         </div>
-        <button onClick={dismiss} aria-label="Mbyll" className="rounded-md p-1 text-muted-foreground hover:bg-muted">
-          <X className="h-4 w-4" />
-        </button>
       </div>
 
       {/* progress */}
