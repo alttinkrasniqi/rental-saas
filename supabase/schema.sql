@@ -20,8 +20,12 @@ create table if not exists public.businesses (
   address     text,
   currency    text not null default 'EUR',
   timezone    text not null default 'Europe/Tirane',
+  welcome_seen boolean not null default false,  -- first-login welcome tour shown?
   created_at  timestamptz not null default now()
 );
+
+-- For databases created before this column existed:
+alter table public.businesses add column if not exists welcome_seen boolean not null default false;
 
 create table if not exists public.vehicles (
   id                uuid primary key default gen_random_uuid(),
