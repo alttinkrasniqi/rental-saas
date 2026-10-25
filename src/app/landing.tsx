@@ -206,11 +206,11 @@ const HTML = `
 </section>
 <section id="mr-how" class="tint-band">
   <div class="wrap">
-    <div class="sec-head reveal"><h2>Gati për 5 minuta</h2><p>Pa instalime, pa ndërlikime. Hape, shto makinat dhe fillo të pranosh rezervime.</p></div>
+    <div class="sec-head reveal"><h2>Gati për 5 minuta</h2><p>Konfiguro biznesin tënd në pak hapa dhe bëhu gati për rezervimet e para. Pa instalime dhe pa procese të ndërlikuara.</p></div>
     <div class="steps">
-      <div class="step reveal"><div class="num">1</div><h3>Regjistrohu</h3><p>Krijo llogarinë dhe shto biznesin tënd. Pa kartë krediti.</p></div>
-      <div class="step reveal"><div class="num">2</div><h3>Shto makinat</h3><p>Vendos flotën, çmimet ditore dhe fotot — gjithçka nga një panel i thjeshtë.</p></div>
-      <div class="step reveal"><div class="num">3</div><h3>Prano rezervime</h3><p>Ndaje linkun tënd me klientët dhe fillo t'i menaxhosh rezervimet pa stres.</p></div>
+      <div class="step reveal"><div class="num">1</div><h3>Regjistrohu</h3><p>Regjistrohu dhe shto të dhënat e biznesit tënd. Nuk nevojitet kartë krediti.</p></div>
+      <div class="step reveal"><div class="num">2</div><h3>Shto makinat</h3><p>Vendos çmimet, fotot dhe të dhënat e makinave që ofron me qira.</p></div>
+      <div class="step reveal"><div class="num">3</div><h3>Prano rezervime</h3><p>Ndaje faqen tënde me klientët dhe menaxho rezervimet nga një vend i vetëm.</p></div>
     </div>
   </div>
 </section>
