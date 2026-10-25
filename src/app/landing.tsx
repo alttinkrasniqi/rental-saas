@@ -238,7 +238,7 @@ const HTML = `
 </section>
 <section>
   <div class="wrap">
-    <div class="cta-final reveal"><h2>Gati ta menaxhosh biznesin pa stres?</h2><p>Bashkohu me agjencitë që tashmë po e mbajnë rent-a-car biznesin e tyre të qetë dhe në rregull.</p><a class="btn btn-primary" href="/signup">Fillo falas sot</a></div>
+    <div class="cta-final reveal"><h2>Gati për ta çuar biznesin tënd përpara?</h2><p>Regjistro biznesin tuaj në MenaxhoRentin dhe fillo të menaxhosh rezervimet online.</p><a class="btn btn-primary" href="/signup">Fillo falas sot</a></div>
   </div>
 </section>
 <footer>
