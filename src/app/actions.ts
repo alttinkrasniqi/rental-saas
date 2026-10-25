@@ -1,78 +1,43 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { LOCALE_COOKIE } from "@/lib/i18n/dict";
 
-export type OnboardingState = { error?: string };
+export async function logout() {
+  const supabase = createClient();
+  try {
+    await supabase.auth.signOut();
+  } catch {}
 
-// Turn a business name into a URL-safe slug (used in /s/<slug>).
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // strip accents
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40) || "biz";
+  // Belt-and-braces: make sure the Supabase auth cookies are actually gone,
+  // otherwise the middleware sees a valid session and bounces back to /dashboard
+  // (which looks like the page just "refreshing" instead of logging out).
+  try {
+    const store = cookies();
+    for (const c of store.getAll()) {
+      if (c.name.startsWith("sb-")) store.delete(c.name);
+    }
+  } catch {}
+
+  redirect("/login");
 }
 
-// Find a slug not already taken (checks across all businesses via admin client).
-async function uniqueSlug(base: string): Promise<string> {
-  const admin = createAdminClient();
-  let candidate = base;
-  for (let i = 0; i < 50; i++) {
-    const { data } = await admin
-      .from("businesses")
-      .select("id")
-      .eq("slug", candidate)
-      .maybeSingle();
-    if (!data) return candidate;
-    candidate = `${base}-${i + 2}`;
-  }
-  // extremely unlikely fallback
-  return `${base}-${Math.random().toString(36).slice(2, 6)}`;
+// Persist the chosen UI language in a cookie (read by getLocale / the provider).
+export async function setLocale(locale: "sq" | "en") {
+  cookies().set(LOCALE_COOKIE, locale === "en" ? "en" : "sq", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
 }
 
-export async function createBusiness(
-  _prev: OnboardingState,
-  formData: FormData
-): Promise<OnboardingState> {
-  const name = String(formData.get("name") || "").trim();
-  const currency = String(formData.get("currency") || "EUR").trim() || "EUR";
-  const timezone = String(formData.get("timezone") || "Europe/Tirane").trim();
-  const phone = String(formData.get("phone") || "").trim() || null;
-  const address = String(formData.get("address") || "").trim() || null;
-  const email = String(formData.get("email") || "").trim() || null;
-
-  if (!name) return { error: "Shkruaj emrin e biznesit." };
-
+// Mark the welcome tour as seen for this account (so it never shows again).
+export async function markWelcomeSeen() {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: existing } = await supabase
-    .from("businesses")
-    .select("id")
-    .eq("owner_id", user.id)
-    .maybeSingle();
-  if (existing) redirect("/dashboard");
-
-  const slug = await uniqueSlug(slugify(name));
-
-  const { error } = await supabase.from("businesses").insert({
-    owner_id: user.id,
-    name,
-    slug,
-    currency,
-    timezone,
-    phone,
-    address,
-    email,
-  });
-  if (error) return { error: error.message };
-
-  redirect("/dashboard");
+  if (!user) return;
+  await supabase.from("businesses").update({ welcome_seen: true }).eq("owner_id", user.id);
 }
