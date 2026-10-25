@@ -183,7 +183,7 @@ const HTML = `
         <div class="stat-row">
           <div class="stat"><div class="n">6</div><div class="l">Makina të lira</div></div>
           <div class="stat"><div class="n">24</div><div class="l">Të rezervuara</div></div>
-          <div class="stat"><div class="n">€9,480</div><div class="l">Këtë muaj</div></div>
+          <div class="stat"><div class="n">€14,480</div><div class="l">Këtë muaj</div></div>
         </div>
         <div class="booking"><div><div class="car">VW Golf 8</div><div class="date">12–15 Tetor · Arben K.</div></div><span class="pill">Konfirmuar</span></div>
         <div class="cal"><span></span><span class="on"></span><span class="on"></span><span class="mid"></span><span></span><span class="on"></span><span></span><span class="mid"></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span class="mid"></span></div>
