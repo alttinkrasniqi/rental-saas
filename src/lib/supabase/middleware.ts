@@ -8,6 +8,17 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // Supabase sometimes lands the recovery "one-click" link on the Site URL
+  // ("/") with a ?code=... instead of our /auth/confirm callback (when the
+  // redirect URL isn't allowlisted). Forward it to the real callback so the
+  // session is established and the user reaches the new-password form.
+  if (path === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/confirm";
+    if (!url.searchParams.get("next")) url.searchParams.set("next", "/reset-password");
+    return NextResponse.redirect(url);
+  }
+
   const isPublic =
     path === "/" ||
     path === "/s" ||
