@@ -1,26 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Rocket, LayoutGrid, ListChecks, X, ArrowRight, ArrowLeft } from "lucide-react";
 import { useT } from "@/lib/i18n/provider";
 import { markWelcomeSeen } from "@/app/actions";
 
-// Shown once per ACCOUNT (first login). When closed/finished we persist
-// `welcome_seen` on the business so it never appears again on any device.
-export function WelcomeModal({ seen }: { seen: boolean }) {
+const LOCAL_GUARD = "mr_welcome_seen";
+
+// Shown once per ACCOUNT (first login). Persisted two ways so it reliably
+// closes and never flickers back:
+//  • a local guard closes it instantly and survives the server-action refresh,
+//  • `welcome_seen` on the business makes it permanent across devices.
+export function WelcomeModal({ seen, startHref }: { seen: boolean; startHref?: string }) {
   const t = useT();
-  const [open, setOpen] = useState(!seen);
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [i, setI] = useState(0);
 
+  // Decide visibility on the client (avoids hydration mismatch + checks the guard).
   useEffect(() => {
-    if (open) requestAnimationFrame(() => setMounted(true));
-  }, [open]);
+    let guarded = false;
+    try { guarded = localStorage.getItem(LOCAL_GUARD) === "1"; } catch {}
+    if (!seen && !guarded) {
+      setOpen(true);
+      requestAnimationFrame(() => setMounted(true));
+    }
+  }, [seen]);
 
-  const close = () => {
+  const persist = () => {
+    try { localStorage.setItem(LOCAL_GUARD, "1"); } catch {}
     markWelcomeSeen().catch(() => {});
+  };
+
+  const dismiss = () => {
+    persist();
     setMounted(false);
     setTimeout(() => setOpen(false), 180);
+  };
+
+  const start = () => {
+    persist();
+    if (startHref) router.push(startHref);
+    else dismiss();
   };
 
   if (!open) return null;
@@ -49,7 +72,7 @@ export function WelcomeModal({ seen }: { seen: boolean }) {
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div
         className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${mounted ? "opacity-100" : "opacity-0"}`}
-        onClick={close}
+        onClick={dismiss}
       />
       <div
         className={`relative w-full max-w-md rounded-2xl bg-white p-7 text-center shadow-2xl transition-all duration-200 ${
@@ -57,7 +80,7 @@ export function WelcomeModal({ seen }: { seen: boolean }) {
         }`}
       >
         <button
-          onClick={close}
+          onClick={dismiss}
           aria-label={t("Skip")}
           className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:bg-muted"
         >
@@ -88,14 +111,14 @@ export function WelcomeModal({ seen }: { seen: boolean }) {
               <ArrowLeft className="h-4 w-4" /> {t("Back")}
             </button>
           ) : (
-            <button onClick={close} className="h-10 px-1 text-sm font-medium text-muted-foreground hover:text-foreground">
+            <button onClick={dismiss} className="h-10 px-1 text-sm font-medium text-muted-foreground hover:text-foreground">
               {t("Skip")}
             </button>
           )}
 
           {last ? (
             <button
-              onClick={close}
+              onClick={start}
               className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
             >
               {t("Let's go")} <ArrowRight className="h-4 w-4" />
