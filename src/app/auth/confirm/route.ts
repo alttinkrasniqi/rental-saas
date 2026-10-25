@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
   // "account verified" confirmation.
   const success = () => {
     const dest = new URL(next, origin);
-    dest.searchParams.set("verified", "1");
+    // Only the onboarding landing shows the "verified 🎉" confirmation;
+    // recovery (reset password) just goes straight to the form.
+    if (dest.pathname.startsWith("/onboarding")) dest.searchParams.set("verified", "1");
     return NextResponse.redirect(dest);
   };
 
