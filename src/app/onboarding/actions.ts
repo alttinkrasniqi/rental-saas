@@ -42,8 +42,10 @@ export async function createBusiness(
   const currency = String(formData.get("currency") || "EUR").trim() || "EUR";
   const timezone = String(formData.get("timezone") || "Europe/Tirane").trim();
   const phone = String(formData.get("phone") || "").trim() || null;
+  const address = String(formData.get("address") || "").trim() || null;
+  const email = String(formData.get("email") || "").trim() || null;
 
-  if (!name) return { error: "Please enter your business name." };
+  if (!name) return { error: "Shkruaj emrin e biznesit." };
 
   const supabase = createClient();
   const {
@@ -67,6 +69,8 @@ export async function createBusiness(
     currency,
     timezone,
     phone,
+    address,
+    email,
   });
   if (error) return { error: error.message };
 
