@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useFormState } from "react-dom";
 import { login, type AuthState } from "../actions";
 import { AuthShell, AuthSubmit } from "@/components/auth-shell";
+import { VerifiedToast } from "@/components/verified-toast";
 
 const initial: AuthState = {};
 
@@ -11,6 +12,8 @@ export default function LoginPage() {
   const [state, formAction] = useFormState(login, initial);
 
   return (
+    <>
+    <VerifiedToast />
     <AuthShell title="Mirë se u ktheve" subtitle="Kyçu për të menaxhuar biznesin tënd.">
       <form action={formAction}>
         <div className="field">
@@ -29,5 +32,6 @@ export default function LoginPage() {
         <Link href="/signup">Krijo një falas</Link>
       </p>
     </AuthShell>
+    </>
   );
 }
