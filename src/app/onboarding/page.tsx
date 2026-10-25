@@ -3,6 +3,7 @@
 import { useFormState } from "react-dom";
 import { createBusiness, type OnboardingState } from "./actions";
 import { AuthShell, AuthSubmit } from "@/components/auth-shell";
+import { VerifiedToast } from "@/components/verified-toast";
 
 const initial: OnboardingState = {};
 
@@ -10,6 +11,8 @@ export default function OnboardingPage() {
   const [state, formAction] = useFormState(createBusiness, initial);
 
   return (
+    <>
+    <VerifiedToast />
     <AuthShell
       title="Rregullo biznesin tënd"
       subtitle="Pak të dhëna për të filluar. Mund t'i ndryshosh kurdoherë te Cilësimet."
@@ -55,5 +58,6 @@ export default function OnboardingPage() {
         <AuthSubmit>Vazhdo</AuthSubmit>
       </form>
     </AuthShell>
+    </>
   );
 }
