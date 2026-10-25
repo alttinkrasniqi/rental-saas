@@ -24,6 +24,19 @@ export const SQ: Record<string, string> = {
   "Language": "Gjuha",
   "Choose the language of the app.": "Zgjidh gjuhën e aplikacionit.",
 
+  // getting started checklist
+  "Get started": "Fillimi",
+  "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
+  "{done} of {total} completed": "{done} nga {total} të kryera",
+  "Business details": "Të dhënat e biznesit",
+  "Add your phone, address and email.": "Shto telefonin, adresën dhe email-in.",
+  "Add your first car": "Shto makinën e parë",
+  "Add a car with its daily price.": "Shto një makinë me çmimin ditor.",
+  "Set up your booking page": "Rregullo faqen e rezervimeve",
+  "Add photos and publish your page.": "Shto foto dhe publiko faqen tënde.",
+  "Add your first client": "Shto klientin e parë",
+  "Keep your customers organized.": "Mbaji klientët të organizuar.",
+
   // common buttons / words
   "All": "Të gjitha",
   "Cancel": "Anulo",
