@@ -23,6 +23,7 @@ export interface Business {
   address: string | null;
   currency: string;
   timezone: string;
+  welcome_seen?: boolean;
   created_at: string;
 }
 
