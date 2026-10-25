@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { approveRequest, declineRequest } from "./actions";
+import { useT } from "@/lib/i18n/provider";
 
 type Item = {
   id: string;
@@ -26,6 +27,7 @@ function dmy(s: string) {
 }
 
 export function RequestsList({ items: initial }: { items: Item[] }) {
+  const t = useT();
   const [items, setItems] = useState<Item[]>(initial);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -36,13 +38,13 @@ export function RequestsList({ items: initial }: { items: Item[] }) {
     const r = kind === "approve" ? await approveRequest(id) : await declineRequest(id);
     setBusy(null);
     if (r.ok) setItems((prev) => prev.filter((i) => i.id !== id));
-    else setErr(r.error || "Something went wrong.");
+    else setErr(r.error || t("Something went wrong."));
   }
 
   if (items.length === 0) {
     return (
       <p className="text-sm text-gray-500">
-        No pending requests right now. New bookings from your website will appear here.
+        {t("No pending requests right now. New bookings from your website will appear here.")}
       </p>
     );
   }
@@ -74,7 +76,7 @@ export function RequestsList({ items: initial }: { items: Item[] }) {
                   rel="noopener noreferrer"
                   className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  WhatsApp
+                  {t("WhatsApp")}
                 </a>
               )}
               <button
@@ -82,7 +84,7 @@ export function RequestsList({ items: initial }: { items: Item[] }) {
                 disabled={busy === i.id}
                 className="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
               >
-                Decline
+                {t("Decline")}
               </button>
               <button
                 onClick={() => act(i.id, "approve")}
@@ -90,7 +92,7 @@ export function RequestsList({ items: initial }: { items: Item[] }) {
                 className="rounded-lg px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
                 style={{ background: Y }}
               >
-                {busy === i.id ? "…" : "Approve"}
+                {busy === i.id ? "…" : t("Approve")}
               </button>
             </div>
           </div>

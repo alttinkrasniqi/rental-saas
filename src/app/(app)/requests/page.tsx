@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { RequestsList } from "./requests-list";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 // Online booking requests for the signed-in owner's business.
 // RLS scopes every row to the caller automatically.
 export default async function RequestsPage() {
+  const t = getT();
   const supabase = createClient();
 
   const { data: rentals } = await supabase
@@ -33,11 +35,11 @@ export default async function RequestsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Online booking requests</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("Online booking requests")}</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Reservations from your website waiting for your approval. The car is held for these
-          dates until you decide — <span className="font-medium">Approve</span> confirms the booking,
-          <span className="font-medium"> Decline</span> frees the car.
+          {t("Reservations from your website waiting for your approval. The car is held for these dates until you decide —")}{" "}
+          <span className="font-medium">{t("Approve")}</span> {t("confirms the booking,")}
+          <span className="font-medium"> {t("Decline")}</span> {t("frees the car.")}
         </p>
       </div>
       <RequestsList items={items} />

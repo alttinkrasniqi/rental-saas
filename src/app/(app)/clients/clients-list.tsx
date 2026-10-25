@@ -6,6 +6,7 @@ import { Search, Phone, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/provider";
 
 interface Row {
   id: string;
@@ -16,6 +17,7 @@ interface Row {
 }
 
 export function ClientsList({ clients }: { clients: Row[] }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"active" | "deleted">("active");
 
@@ -39,10 +41,10 @@ export function ClientsList({ clients }: { clients: Row[] }) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Tab active={tab === "active"} onClick={() => setTab("active")}>
-          Active
+          {t("Active:tab")}
         </Tab>
         <Tab active={tab === "deleted"} onClick={() => setTab("deleted")}>
-          Deleted{deletedCount > 0 ? ` (${deletedCount})` : ""}
+          {t("Deleted")}{deletedCount > 0 ? ` (${deletedCount})` : ""}
         </Tab>
       </div>
 
@@ -51,14 +53,14 @@ export function ClientsList({ clients }: { clients: Row[] }) {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name, phone or email"
+          placeholder={t("Search name, phone or email")}
           className="pl-9"
         />
       </div>
 
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">
-          {tab === "deleted" ? "No deleted clients." : "No clients match your search."}
+          {tab === "deleted" ? t("No deleted clients.") : t("No clients match your search.")}
         </p>
       ) : (
         <Card className="divide-y divide-border">
@@ -76,7 +78,7 @@ export function ClientsList({ clients }: { clients: Row[] }) {
                 <div>
                   <p className="font-medium">
                     {c.full_name}
-                    {c.deleted && <span className="ml-2 text-xs font-normal text-rose-600">(Deleted)</span>}
+                    {c.deleted && <span className="ml-2 text-xs font-normal text-rose-600">{t("(Deleted)")}</span>}
                   </p>
                   {c.phone && (
                     <p className="flex items-center gap-1 text-sm text-muted-foreground">

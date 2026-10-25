@@ -13,6 +13,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { ConfirmButton } from "@/components/confirm-button";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { recordPayment, markReturned, extendRental, cancelRental, type RentalFormState } from "../actions";
+import { useT } from "@/lib/i18n/provider";
 
 type Panel = "payment" | "return" | "extend" | null;
 
@@ -31,6 +32,7 @@ export function RentalActions({
   remaining: number;
   currency: string;
 }) {
+  const t = useT();
   const [panel, setPanel] = useState<Panel>(null);
   const [extendState, extendAction] = useFormState(extendRental, {} as RentalFormState);
 
@@ -40,7 +42,7 @@ export function RentalActions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage rental</CardTitle>
+        <CardTitle>{t("Manage rental")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
@@ -48,7 +50,7 @@ export function RentalActions({
             href={`/rentals/${rentalId}/edit`}
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
           >
-            <Pencil className="h-4 w-4" /> Edit
+            <Pencil className="h-4 w-4" /> {t("Edit")}
           </Link>
           <a
             href={`/contract/${rentalId}`}
@@ -56,21 +58,21 @@ export function RentalActions({
             rel="noopener noreferrer"
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
           >
-            <FileText className="h-4 w-4" /> Kontrata
+            <FileText className="h-4 w-4" /> {t("Kontrata")}
           </a>
           {remaining > 0 && (
             <Button type="button" variant="outline" onClick={() => toggle("payment")}>
-              <CreditCard className="h-4 w-4" /> Record payment
+              <CreditCard className="h-4 w-4" /> {t("Record payment")}
             </Button>
           )}
           {isOpen && (
             <Button type="button" variant="outline" onClick={() => toggle("return")}>
-              <CheckCircle2 className="h-4 w-4" /> Mark returned
+              <CheckCircle2 className="h-4 w-4" /> {t("Mark returned")}
             </Button>
           )}
           {isOpen && (
             <Button type="button" variant="outline" onClick={() => toggle("extend")}>
-              <CalendarClock className="h-4 w-4" /> Extend
+              <CalendarClock className="h-4 w-4" /> {t("Extend")}
             </Button>
           )}
           {clientPhone && (
@@ -78,7 +80,7 @@ export function RentalActions({
               href={`tel:${clientPhone}`}
               className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
             >
-              <Phone className="h-4 w-4" /> Call client
+              <Phone className="h-4 w-4" /> {t("Call client")}
             </a>
           )}
         </div>
@@ -87,21 +89,21 @@ export function RentalActions({
           <form action={recordPayment} className="grid gap-3 rounded-md border border-border p-4 sm:grid-cols-2">
             <input type="hidden" name="rental_id" value={rentalId} />
             <div className="space-y-1.5">
-              <Label>Amount ({currency})</Label>
+              <Label>{t("Amount ({currency})", { currency })}</Label>
               <Input type="number" step="0.01" name="amount" placeholder={String(remaining)} required />
             </div>
             <div className="space-y-1.5">
-              <Label>Method</Label>
+              <Label>{t("Method")}</Label>
               <Select name="method" defaultValue="CASH">
                 {PAYMENT_METHODS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label}
+                    {t(m.label)}
                   </option>
                 ))}
               </Select>
             </div>
             <div className="sm:col-span-2">
-              <SubmitButton>Save payment</SubmitButton>
+              <SubmitButton>{t("Save payment")}</SubmitButton>
             </div>
           </form>
         )}
@@ -111,14 +113,14 @@ export function RentalActions({
             <input type="hidden" name="rental_id" value={rentalId} />
             <input type="hidden" name="vehicle_id" value={vehicleId} />
             <div className="space-y-1.5">
-              <Label>Return mileage (optional)</Label>
+              <Label>{t("Return mileage (optional)")}</Label>
               <Input type="number" name="return_mileage" placeholder="e.g. 121500" />
             </div>
             <div className="flex items-end">
-              <SubmitButton>Confirm return</SubmitButton>
+              <SubmitButton>{t("Confirm return")}</SubmitButton>
             </div>
             <p className="text-xs text-muted-foreground sm:col-span-2">
-              This completes the rental and marks the car available again.
+              {t("This completes the rental and marks the car available again.")}
             </p>
           </form>
         )}
@@ -128,11 +130,11 @@ export function RentalActions({
             <input type="hidden" name="rental_id" value={rentalId} />
             <input type="hidden" name="vehicle_id" value={vehicleId} />
             <div className="space-y-1.5">
-              <Label>New return date</Label>
+              <Label>{t("New return date")}</Label>
               <Input type="date" name="return_date" required />
             </div>
             <div className="space-y-1.5">
-              <Label>New return time</Label>
+              <Label>{t("New return time")}</Label>
               <Input type="time" name="return_time" defaultValue="18:00" />
             </div>
             {extendState.error && (
@@ -141,7 +143,7 @@ export function RentalActions({
               </p>
             )}
             <div className="sm:col-span-2">
-              <SubmitButton>Extend rental</SubmitButton>
+              <SubmitButton>{t("Extend rental")}</SubmitButton>
             </div>
           </form>
         )}
@@ -151,10 +153,10 @@ export function RentalActions({
             <ConfirmButton
               action={cancelRental}
               id={rentalId}
-              message="Cancel this rental? The car will be freed up."
+              message={t("Cancel this rental? The car will be freed up.")}
               className="inline-flex items-center gap-2 text-sm font-medium text-rose-600 hover:underline"
             >
-              <XCircle className="h-4 w-4" /> Cancel rental
+              <XCircle className="h-4 w-4" /> {t("Cancel rental")}
             </ConfirmButton>
           </div>
         )}

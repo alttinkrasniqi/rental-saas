@@ -166,7 +166,7 @@ const HTML = `
   <div class="hero-bg"><span class="blob a"></span><span class="blob b"></span></div>
   <div class="wrap hero-grid">
     <div class="reveal">
-      <span class="eyebrow"><span class="dot"></span> Platforma duhur për rent-a-car tuaj.</span>
+      <span class="eyebrow"><span class="dot"></span> Platforma për rent-a-car në Kosovë</span>
       <h1 style="margin-top:22px">Menaxho biznesin tënd. <span class="hl">Pa stres.</span></h1>
       <p class="lead">Rezervimet, klientët dhe makinat, të organizuara në një sistem të thjeshtë që ta lehtëson punën e përditshme, të gjitha brenda një platforme të vetme.</p>
       <div class="hero-cta">
@@ -238,7 +238,7 @@ const HTML = `
 </section>
 <section>
   <div class="wrap">
-    <div class="cta-final reveal"><h2>Gati për ta çuar biznesin tënd përpara?</h2><p>Regjistro biznesin tuaj në MenaxhoRentin dhe fillo të menaxhosh rezervimet online.</p><a class="btn btn-primary" href="/signup">Fillo falas sot</a></div>
+    <div class="cta-final reveal"><h2>Gati ta menaxhosh biznesin pa stres?</h2><p>Bashkohu me agjencitë që tashmë po e mbajnë rent-a-car biznesin e tyre të qetë dhe në rregull.</p><a class="btn btn-primary" href="/signup">Fillo falas sot</a></div>
   </div>
 </section>
 <footer>

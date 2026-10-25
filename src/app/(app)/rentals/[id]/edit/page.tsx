@@ -5,6 +5,7 @@ import { getBusiness } from "@/lib/business";
 import { numberToCents, rentalDays } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { EditRentalForm, type EditState } from "../edit-rental-form";
+import { getT } from "@/lib/i18n/server";
 
 function moneyToCents(v: FormDataEntryValue | null): number {
   const s = String(v ?? "").trim().replace(",", ".");
@@ -117,6 +118,7 @@ async function updateRentalAction(_prev: EditState, formData: FormData): Promise
 }
 
 export default async function EditRentalPage({ params }: { params: { id: string } }) {
+  const t = getT();
   const business = await getBusiness();
   const supabase = createClient();
 
@@ -134,7 +136,7 @@ export default async function EditRentalPage({ params }: { params: { id: string 
 
   return (
     <div>
-      <PageHeader title="Edit rental" subtitle="Change the booking details" />
+      <PageHeader title={t("Edit rental")} subtitle={t("Change the booking details")} />
       <EditRentalForm
         action={updateRentalAction}
         rental={rData}

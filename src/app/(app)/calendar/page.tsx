@@ -21,6 +21,7 @@ import { EmptyState } from "@/components/empty-state";
 import { toDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Vehicle } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 
@@ -40,6 +41,7 @@ export default async function CalendarPage({
 }: {
   searchParams: { view?: string; start?: string };
 }) {
+  const t = getT();
   const view = searchParams.view === "month" ? "month" : "week";
   const anchor = searchParams.start ? new Date(searchParams.start) : new Date();
 
@@ -89,7 +91,7 @@ export default async function CalendarPage({
 
   return (
     <div>
-      <PageHeader title="Calendar" subtitle="See what's booked and what's free at a glance" />
+      <PageHeader title={t("Calendar")} subtitle={t("See what's booked and what's free at a glance")} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -101,7 +103,7 @@ export default async function CalendarPage({
             <ChevronRight className="h-4 w-4" />
           </Link>
           <Link href={`/calendar?view=${view}`} className="ml-1 flex h-9 items-center rounded-md border border-input bg-white px-3 text-sm hover:bg-muted">
-            Today
+            {t("Today")}
           </Link>
         </div>
         <div className="flex items-center gap-1 rounded-md border border-input bg-white p-1">
@@ -109,13 +111,13 @@ export default async function CalendarPage({
             href="/calendar?view=week"
             className={cn("rounded px-3 py-1 text-sm font-medium", view === "week" ? "bg-primary/10 text-primary" : "text-muted-foreground")}
           >
-            Week
+            {t("Week")}
           </Link>
           <Link
             href="/calendar?view=month"
             className={cn("rounded px-3 py-1 text-sm font-medium", view === "month" ? "bg-primary/10 text-primary" : "text-muted-foreground")}
           >
-            Month
+            {t("Month")}
           </Link>
         </div>
       </div>
@@ -123,9 +125,9 @@ export default async function CalendarPage({
       {vehicles.length === 0 ? (
         <EmptyState
           icon={CalendarDays}
-          title="No cars to show"
-          description="Add cars to your fleet to see them on the calendar."
-          action={{ href: "/cars/new", label: "Add car" }}
+          title={t("No cars to show")}
+          description={t("Add cars to your fleet to see them on the calendar.")}
+          action={{ href: "/cars/new", label: t("Add car") }}
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-white">
@@ -172,7 +174,7 @@ export default async function CalendarPage({
                             )}
                           >
                             <span className="line-clamp-2">
-                              {isStart ? rental.client?.full_name ?? "Booked" : ""}
+                              {isStart ? rental.client?.full_name ?? t("Booked") : ""}
                             </span>
                           </Link>
                         </td>
@@ -197,8 +199,8 @@ export default async function CalendarPage({
       )}
 
       <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
-        <Legend className="bg-blue-500" label="Active (out)" />
-        <Legend className="bg-amber-400" label="Reserved" />
+        <Legend className="bg-blue-500" label={t("Active (out)")} />
+        <Legend className="bg-amber-400" label={t("Reserved")} />
       </div>
     </div>
   );

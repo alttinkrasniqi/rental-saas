@@ -8,6 +8,7 @@ import { DateFilter } from "@/components/date-filter";
 import { resolveRange, type RangePreset } from "@/lib/date-range";
 import { formatMoney, rentalDays, toDate, remainingCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function ReportsPage({
 }: {
   searchParams: { range?: string; from?: string; to?: string };
 }) {
+  const t = getT();
   const business = await getBusiness();
   const currency = business?.currency ?? "EUR";
   const supabase = createClient();
@@ -80,9 +82,9 @@ export default async function ReportsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Reports")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          How your business performed · {range.label}
+          {t("How your business performed · {range}", { range: range.label })}
         </p>
       </div>
 
@@ -91,27 +93,27 @@ export default async function ReportsPage({
       </Suspense>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric label="Revenue collected" value={formatMoney(revenue, currency)} />
-        <Metric label="Billed" value={formatMoney(billed, currency)} />
-        <Metric label="Outstanding" value={formatMoney(outstanding, currency)} tone={outstanding > 0 ? "rose" : undefined} />
-        <Metric label="Rentals" value={String(inPeriod.length)} />
+        <Metric label={t("Revenue collected")} value={formatMoney(revenue, currency)} />
+        <Metric label={t("Billed")} value={formatMoney(billed, currency)} />
+        <Metric label={t("Outstanding")} value={formatMoney(outstanding, currency)} tone={outstanding > 0 ? "rose" : undefined} />
+        <Metric label={t("Rentals")} value={String(inPeriod.length)} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric label="Active" value={String(statusCount("ACTIVE"))} />
-        <Metric label="Completed" value={String(statusCount("COMPLETED"))} />
-        <Metric label="Avg. duration" value={`${avgDuration} days`} />
-        <Metric label="Avg. per rental" value={formatMoney(avgRevenue, currency)} />
+        <Metric label={t("Active")} value={String(statusCount("ACTIVE"))} />
+        <Metric label={t("Completed")} value={String(statusCount("COMPLETED"))} />
+        <Metric label={t("Avg. duration")} value={t("{n} days", { n: avgDuration })} />
+        <Metric label={t("Avg. per rental")} value={formatMoney(avgRevenue, currency)} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Top cars by revenue</CardTitle>
+            <CardTitle>{t("Top cars by revenue")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {topCars.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No rentals in this period.</p>
+              <p className="text-sm text-muted-foreground">{t("No rentals in this period.")}</p>
             ) : (
               topCars.map((c, i) => (
                 <div key={i}>
@@ -125,7 +127,7 @@ export default async function ReportsPage({
                     <div className="h-full rounded-full bg-primary" style={{ width: `${(c.revenue / maxCarRev) * 100}%` }} />
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {c.count} rental{c.count > 1 ? "s" : ""} · {c.days} days
+                    {t(c.count === 1 ? "{n} rental" : "{n} rentals", { n: c.count })} · {t("{n} days", { n: c.days })}
                   </p>
                 </div>
               ))
@@ -135,18 +137,18 @@ export default async function ReportsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Top clients</CardTitle>
+            <CardTitle>{t("Top clients")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {topClients.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No clients in this period.</p>
+              <p className="text-sm text-muted-foreground">{t("No clients in this period.")}</p>
             ) : (
               topClients.map((c, i) => (
                 <div key={i} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
                   <div>
                     <p className="font-medium">{c.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {c.count} rental{c.count > 1 ? "s" : ""}
+                      {t(c.count === 1 ? "{n} rental" : "{n} rentals", { n: c.count })}
                     </p>
                   </div>
                   <span className="font-semibold">{formatMoney(c.spent, currency)}</span>
@@ -158,9 +160,9 @@ export default async function ReportsPage({
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Need the day-by-day view?{" "}
+        {t("Need the day-by-day view?")}{" "}
         <Link href="/calendar" className="text-primary hover:underline">
-          Open the calendar
+          {t("Open the calendar")}
         </Link>
         .
       </p>

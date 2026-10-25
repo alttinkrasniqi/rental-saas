@@ -12,6 +12,7 @@ import { archiveVehicle } from "../actions";
 import { formatMoney, formatDate, rentalDays } from "@/lib/format";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
 import type { Vehicle } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
 
 // Permanently delete a car. Because rentals reference the car, we remove the
 // car's rentals (and their payments) first, then the car itself.
@@ -33,6 +34,7 @@ async function deleteVehicleAction(formData: FormData) {
 }
 
 export default async function CarDetailPage({ params }: { params: { id: string } }) {
+  const t = getT();
   const business = await getBusiness();
   const currency = business?.currency ?? "EUR";
   const supabase = createClient();
@@ -62,19 +64,19 @@ export default async function CarDetailPage({ params }: { params: { id: string }
   const history = rentals.filter((r) => r.status === "COMPLETED" || r.status === "CANCELLED");
 
   const specs: [string, string | number | null][] = [
-    ["Year", vehicle.year],
-    ["Color", vehicle.color],
-    ["Fuel", vehicle.fuel_type],
-    ["Transmission", vehicle.transmission],
-    ["Seats", vehicle.seats],
-    ["Doors", vehicle.doors],
-    ["Mileage", vehicle.mileage != null ? `${vehicle.mileage.toLocaleString()} km` : null],
+    [t("Year"), vehicle.year],
+    [t("Color"), vehicle.color],
+    [t("Fuel"), vehicle.fuel_type],
+    [t("Transmission"), vehicle.transmission],
+    [t("Seats"), vehicle.seats],
+    [t("Doors"), vehicle.doors],
+    [t("Mileage"), vehicle.mileage != null ? `${vehicle.mileage.toLocaleString()} km` : null],
   ];
 
   return (
     <div className="space-y-6">
       <Link href="/cars" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to cars
+        <ArrowLeft className="h-4 w-4" /> {t("Back to cars")}
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -92,26 +94,25 @@ export default async function CarDetailPage({ params }: { params: { id: string }
             href={`/cars/${vehicle.id}/edit`}
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
           >
-            <Pencil className="h-4 w-4" /> Edit
+            <Pencil className="h-4 w-4" /> {t("Edit")}
           </Link>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Revenue collected" value={formatMoney(revenue, currency)} />
-        <StatCard label="Total rental days" value={String(totalDays)} />
-        <StatCard label="Daily price" value={`${formatMoney(vehicle.daily_price_cents, currency)}/day`} />
+        <StatCard label={t("Revenue collected")} value={formatMoney(revenue, currency)} />
+        <StatCard label={t("Total rental days")} value={String(totalDays)} />
+        <StatCard label={t("Daily price")} value={`${formatMoney(vehicle.daily_price_cents, currency)}${t("/day")}`} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Change status</CardTitle>
+          <CardTitle>{t("Change status")}</CardTitle>
         </CardHeader>
         <CardContent>
           <CarStatusActions id={vehicle.id} current={vehicle.status} />
           <p className="mt-3 text-xs text-muted-foreground">
-            Rented / Available is set automatically from this car&apos;s rentals. Use this only to put it
-            in or out of Maintenance.
+            {t("Rented / Available is set automatically from this car's rentals. Use this only to put it in or out of Maintenance.")}
           </p>
         </CardContent>
       </Card>
@@ -119,7 +120,7 @@ export default async function CarDetailPage({ params }: { params: { id: string }
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Details</CardTitle>
+            <CardTitle>{t("Details")}</CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-y-3 text-sm">
@@ -140,15 +141,15 @@ export default async function CarDetailPage({ params }: { params: { id: string }
 
         <Card>
           <CardHeader>
-            <CardTitle>Current & upcoming</CardTitle>
+            <CardTitle>{t("Current & upcoming")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {current && <RentalRow r={current} currency={currency} />}
+            {current && <RentalRow r={current} currency={currency} t={t} />}
             {upcoming.map((r) => (
-              <RentalRow key={r.id} r={r} currency={currency} />
+              <RentalRow key={r.id} r={r} currency={currency} t={t} />
             ))}
             {!current && upcoming.length === 0 && (
-              <p className="text-sm text-muted-foreground">No current or upcoming rentals.</p>
+              <p className="text-sm text-muted-foreground">{t("No current or upcoming rentals.")}</p>
             )}
           </CardContent>
         </Card>
@@ -156,13 +157,13 @@ export default async function CarDetailPage({ params }: { params: { id: string }
 
       <Card>
         <CardHeader>
-          <CardTitle>Rental history</CardTitle>
+          <CardTitle>{t("Rental history")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {history.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No past rentals yet.</p>
+            <p className="text-sm text-muted-foreground">{t("No past rentals yet.")}</p>
           ) : (
-            history.map((r) => <RentalRow key={r.id} r={r} currency={currency} />)
+            history.map((r) => <RentalRow key={r.id} r={r} currency={currency} t={t} />)
           )}
         </CardContent>
       </Card>
@@ -171,18 +172,18 @@ export default async function CarDetailPage({ params }: { params: { id: string }
         <ConfirmButton
           action={archiveVehicle}
           id={vehicle.id}
-          message="Archive this car? It will be hidden from your fleet but its history is kept."
+          message={t("Archive this car? It will be hidden from your fleet but its history is kept.")}
           className="text-sm font-medium text-slate-600 hover:underline"
         >
-          Archive this car
+          {t("Archive this car")}
         </ConfirmButton>
         <ConfirmButton
           action={deleteVehicleAction}
           id={vehicle.id}
-          message="Permanently DELETE this car? This also deletes all of its rentals and payment records and cannot be undone. (To simply hide it instead, use Archive.)"
+          message={t("Permanently DELETE this car? This also deletes all of its rentals and payment records and cannot be undone. (To simply hide it instead, use Archive.)")}
           className="text-sm font-medium text-rose-600 hover:underline"
         >
-          Delete permanently
+          {t("Delete permanently")}
         </ConfirmButton>
       </div>
     </div>
@@ -200,14 +201,14 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RentalRow({ r, currency }: { r: any; currency: string }) {
+function RentalRow({ r, currency, t }: { r: any; currency: string; t: (k: string, v?: Record<string, string | number>) => string }) {
   return (
     <Link
       href={`/rentals/${r.id}`}
       className="flex items-center justify-between gap-3 rounded-md border border-border p-3 hover:bg-muted"
     >
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{r.client?.full_name ?? "Client"}</p>
+        <p className="truncate text-sm font-medium">{r.client?.full_name ?? t("Client")}</p>
         <p className="text-xs text-muted-foreground">
           {formatDate(r.pickup_at)} → {formatDate(r.return_at)}
         </p>

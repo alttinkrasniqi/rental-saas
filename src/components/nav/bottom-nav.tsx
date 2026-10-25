@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOBILE_NAV_ITEMS } from "@/lib/nav";
+import { useT } from "@/lib/i18n/provider";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const t = useT();
 
   return (
     <>
@@ -34,7 +36,7 @@ export function BottomNav() {
               )}
             >
               <Icon className="h-5 w-5" />
-              {item.label}
+              {t(item.label)}
             </Link>
           );
         })}

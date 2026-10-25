@@ -9,10 +9,13 @@ import { NAV_ITEMS } from "@/lib/nav";
 import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { useT } from "@/lib/i18n/provider";
+import { LanguageSwitch } from "@/components/language-switch";
 
 export function MobileTopBar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const t = useT();
 
   return (
     <>
@@ -53,7 +56,7 @@ export function MobileTopBar({ businessName }: { businessName: string }) {
                 onClick={() => setOpen(false)}
                 className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
-                <Plus className="h-4 w-4" /> New Rental
+                <Plus className="h-4 w-4" /> {t("New Rental")}
               </Link>
             </div>
 
@@ -74,19 +77,20 @@ export function MobileTopBar({ businessName }: { businessName: string }) {
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 );
               })}
             </nav>
 
             <div className="border-t border-border p-3">
+              <LanguageSwitch />
               <form action={logout}>
                 <button
                   type="submit"
                   className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                  <LogOut className="h-4 w-4" /> Log out
+                  <LogOut className="h-4 w-4" /> {t("Log out")}
                 </button>
               </form>
             </div>

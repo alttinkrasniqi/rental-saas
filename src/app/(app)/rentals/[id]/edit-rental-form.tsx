@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/submit-button";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { formatMoney } from "@/lib/format";
+import { useT } from "@/lib/i18n/provider";
 
 export type EditState = { error?: string };
 
@@ -51,6 +52,7 @@ export function EditRentalForm({
   clients: ClientOption[];
   currency: string;
 }) {
+  const t = useT();
   const [state, formAction] = useFormState(action, {} as EditState);
 
   const p = splitUTC(rental.pickup_at);
@@ -77,11 +79,11 @@ export function EditRentalForm({
       {/* Client */}
       <Card>
         <CardHeader>
-          <CardTitle>Client</CardTitle>
+          <CardTitle>{t("Client")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Select name="client_id" value={clientId} onChange={(e) => setClientId(e.target.value)} required>
-            <option value="">Select a client…</option>
+            <option value="">{t("Select a client…")}</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.full_name}
@@ -94,16 +96,16 @@ export function EditRentalForm({
       {/* Dates */}
       <Card>
         <CardHeader>
-          <CardTitle>Rental period</CardTitle>
+          <CardTitle>{t("Rental period")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Pickup date</Label>
+              <Label>{t("Pickup date")}</Label>
               <Input type="date" name="pickup_date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required />
             </div>
             <div className="space-y-1.5">
-              <Label>Pickup time</Label>
+              <Label>{t("Pickup time")}</Label>
               <Input type="time" name="pickup_time" defaultValue={p.time} />
             </div>
           </div>
@@ -116,17 +118,17 @@ export function EditRentalForm({
               onChange={(e) => setOpenEnded(e.target.checked)}
               className="h-4 w-4"
             />
-            Flexible — no set return date (open-ended)
+            {t("Flexible — no set return date (open-ended)")}
           </label>
 
           {!openEnded && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Return date</Label>
+                <Label>{t("Return date")}</Label>
                 <Input type="date" name="return_date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required={!openEnded} />
               </div>
               <div className="space-y-1.5">
-                <Label>Return time</Label>
+                <Label>{t("Return time")}</Label>
                 <Input type="time" name="return_time" defaultValue={rental.open_ended ? "18:00" : r.time} />
               </div>
             </div>
@@ -137,19 +139,19 @@ export function EditRentalForm({
       {/* Car */}
       <Card>
         <CardHeader>
-          <CardTitle>Car</CardTitle>
+          <CardTitle>{t("Car")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Select name="vehicle_id" value={carId} onChange={(e) => setCarId(e.target.value)} required>
-            <option value="">Select a car…</option>
+            <option value="">{t("Select a car…")}</option>
             {cars.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.make} {c.model} — {c.plate} ({formatMoney(c.daily_price_cents, currency)}/day)
+                {c.make} {c.model} — {c.plate} ({formatMoney(c.daily_price_cents, currency)}{t("/day")})
               </option>
             ))}
           </Select>
           <p className="mt-2 text-xs text-muted-foreground">
-            If the car or dates clash with another booking, you&apos;ll get a warning when you save.
+            {t("If the car or dates clash with another booking, you'll get a warning when you save.")}
           </p>
         </CardContent>
       </Card>
@@ -157,32 +159,32 @@ export function EditRentalForm({
       {/* Price */}
       <Card>
         <CardHeader>
-          <CardTitle>Price</CardTitle>
+          <CardTitle>{t("Price")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>Price per day ({currency})</Label>
+            <Label>{t("Price per day ({currency})", { currency })}</Label>
             <Input type="number" step="0.01" name="daily_rate" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} required />
           </div>
           {!openEnded && (
             <div className="space-y-1.5">
-              <Label>Total ({currency})</Label>
+              <Label>{t("Total ({currency})", { currency })}</Label>
               <Input type="number" step="0.01" name="total" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="auto" />
               <p className="text-xs text-muted-foreground">
-                Clear this to recalculate as {days || 0} × daily rate, or set a custom total.
+                {t("Clear this to recalculate as {n} × daily rate, or set a custom total.", { n: days || 0 })}
               </p>
             </div>
           )}
           <div className="space-y-1.5">
-            <Label>Deposit ({currency})</Label>
+            <Label>{t("Deposit ({currency})", { currency })}</Label>
             <Input type="number" step="0.01" name="deposit" defaultValue={rental.deposit_cents ? (rental.deposit_cents / 100).toString() : ""} placeholder="0" />
           </div>
           <div className="space-y-1.5">
-            <Label>Payment method</Label>
+            <Label>{t("Payment method")}</Label>
             <Select name="payment_method" defaultValue={rental.payment_method ?? "CASH"}>
               {PAYMENT_METHODS.map((m) => (
                 <option key={m.value} value={m.value}>
-                  {m.label}
+                  {t(m.label)}
                 </option>
               ))}
             </Select>

@@ -6,8 +6,10 @@ import { Car } from "lucide-react";
 import { CarsList } from "./cars-list";
 import type { Vehicle } from "@/lib/types";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
+import { getT } from "@/lib/i18n/server";
 
 export default async function CarsPage() {
+  const t = getT();
   const business = await getBusiness();
   const supabase = createClient();
 
@@ -32,16 +34,16 @@ export default async function CarsPage() {
   return (
     <div>
       <PageHeader
-        title="Cars"
-        subtitle={`${vehicles.length} ${vehicles.length === 1 ? "vehicle" : "vehicles"} in your fleet`}
-        action={{ href: "/cars/new", label: "Add car" }}
+        title={t("Cars")}
+        subtitle={t(vehicles.length === 1 ? "{n} vehicle in your fleet" : "{n} vehicles in your fleet", { n: vehicles.length })}
+        action={{ href: "/cars/new", label: t("Add car") }}
       />
       {vehicles.length === 0 ? (
         <EmptyState
           icon={Car}
-          title="No cars yet"
-          description="Add your first car to start managing your fleet."
-          action={{ href: "/cars/new", label: "Add car" }}
+          title={t("No cars yet")}
+          description={t("Add your first car to start managing your fleet.")}
+          action={{ href: "/cars/new", label: t("Add car") }}
         />
       ) : (
         <CarsList vehicles={vehicles} currency={business?.currency ?? "EUR"} />

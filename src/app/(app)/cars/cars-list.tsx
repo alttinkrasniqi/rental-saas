@@ -10,8 +10,10 @@ import { formatMoney } from "@/lib/format";
 import { VEHICLE_STATUSES, VEHICLE_STATUS_META } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Vehicle, VehicleStatus } from "@/lib/types";
+import { useT } from "@/lib/i18n/provider";
 
 export function CarsList({ vehicles, currency }: { vehicles: Vehicle[]; currency: string }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<VehicleStatus | "ALL">("ALL");
 
@@ -36,24 +38,24 @@ export function CarsList({ vehicles, currency }: { vehicles: Vehicle[]; currency
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search make, model or plate"
+            placeholder={t("Search make, model or plate")}
             className="pl-9"
           />
         </div>
         <div className="flex flex-wrap gap-2">
           <FilterChip active={status === "ALL"} onClick={() => setStatus("ALL")}>
-            All
+            {t("All")}
           </FilterChip>
           {VEHICLE_STATUSES.map((s) => (
             <FilterChip key={s} active={status === s} onClick={() => setStatus(s)}>
-              {VEHICLE_STATUS_META[s].label}
+              {t(VEHICLE_STATUS_META[s].label)}
             </FilterChip>
           ))}
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">No cars match your search.</p>
+        <p className="py-10 text-center text-sm text-muted-foreground">{t("No cars match your search.")}</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((v) => (
@@ -71,7 +73,7 @@ export function CarsList({ vehicles, currency }: { vehicles: Vehicle[]; currency
                 <div className="mt-4 flex items-end justify-between">
                   <span className="text-lg font-semibold">
                     {formatMoney(v.daily_price_cents, currency)}
-                    <span className="text-sm font-normal text-muted-foreground">/day</span>
+                    <span className="text-sm font-normal text-muted-foreground">{t("/day")}</span>
                   </span>
                   {v.mileage != null && (
                     <span className="text-xs text-muted-foreground">

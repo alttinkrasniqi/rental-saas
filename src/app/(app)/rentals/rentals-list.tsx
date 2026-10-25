@@ -7,6 +7,7 @@ import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badge
 import { formatMoney, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { RentalStatus } from "@/lib/types";
+import { useT } from "@/lib/i18n/provider";
 
 const FILTERS: { value: RentalStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -17,6 +18,7 @@ const FILTERS: { value: RentalStatus | "ALL"; label: string }[] = [
 ];
 
 export function RentalsList({ rentals, currency }: { rentals: any[]; currency: string }) {
+  const t = useT();
   const [filter, setFilter] = useState<RentalStatus | "ALL">("ALL");
 
   const filtered = useMemo(
@@ -39,13 +41,13 @@ export function RentalsList({ rentals, currency }: { rentals: any[]; currency: s
                 : "border-input bg-white text-muted-foreground hover:bg-muted"
             )}
           >
-            {f.label}
+            {t(f.label)}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">No rentals in this view.</p>
+        <p className="py-10 text-center text-sm text-muted-foreground">{t("No rentals in this view.")}</p>
       ) : (
         <Card className="divide-y divide-border">
           {filtered.map((r) => (
@@ -56,11 +58,11 @@ export function RentalsList({ rentals, currency }: { rentals: any[]; currency: s
             >
               <div className="min-w-0">
                 <p className="truncate font-medium">
-                  {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : "Vehicle"}{" "}
+                  {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
                   <span className="text-muted-foreground">{r.vehicle?.plate}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {r.client?.full_name ?? "Client"} · {formatDate(r.pickup_at)} → {formatDate(r.return_at)}
+                  {r.client?.full_name ?? t("Client")} · {formatDate(r.pickup_at)} → {formatDate(r.return_at)}
                 </p>
               </div>
               <div className="flex items-center gap-2">

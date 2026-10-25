@@ -5,9 +5,11 @@ import { setVehicleStatus } from "../actions";
 import { VEHICLE_STATUSES, VEHICLE_STATUS_META } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { VehicleStatus } from "@/lib/types";
+import { useT } from "@/lib/i18n/provider";
 
 export function CarStatusActions({ id, current }: { id: string; current: VehicleStatus }) {
   const [pending, startTransition] = useTransition();
+  const t = useT();
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -24,7 +26,7 @@ export function CarStatusActions({ id, current }: { id: string; current: Vehicle
               : "border-input bg-white text-muted-foreground hover:bg-muted"
           )}
         >
-          {VEHICLE_STATUS_META[s].label}
+          {t(VEHICLE_STATUS_META[s].label)}
         </button>
       ))}
     </div>

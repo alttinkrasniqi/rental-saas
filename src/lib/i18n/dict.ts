@@ -1,0 +1,342 @@
+// Albanian translations keyed by the English source string (gettext style).
+// Anything not found here falls back to the English key, so the app never breaks.
+// {name} placeholders are filled by translate(..., vars).
+
+export type Locale = "sq" | "en";
+export const LOCALES: Locale[] = ["sq", "en"];
+export const DEFAULT_LOCALE: Locale = "sq";
+export const LOCALE_COOKIE = "mr_locale";
+
+export const SQ: Record<string, string> = {
+  // nav
+  "Dashboard": "Paneli",
+  "Calendar": "Kalendari",
+  "Rentals": "Rezervimet",
+  "Cars": "Makinat",
+  "Clients": "Klientët",
+  "Reports": "Raportet",
+  "Settings": "Cilësimet",
+  "Website": "Faqja",
+  "Requests": "Kërkesat",
+  "New Rental": "Rezervim i ri",
+  "New rental": "Rezervim i ri",
+  "Log out": "Dil",
+  "Language": "Gjuha",
+  "Choose the language of the app.": "Zgjidh gjuhën e aplikacionit.",
+
+  // common buttons / words
+  "All": "Të gjitha",
+  "Cancel": "Anulo",
+  "Save changes": "Ruaj ndryshimet",
+  "Edit": "Ndrysho",
+  "Back": "Kthehu",
+  "Add car": "Shto makinë",
+  "Confirm rental": "Konfirmo rezervimin",
+  "Summary": "Përmbledhje",
+  "Notes": "Shënime",
+  "Notes (optional)": "Shënime (opsionale)",
+  "Status": "Statusi",
+
+  // vehicle statuses
+  "Available": "E lirë",
+  "Rented": "E zënë",
+  "Reserved": "E rezervuar",
+  "Maintenance": "Mirëmbajtje",
+  "Unavailable": "E padisponueshme",
+  // rental statuses
+  "Active": "Aktive",
+  "Completed": "E përfunduar",
+  "Cancelled": "E anuluar",
+  // payment states
+  "Paid": "E paguar",
+  "Partially paid": "Pjesërisht e paguar",
+  "Unpaid": "E papaguar",
+  // payment methods
+  "Cash": "Para në dorë",
+  "Bank transfer": "Transfertë bankare",
+  "Card": "Kartë",
+  "Other": "Tjetër",
+
+  // page headers / lists
+  "{n} total": "{n} gjithsej",
+  "{n} vehicle in your fleet": "{n} makinë në flotë",
+  "{n} vehicles in your fleet": "{n} makina në flotë",
+  "Add a vehicle to your fleet": "Shto një makinë në flotën tënde",
+  "No cars yet": "Ende s'ka makina",
+  "Add your first car to start managing your fleet.": "Shto makinën e parë për të filluar menaxhimin e flotës.",
+  "No rentals yet": "Ende s'ka rezervime",
+  "Create your first rental to see it here and on your calendar.": "Krijo rezervimin e parë për ta parë këtu dhe në kalendar.",
+  "No cars to show": "S'ka makina për të shfaqur",
+  "Add cars to your fleet to see them on the calendar.": "Shto makina në flotë për t'i parë në kalendar.",
+  "Search make, model or plate": "Kërko markën, modelin ose targën",
+  "Search name, phone or email": "Kërko emrin, telefonin ose email-in",
+  "No cars match your search.": "Asnjë makinë nuk përputhet me kërkimin.",
+  "No rentals in this view.": "S'ka rezervime në këtë pamje.",
+  "No clients match your search.": "Asnjë klient nuk përputhet me kërkimin.",
+  "No deleted clients.": "S'ka klientë të fshirë.",
+  "/day": "/ditë",
+
+  // cars detail / form
+  "Make": "Marka",
+  "Model": "Modeli",
+  "Registration plate": "Targa",
+  "Year": "Viti",
+  "Daily price (€)": "Çmimi ditor (€)",
+  "Color": "Ngjyra",
+  "Mileage (km)": "Kilometrazhi (km)",
+  "Fuel type": "Lloji i karburantit",
+  "Transmission": "Transmisioni",
+  "Seats": "Ulëse",
+  "Doors": "Dyer",
+  "Anything worth remembering about this car": "Çdo gjë që ia vlen të mbahet mend për këtë makinë",
+  "Make and model are required.": "Marka dhe modeli janë të detyrueshme.",
+  "Registration plate is required.": "Targa është e detyrueshme.",
+  "Edit {name}": "Ndrysho {name}",
+  "Back to cars": "Kthehu te makinat",
+  "Change status": "Ndrysho statusin",
+  "Rented / Available is set automatically from this car's rentals. Use this only to put it in or out of Maintenance.":
+    "“E zënë / E lirë” caktohet automatikisht nga rezervimet e kësaj makine. Përdore këtë vetëm për ta vendosur në/jashtë Mirëmbajtjeje.",
+  "Revenue collected": "Të ardhura të mbledhura",
+  "Total rental days": "Ditë qiraje gjithsej",
+  "Daily price": "Çmimi ditor",
+  "Details": "Detaje",
+  "Fuel": "Karburanti",
+  "Mileage": "Kilometrazhi",
+  "Current & upcoming": "Aktuale & të ardhshme",
+  "No current or upcoming rentals.": "S'ka rezervime aktuale apo të ardhshme.",
+  "Rental history": "Historiku i rezervimeve",
+  "No past rentals yet.": "Ende s'ka rezervime të kaluara.",
+  "Client": "Klienti",
+  "Archive this car": "Arkivo këtë makinë",
+  "Archive this car? It will be hidden from your fleet but its history is kept.":
+    "Të arkivohet kjo makinë? Do të fshihet nga flota, por historiku ruhet.",
+  "Delete permanently": "Fshij përgjithmonë",
+  "Permanently DELETE this car? This also deletes all of its rentals and payment records and cannot be undone. (To simply hide it instead, use Archive.)":
+    "Të FSHIHET përgjithmonë kjo makinë? Kjo fshin edhe të gjitha rezervimet dhe pagesat e saj dhe s'mund të kthehet. (Për ta fshehur vetëm, përdor Arkivo.)",
+
+  // rentals list filters
+  "Vehicle": "Makina",
+  "Vehicle removed": "Makina u hoq",
+  "Client removed": "Klienti u hoq",
+
+  // rental detail
+  "Back to rentals": "Kthehu te rezervimet",
+  "Booking #{id}": "Rezervimi #{id}",
+  "Open-ended": "I hapur",
+  "Financial": "Financat",
+  "Rate": "Tarifa",
+  "Running total ({n} day so far)": "Total aktual ({n} ditë deri tani)",
+  "Running total ({n} days so far)": "Total aktual ({n} ditë deri tani)",
+  "Total ({n} day)": "Totali ({n} ditë)",
+  "Total ({n} days)": "Totali ({n} ditë)",
+  "Total": "Totali",
+  "Paid:label": "Paguar",
+  "Remaining": "Mbetet",
+  "Deposit held: {v}": "Depozitë e mbajtur: {v}",
+  "Manage rental": "Menaxho rezervimin",
+  "Record payment": "Regjistro pagesë",
+  "Mark returned": "Shëno si të kthyer",
+  "Extend": "Zgjat",
+  "Call client": "Thirr klientin",
+  "Kontrata": "Kontrata",
+  "Amount ({currency})": "Shuma ({currency})",
+  "Method": "Mënyra",
+  "Save payment": "Ruaj pagesën",
+  "Return mileage (optional)": "Kilometrazhi në kthim (opsional)",
+  "Confirm return": "Konfirmo kthimin",
+  "This completes the rental and marks the car available again.":
+    "Kjo e përfundon rezervimin dhe e bën makinën sërish të lirë.",
+  "New return date": "Data e re e kthimit",
+  "New return time": "Ora e re e kthimit",
+  "Extend rental": "Zgjat rezervimin",
+  "Cancel rental": "Anulo rezervimin",
+  "Cancel this rental? The car will be freed up.": "Të anulohet ky rezervim? Makina do të lirohet.",
+  "Payments": "Pagesat",
+  "Pickup": "Marrja",
+  "Return": "Kthimi",
+  "Open-ended — set when returned": "I hapur — caktohet në kthim",
+  "Returned": "U kthye",
+  "Created": "Krijuar",
+  "Delete this rental": "Fshij këtë rezervim",
+  "Permanently DELETE this rental? This removes it and its payment records for good and cannot be undone. (To keep a record of it but void it, use Cancel instead.)":
+    "Të FSHIHET përgjithmonë ky rezervim? E heq atë dhe pagesat e tij përfundimisht dhe s'mund të kthehet. (Për ta mbajtur si regjistrim por i anuluar, përdor Anulo.)",
+
+  // rental form
+  "1 · Client": "1 · Klienti",
+  "2 · Rental period": "2 · Periudha e qirasë",
+  "3 · Car": "3 · Makina",
+  "4 · Price & payment": "4 · Çmimi & pagesa",
+  "Select a client…": "Zgjidh një klient…",
+  "➕ Add a new client": "➕ Shto një klient të ri",
+  "New client name": "Emri i klientit të ri",
+  "Phone": "Telefoni",
+  "Pickup date": "Data e marrjes",
+  "Pickup time": "Ora e marrjes",
+  "Return date": "Data e kthimit",
+  "Return time": "Ora e kthimit",
+  "Flexible — no set return date (open-ended)": "Fleksibël — pa datë kthimi fikse (i hapur)",
+  "The car stays out until you mark it returned. The total adds up automatically, one day at a time, from the pickup date.":
+    "Makina qëndron jashtë derisa ta shënosh si të kthyer. Totali shtohet automatikisht, ditë pas dite, nga data e marrjes.",
+  "You have no cars yet.": "Ende s'ke makina.",
+  "Add a car first": "Shto fillimisht një makinë",
+  "Choose your dates above and the free cars will appear here.":
+    "Zgjidh datat lart dhe makinat e lira do të shfaqen këtu.",
+  "Booked": "E zënë",
+  "Price per day ({currency})": "Çmimi për ditë ({currency})",
+  "Total ({currency})": "Totali ({currency})",
+  "Leave as-is for {n} × daily rate, or type a custom total.":
+    "Lëre si është për {n} × tarifa ditore, ose shkruaj një total të zgjedhur.",
+  "Deposit ({currency})": "Depozita ({currency})",
+  "Amount paid now ({currency})": "Shuma e paguar tani ({currency})",
+  "Payment method": "Mënyra e pagesës",
+  "Anything to remember about this rental": "Çdo gjë për të mbajtur mend për këtë rezervim",
+  "Duration": "Kohëzgjatja",
+  "New client": "Klient i ri",
+  "{n} day": "{n} ditë",
+  "{n} days": "{n} ditë",
+  "Adds up daily": "Shtohet çdo ditë",
+  "Car": "Makina",
+  "Please choose a client.": "Të lutem zgjidh një klient.",
+  "Please choose a car.": "Të lutem zgjidh një makinë.",
+  "Enter the new client's name.": "Shkruaj emrin e klientit të ri.",
+  "Could not create the new client.": "S'u krijua dot klienti i ri.",
+  "Please choose a pickup date.": "Të lutem zgjidh një datë marrjeje.",
+  "Please choose a return date (or turn on the flexible option).":
+    "Të lutem zgjidh një datë kthimi (ose aktivizo opsionin fleksibël).",
+  "The return date must be after the pickup date.": "Data e kthimit duhet të jetë pas datës së marrjes.",
+  "This car is already booked for those dates{who}. Pick different dates or another car.":
+    "Kjo makinë është tashmë e zënë për ato data{who}. Zgjidh data të tjera ose një makinë tjetër.",
+  "Could not create the rental.": "S'u krijua dot rezervimi.",
+
+  // edit rental
+  "Rental period": "Periudha e qirasë",
+  "Select a car…": "Zgjidh një makinë…",
+  "If the car or dates clash with another booking, you'll get a warning when you save.":
+    "Nëse makina ose datat përplasen me një rezervim tjetër, do të marrësh njoftim kur të ruash.",
+  "Price": "Çmimi",
+  "Clear this to recalculate as {n} × daily rate, or set a custom total.":
+    "Pastroje për ta rillogaritur si {n} × tarifa ditore, ose vendos një total të zgjedhur.",
+
+  // clients
+  "{n} client": "{n} klient",
+  "{n} clients": "{n} klientë",
+  "Add client": "Shto klient",
+  "No clients yet": "Ende s'ka klientë",
+  "Add clients here, or create one on the fly when you make a rental.":
+    "Shto klientë këtu, ose krijo një aty për aty kur bën një rezervim.",
+  "New client (details)": "Klient i ri",
+  "Edit client": "Ndrysho klientin",
+  "Full name": "Emri i plotë",
+  "Email": "Email",
+  "Address": "Adresa",
+  "Country": "Shteti",
+  "ID number": "Numri personal / ID",
+  "License number": "Numri i patentës",
+  "Client name is required.": "Emri i klientit është i detyrueshëm.",
+  "Save client": "Ruaj klientin",
+  "New rental for this client": "Rezervim i ri për këtë klient",
+  "Total spent": "Totali i shpenzuar",
+  "Rentals:count": "Rezervime",
+  "Contact": "Kontakti",
+  "No rentals for this client yet.": "Ende s'ka rezervime për këtë klient.",
+  "Delete client": "Fshij klientin",
+  "Add a new rental": "Shto rezervim të ri",
+  "Fill in the client, dates, car and price": "Plotëso klientin, datat, makinën dhe çmimin",
+  "Active:tab": "Aktivë",
+  "Deleted": "Të fshirë",
+  "(Deleted)": "(I fshirë)",
+
+  // calendar
+  "See what's booked and what's free at a glance": "Shiko me një vështrim çfarë është e zënë dhe çfarë e lirë",
+  "Today": "Sot",
+  "Week": "Javë",
+  "Month": "Muaj",
+  "Active (out)": "Aktive (jashtë)",
+
+  // reports
+  "How your business performed · {range}": "Si eci biznesi yt · {range}",
+  "Billed": "Faturuar",
+  "Outstanding": "Pezull",
+  "Avg. duration": "Kohëzgjatja mesatare",
+  "Avg. per rental": "Mesatarja për rezervim",
+  "Top cars by revenue": "Makinat kryesore sipas të ardhurave",
+  "Top clients": "Klientët kryesorë",
+  "No rentals in this period.": "S'ka rezervime në këtë periudhë.",
+  "No clients in this period.": "S'ka klientë në këtë periudhë.",
+  "Need the day-by-day view?": "Të duhet pamja ditë-për-ditë?",
+  "Open the calendar": "Hap kalendarin",
+  "{n} rental": "{n} rezervim",
+  "{n} rentals": "{n} rezervime",
+
+  // settings
+  "Your business profile": "Profili i biznesit tënd",
+  "Your public booking page": "Faqja jote publike e rezervimeve",
+  "Share this link with customers so they can reserve online.":
+    "Ndaje këtë link me klientët që të rezervojnë online.",
+  "Business name is required.": "Emri i biznesit është i detyrueshëm.",
+  "Saved.": "U ruajt.",
+  "Pick the dates, then choose a free car": "Zgjidh datat, pastaj një makinë të lirë",
+  "Edit rental": "Ndrysho rezervimin",
+  "Change the booking details": "Ndrysho detajet e rezervimit",
+
+  // dashboard
+  "Here's what's happening today.": "Ja çfarë po ndodh sot.",
+  "Needs attention": "Kërkon vëmendje",
+  "Total cars": "Makina gjithsej",
+  "Active rentals": "Rezervime aktive",
+  "Revenue today": "Të ardhura sot",
+  "This week": "Këtë javë",
+  "This month": "Këtë muaj",
+  "Online bookings": "Rezervime online",
+  "booked {date}": "rezervuar më {date}",
+  "Cars still out": "Makina ende jashtë",
+  "{n} day out": "{n} ditë jashtë",
+  "{n} days out": "{n} ditë jashtë",
+  "open-ended": "i hapur",
+  "Pickups": "Marrjet",
+  "Returns": "Kthimet",
+  "No pickups today.": "S'ka marrje sot.",
+  "No returns today.": "S'ka kthime sot.",
+  "Upcoming": "Të ardhshme",
+  "Nothing scheduled. Your fleet is free.": "Asgjë e planifikuar. Flota jote është e lirë.",
+  "Overdue · {n} day": "Me vonesë · {n} ditë",
+  "Overdue · {n} days": "Me vonesë · {n} ditë",
+  "Due back today": "Duhet kthyer sot",
+  "was due {date} {time}": "ishte për t'u kthyer më {date} {time}",
+  "{count} new online booking in the last 3 days — scroll down to review.":
+    "{count} rezervim i ri online në 3 ditët e fundit — shfletoni poshtë.",
+  "{count} new online bookings in the last 3 days — scroll down to review.":
+    "{count} rezervime të reja online në 3 ditët e fundit — shfletoni poshtë.",
+  "{n} rental is overdue — the car should already be back. Confirm the return or extend.":
+    "{n} rezervim ka vonesë — makina duhej të ishte kthyer. Konfirmo kthimin ose zgjate.",
+  "{n} rentals are overdue — the cars should already be back. Confirm the return or extend.":
+    "{n} rezervime kanë vonesë — makinat duhej të ishin kthyer. Konfirmo kthimin ose zgjati.",
+  "{n} car is due back today — mark as returned when you get it, or extend.":
+    "{n} makinë duhet kthyer sot — shënoje si të kthyer kur ta marrësh, ose zgjate.",
+  "{n} cars are due back today — mark as returned when you get them, or extend.":
+    "{n} makina duhet kthyer sot — shënoji si të kthyera kur t'i marrësh, ose zgjati.",
+
+  // requests
+  "Online booking requests": "Kërkesat për rezervim online",
+  "Reservations from your website waiting for your approval. The car is held for these dates until you decide —":
+    "Rezervime nga faqja jote që presin miratimin tënd. Makina mbahet për këto data derisa të vendosësh —",
+  "Approve": "Mirato",
+  "confirms the booking,": "e konfirmon rezervimin,",
+  "Decline": "Refuzo",
+  "frees the car.": "e liron makinën.",
+  "No pending requests right now. New bookings from your website will appear here.":
+    "S'ka kërkesa në pritje tani. Rezervimet e reja nga faqja jote do të shfaqen këtu.",
+  "WhatsApp": "WhatsApp",
+  "Something went wrong.": "Diçka shkoi keq.",
+
+  // onboarding / settings shared
+  "Set up your business": "Konfiguro biznesin tënd",
+  "Just a few details to get started. You can change these later in Settings.":
+    "Vetëm pak detaje për të filluar. Mund t'i ndryshosh më vonë te Cilësimet.",
+  "Business name": "Emri i biznesit",
+  "Phone (optional)": "Telefoni (opsional)",
+  "Currency": "Monedha",
+  "Timezone": "Zona orare",
+  "Continue": "Vazhdo",
+  "Please enter your business name.": "Të lutem shkruaj emrin e biznesit.",
+};

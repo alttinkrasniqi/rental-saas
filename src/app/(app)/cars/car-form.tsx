@@ -11,6 +11,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { VEHICLE_STATUSES, VEHICLE_STATUS_META, FUEL_TYPES, TRANSMISSIONS } from "@/lib/constants";
 import type { Vehicle } from "@/lib/types";
 import type { VehicleFormState } from "./actions";
+import { useT } from "@/lib/i18n/provider";
 
 type Action = (prev: VehicleFormState, formData: FormData) => Promise<VehicleFormState>;
 
@@ -23,6 +24,7 @@ export function CarForm({
   vehicle?: Vehicle;
   submitLabel: string;
 }) {
+  const t = useT();
   const [state, formAction] = useFormState(action, {} as VehicleFormState);
   const priceValue = vehicle ? (vehicle.daily_price_cents / 100).toString() : "";
 
@@ -32,26 +34,26 @@ export function CarForm({
 
       <Card>
         <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-          <Field label="Make" required>
+          <Field label={t("Make")} required>
             <Input name="make" defaultValue={vehicle?.make} placeholder="BMW" required />
           </Field>
-          <Field label="Model" required>
+          <Field label={t("Model")} required>
             <Input name="model" defaultValue={vehicle?.model} placeholder="5 Series" required />
           </Field>
-          <Field label="Registration plate" required>
+          <Field label={t("Registration plate")} required>
             <Input name="plate" defaultValue={vehicle?.plate} placeholder="01-777-KS" required />
           </Field>
-          <Field label="Year">
+          <Field label={t("Year")}>
             <Input name="year" type="number" defaultValue={vehicle?.year ?? ""} placeholder="2020" />
           </Field>
-          <Field label="Daily price (€)" required>
+          <Field label={t("Daily price (€)")} required>
             <Input name="daily_price" type="number" step="0.01" defaultValue={priceValue} placeholder="60" required />
           </Field>
-          <Field label="Status">
+          <Field label={t("Status")}>
             <Select name="status" defaultValue={vehicle?.status ?? "AVAILABLE"}>
               {VEHICLE_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {VEHICLE_STATUS_META[s].label}
+                  {t(VEHICLE_STATUS_META[s].label)}
                 </option>
               ))}
             </Select>
@@ -61,13 +63,13 @@ export function CarForm({
 
       <Card>
         <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-          <Field label="Color">
+          <Field label={t("Color")}>
             <Input name="color" defaultValue={vehicle?.color ?? ""} placeholder="Black" />
           </Field>
-          <Field label="Mileage (km)">
+          <Field label={t("Mileage (km)")}>
             <Input name="mileage" type="number" defaultValue={vehicle?.mileage ?? ""} placeholder="120000" />
           </Field>
-          <Field label="Fuel type">
+          <Field label={t("Fuel type")}>
             <Select name="fuel_type" defaultValue={vehicle?.fuel_type ?? ""}>
               <option value="">—</option>
               {FUEL_TYPES.map((f) => (
@@ -77,7 +79,7 @@ export function CarForm({
               ))}
             </Select>
           </Field>
-          <Field label="Transmission">
+          <Field label={t("Transmission")}>
             <Select name="transmission" defaultValue={vehicle?.transmission ?? ""}>
               <option value="">—</option>
               {TRANSMISSIONS.map((t) => (
@@ -87,15 +89,15 @@ export function CarForm({
               ))}
             </Select>
           </Field>
-          <Field label="Seats">
+          <Field label={t("Seats")}>
             <Input name="seats" type="number" defaultValue={vehicle?.seats ?? ""} placeholder="5" />
           </Field>
-          <Field label="Doors">
+          <Field label={t("Doors")}>
             <Input name="doors" type="number" defaultValue={vehicle?.doors ?? ""} placeholder="4" />
           </Field>
           <div className="sm:col-span-2">
-            <Field label="Notes">
-              <Textarea name="notes" defaultValue={vehicle?.notes ?? ""} placeholder="Anything worth remembering about this car" />
+            <Field label={t("Notes")}>
+              <Textarea name="notes" defaultValue={vehicle?.notes ?? ""} placeholder={t("Anything worth remembering about this car")} />
             </Field>
           </div>
         </CardContent>
@@ -111,7 +113,7 @@ export function CarForm({
           href={vehicle ? `/cars/${vehicle.id}` : "/cars"}
           className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
         >
-          Cancel
+          {t("Cancel")}
         </Link>
       </div>
     </form>

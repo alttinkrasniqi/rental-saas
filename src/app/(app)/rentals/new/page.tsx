@@ -2,12 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { RentalForm } from "../rental-form";
+import { getT } from "@/lib/i18n/server";
 
 export default async function NewRentalPage({
   searchParams,
 }: {
   searchParams: { client?: string; vehicle?: string; date?: string };
 }) {
+  const t = getT();
   const business = await getBusiness();
   const supabase = createClient();
 
@@ -36,7 +38,7 @@ export default async function NewRentalPage({
 
   return (
     <div>
-      <PageHeader title="New rental" subtitle="Pick the dates, then choose a free car" />
+      <PageHeader title={t("New rental")} subtitle={t("Pick the dates, then choose a free car")} />
       <RentalForm
         cars={cars ?? []}
         clients={clients ?? []}

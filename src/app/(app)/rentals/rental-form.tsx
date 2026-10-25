@@ -14,6 +14,7 @@ import { PAYMENT_METHODS } from "@/lib/constants";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { createRental, type RentalFormState } from "./actions";
+import { useT } from "@/lib/i18n/provider";
 
 interface CarOption {
   id: string;
@@ -50,6 +51,7 @@ export function RentalForm({
   preselectVehicleId?: string;
   presetPickupDate?: string;
 }) {
+  const t = useT();
   const [state, formAction] = useFormState(createRental, {} as RentalFormState);
 
   const presetCar = cars.find((c) => c.id === preselectVehicleId);
@@ -115,12 +117,12 @@ export function RentalForm({
         {/* 1. Client */}
         <Card>
           <CardHeader>
-            <CardTitle>1 · Client</CardTitle>
+            <CardTitle>{t("1 · Client")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Select name="client_id" value={clientId} onChange={(e) => setClientId(e.target.value)} required>
-              <option value="">Select a client…</option>
-              <option value="__new__">➕ Add a new client</option>
+              <option value="">{t("Select a client…")}</option>
+              <option value="__new__">{t("➕ Add a new client")}</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.full_name}
@@ -130,11 +132,11 @@ export function RentalForm({
             {clientId === "__new__" && (
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>New client name</Label>
+                  <Label>{t("New client name")}</Label>
                   <Input name="new_client_name" placeholder="John Smith" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Phone</Label>
+                  <Label>{t("Phone")}</Label>
                   <Input name="new_client_phone" placeholder="+383 4X XXX XXX" />
                 </div>
               </div>
@@ -145,16 +147,16 @@ export function RentalForm({
         {/* 2. Dates */}
         <Card>
           <CardHeader>
-            <CardTitle>2 · Rental period</CardTitle>
+            <CardTitle>{t("2 · Rental period")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Pickup date</Label>
+                <Label>{t("Pickup date")}</Label>
                 <Input type="date" name="pickup_date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required />
               </div>
               <div className="space-y-1.5">
-                <Label>Pickup time</Label>
+                <Label>{t("Pickup time")}</Label>
                 <Input type="time" name="pickup_time" defaultValue="09:00" />
               </div>
             </div>
@@ -167,22 +169,21 @@ export function RentalForm({
                 onChange={(e) => setOpenEnded(e.target.checked)}
                 className="h-4 w-4"
               />
-              Flexible — no set return date (open-ended)
+              {t("Flexible — no set return date (open-ended)")}
             </label>
 
             {openEnded ? (
               <p className="text-sm text-muted-foreground">
-                The car stays out until you mark it returned. The total adds up automatically,
-                one day at a time, from the pickup date.
+                {t("The car stays out until you mark it returned. The total adds up automatically, one day at a time, from the pickup date.")}
               </p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Return date</Label>
+                  <Label>{t("Return date")}</Label>
                   <Input type="date" name="return_date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required={!openEnded} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Return time</Label>
+                  <Label>{t("Return time")}</Label>
                   <Input type="time" name="return_time" defaultValue="18:00" />
                 </div>
               </div>
@@ -193,20 +194,20 @@ export function RentalForm({
         {/* 3. Car (with availability for the chosen dates) */}
         <Card>
           <CardHeader>
-            <CardTitle>3 · Car</CardTitle>
+            <CardTitle>{t("3 · Car")}</CardTitle>
           </CardHeader>
           <CardContent>
             {cars.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                You have no cars yet.{" "}
+                {t("You have no cars yet.")}{" "}
                 <Link href="/cars/new" className="text-primary hover:underline">
-                  Add a car first
+                  {t("Add a car first")}
                 </Link>
                 .
               </p>
             ) : !canCheck ? (
               <p className="text-sm text-muted-foreground">
-                Choose your dates above and the free cars will appear here.
+                {t("Choose your dates above and the free cars will appear here.")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -233,11 +234,11 @@ export function RentalForm({
                       </div>
                       {booked ? (
                         <span className="shrink-0 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
-                          Booked{booked.by ? ` · ${booked.by}` : ""}
+                          {t("Booked")}{booked.by ? ` · ${booked.by}` : ""}
                         </span>
                       ) : (
                         <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                          Available
+                          {t("Available")}
                         </span>
                       )}
                     </button>
@@ -252,11 +253,11 @@ export function RentalForm({
         {/* 4. Money */}
         <Card>
           <CardHeader>
-            <CardTitle>4 · Price & payment</CardTitle>
+            <CardTitle>{t("4 · Price & payment")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Price per day ({currency})</Label>
+              <Label>{t("Price per day ({currency})", { currency })}</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -269,7 +270,7 @@ export function RentalForm({
             </div>
             {!openEnded && (
               <div className="space-y-1.5">
-                <Label>Total ({currency})</Label>
+                <Label>{t("Total ({currency})", { currency })}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -281,15 +282,15 @@ export function RentalForm({
                   }}
                   placeholder="auto"
                 />
-                <p className="text-xs text-muted-foreground">Leave as-is for {days || 0} × daily rate, or type a custom total.</p>
+                <p className="text-xs text-muted-foreground">{t("Leave as-is for {n} × daily rate, or type a custom total.", { n: days || 0 })}</p>
               </div>
             )}
             <div className="space-y-1.5">
-              <Label>Deposit ({currency})</Label>
+              <Label>{t("Deposit ({currency})", { currency })}</Label>
               <Input type="number" step="0.01" name="deposit" placeholder="0" />
             </div>
             <div className="space-y-1.5">
-              <Label>Amount paid now ({currency})</Label>
+              <Label>{t("Amount paid now ({currency})", { currency })}</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -300,11 +301,11 @@ export function RentalForm({
               />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Payment method</Label>
+              <Label>{t("Payment method")}</Label>
               <Select name="payment_method" defaultValue="CASH">
                 {PAYMENT_METHODS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label}
+                    {t(m.label)}
                   </option>
                 ))}
               </Select>
@@ -314,10 +315,10 @@ export function RentalForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Notes (optional)</CardTitle>
+            <CardTitle>{t("Notes (optional)")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea name="notes" placeholder="Anything to remember about this rental" />
+            <Textarea name="notes" placeholder={t("Anything to remember about this rental")} />
           </CardContent>
         </Card>
       </div>
@@ -327,30 +328,30 @@ export function RentalForm({
         <div className="lg:sticky lg:top-6">
           <Card>
             <CardHeader>
-              <CardTitle>Summary</CardTitle>
+              <CardTitle>{t("Summary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <SummaryRow label="Client" value={clientId === "__new__" ? "New client" : selectedClient?.full_name ?? "—"} />
-              <SummaryRow label="Duration" value={openEnded ? "Open-ended" : days ? `${days} ${days === 1 ? "day" : "days"}` : "—"} />
+              <SummaryRow label={t("Client")} value={clientId === "__new__" ? t("New client") : selectedClient?.full_name ?? "—"} />
+              <SummaryRow label={t("Duration")} value={openEnded ? t("Open-ended") : days ? t(days === 1 ? "{n} day" : "{n} days", { n: days }) : "—"} />
               <SummaryRow
-                label="Car"
+                label={t("Car")}
                 value={selectedCar ? `${selectedCar.make} ${selectedCar.model}` : "—"}
               />
               {selectedCar && <p className="-mt-2 text-xs text-muted-foreground">{selectedCar.plate}</p>}
               <div className="border-t border-border" />
-              <SummaryRow label="Rate" value={rateNum ? `${formatMoney(rateNum * 100, currency)}/day` : "—"} />
+              <SummaryRow label={t("Rate")} value={rateNum ? `${formatMoney(rateNum * 100, currency)}${t("/day")}` : "—"} />
               {openEnded ? (
-                <SummaryRow label="Total" value="Adds up daily" strong />
+                <SummaryRow label={t("Total")} value={t("Adds up daily")} strong />
               ) : (
-                <SummaryRow label="Total" value={formatMoney(effectiveTotal * 100, currency)} strong />
+                <SummaryRow label={t("Total")} value={formatMoney(effectiveTotal * 100, currency)} strong />
               )}
-              <SummaryRow label="Paid" value={formatMoney(paidNum * 100, currency)} />
-              {!openEnded && <SummaryRow label="Remaining" value={formatMoney(remaining * 100, currency)} strong />}
+              <SummaryRow label={t("Paid:label")} value={formatMoney(paidNum * 100, currency)} />
+              {!openEnded && <SummaryRow label={t("Remaining")} value={formatMoney(remaining * 100, currency)} strong />}
 
               {state.error && (
                 <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>
               )}
-              <SubmitButton className="mt-2 w-full">Confirm rental</SubmitButton>
+              <SubmitButton className="mt-2 w-full">{t("Confirm rental")}</SubmitButton>
             </CardContent>
           </Card>
         </div>
