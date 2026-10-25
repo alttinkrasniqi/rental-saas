@@ -165,7 +165,7 @@ const HTML = `
   <div class="wrap hero-grid">
     <div class="reveal">
       <span class="eyebrow"><span class="dot"></span> Platforma për rent-a-car në Kosovë</span>
-      <h1 style="margin-top:22px">Menaxho rent-a-car biznesin tënd. <span class="hl">Pa stres.</span></h1>
+      <h1 style="margin-top:22px">Menaxho biznesin tënd. <span class="hl">Pa stres.</span></h1>
       <p class="lead">Rezervime online, kalendar që përditësohet vetë, klientë dhe të ardhura — të gjitha në një platformë të qetë e të thjeshtë. Më pak telefonata, më shumë rregull dhe kohë për ty.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="/signup">Fillo falas <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
