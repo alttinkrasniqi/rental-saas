@@ -15,12 +15,20 @@ export async function GET(request: NextRequest) {
 
   const supabase = createClient();
 
+  // Build the success destination, flagging it so the page can show the
+  // "account verified" confirmation.
+  const success = () => {
+    const dest = new URL(next, origin);
+    dest.searchParams.set("verified", "1");
+    return NextResponse.redirect(dest);
+  };
+
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) return NextResponse.redirect(new URL(next, origin));
+    if (!error) return success();
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, origin));
+    if (!error) return success();
   }
 
   // Link invalid or already used.
