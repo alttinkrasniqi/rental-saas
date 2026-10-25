@@ -23,6 +23,11 @@ export default function LoginPage() {
         <div className="field">
           <label htmlFor="password">Fjalëkalimi</label>
           <input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+          <div style={{ textAlign: "right", marginTop: 6 }}>
+            <Link href="/forgot-password" style={{ fontSize: 13, color: "#851519", fontWeight: 600 }}>
+              Harrove fjalëkalimin?
+            </Link>
+          </div>
         </div>
         {state.error && <p className="err">{state.error}</p>}
         <AuthSubmit>Kyçu</AuthSubmit>
