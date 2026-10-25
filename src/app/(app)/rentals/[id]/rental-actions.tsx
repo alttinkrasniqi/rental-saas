@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useFormState } from "react-dom";
-import { Phone, CreditCard, CheckCircle2, CalendarClock, XCircle, Pencil } from "lucide-react";
+import { Phone, CreditCard, CheckCircle2, CalendarClock, XCircle, Pencil, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +50,14 @@ export function RentalActions({
           >
             <Pencil className="h-4 w-4" /> Edit
           </Link>
+          <a
+            href={`/contract/${rentalId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
+          >
+            <FileText className="h-4 w-4" /> Kontrata
+          </a>
           {remaining > 0 && (
             <Button type="button" variant="outline" onClick={() => toggle("payment")}>
               <CreditCard className="h-4 w-4" /> Record payment
