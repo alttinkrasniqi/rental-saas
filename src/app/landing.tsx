@@ -82,12 +82,12 @@ const CSS = `
 .mr-landing .sec-head{max-width:620px;margin:0 auto 52px;text-align:center}
 .mr-landing .sec-head h2{font-size:clamp(28px,3.4vw,42px)}
 .mr-landing .sec-head p{margin-top:16px;font-size:17px;color:var(--body)}
-.mr-landing .features{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.mr-landing .features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .mr-landing .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:30px;transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s}
 .mr-landing .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-soft);border-color:var(--mist)}
 .mr-landing .card .ic{width:48px;height:48px;border-radius:14px;background:var(--tint);display:grid;place-items:center;color:var(--ink);margin-bottom:18px}
-.mr-landing .card h3{font-size:20px;margin-bottom:8px}
-.mr-landing .card p{font-size:15.5px}
+.mr-landing .card h3{font-size:19px;margin-bottom:8px}
+.mr-landing .card p{font-size:15px}
 .mr-landing .tint-band{background:var(--tint)}
 .mr-landing .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
 .mr-landing .step{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:30px 28px}
@@ -117,16 +117,18 @@ const CSS = `
 .mr-landing .mobile-menu a.link:hover{background:var(--tint)}
 .mr-landing .mobile-menu .btn{margin-top:8px}
 .mr-landing .mclose{align-self:flex-end;background:none;border:none;cursor:pointer;padding:8px;margin:-6px -6px 6px}
+@media (max-width:1040px){ .mr-landing .features{grid-template-columns:repeat(2,1fr)} }
 @media (max-width:900px){
   .mr-landing .hero-grid{grid-template-columns:1fr;gap:44px}
   .mr-landing .mock{order:-1;max-width:460px;margin:0 auto}
-  .mr-landing .features,.mr-landing .steps{grid-template-columns:1fr}
+  .mr-landing .steps{grid-template-columns:1fr}
   .mr-landing .nav-links{display:none}
   .mr-landing .nav-cta .btn-ghost{display:none}
   .mr-landing .nav-toggle{display:block}
   .mr-landing .calm,.mr-landing .cta-final{padding:44px 26px}
   .mr-landing section{padding:64px 0}
 }
+@media (max-width:620px){ .mr-landing .features{grid-template-columns:1fr} }
 @media (max-width:480px){ .mr-landing .hero{padding:48px 0 20px} }
 `;
 
@@ -197,10 +199,12 @@ const HTML = `
   <div class="wrap">
     <div class="sec-head reveal"><h2>Gjithçka që të duhet. Brenda një platforme.</h2><p>Një platformë e vetme për të mbajtur biznesin tënd të organizuar, nga rezervimi i parë te raporti i fundit të muajit.</p></div>
     <div class="features">
-      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Faqja jote e rezervimeve</h3><p>Vendi juaj ku klientët mund të rezervojnë online në çdo kohë. Ti i menaxhon kërkesat dhe i konfirmon rezervimet me një klik.</p></div>
-      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Kalendari juaj</h3><p>Shiko menjëherë cilat makina janë të lira dhe cilat janë të rezervuara. Kalendari përditësohet automatikisht, që ta kesh gjithmonë të qartë gjendjen e rezervimeve.</p></div>
-      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 7l9-4 9 4-9 4-9-4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 7v6l9 4 9-4V7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div><h3>Makinat & klientët</h3><p>Makinat, çmimet, fotot dhe historiku i çdo klienti, të gjitha të organizuara në një vend të vetëm.</p></div>
-      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Të ardhurat dhe raportet</h3><p>Shiko të ardhurat, identifiko makinat më të kërkuara dhe kontrollo rezervimet e ardhshme. Mbaji rezultatet e biznesit nën vëzhgim, pa pasur nevojë të llogaritësh gjithçka manualisht.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18" stroke="currentColor" stroke-width="1.8"/><path d="M12 3c2.5 2.8 2.5 15.2 0 18M12 3c-2.5 2.8-2.5 15.2 0 18" stroke="currentColor" stroke-width="1.8"/></svg></div><h3>Faqja jote e rezervimeve</h3><p>Klientët mund të rezervojnë online në çdo kohë, përmes faqes tënde. Ti i menaxhon kërkesat dhe i konfirmon rezervimet me një klik. Merr njoftime për rezervimet e reja, ndryshimet dhe anulimet, që të jesh gjithmonë në dijeni.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Kalendari live</h3><p>Shiko menjëherë cilat makina janë të lira dhe cilat të rezervuara. Kalendari përditësohet automatikisht në kohë reale, që ta kesh gjithmonë të qartë gjendjen e rezervimeve.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Kontratat e qirasë</h3><p>Mbaji të dhënat e rezervimeve dhe dokumentet e klientëve të organizuara, pa pasur nevojë t'i kërkosh çdo herë.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Të ardhurat dhe raportet</h3><p>Vëzhgo të ardhurat, identifiko makinat më të kërkuara dhe kontrollo rezervimet e ardhshme — pa pasur nevojë të llogaritësh gjithçka manualisht.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 01-11.9 7.8L3 21l1.7-6.1A8.5 8.5 0 1121 11.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div><h3>Mbështetje kur të duhet</h3><p>Ke pyetje apo të duhet ndihmë? Na kontakto dhe të ndihmojmë të vazhdosh punën pa pengesa.</p></div>
+      <div class="card reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="2" width="10" height="20" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Menaxho nga kudo</h3><p>Kontrollo rezervimet, makinat e lira dhe aktivitetin e biznesit nga telefoni ose kompjuteri, kudo që të jesh.</p></div>
     </div>
   </div>
 </section>
