@@ -37,6 +37,17 @@ export const SQ: Record<string, string> = {
   "Add your first client": "Shto klientin e parë",
   "Keep your customers organized.": "Mbaji klientët të organizuar.",
 
+  // welcome modal
+  "Welcome to MenaxhoRentin!": "Mirë se erdhe në MenaxhoRentin!",
+  "Ready to get started? Let's take the first steps together.": "Gati për të filluar? Le t'i bëjmë hapat e parë së bashku.",
+  "Everything in one place": "Gjithçka në një vend",
+  "Manage your cars, bookings, clients and your online booking page — all from one simple dashboard.": "Menaxho makinat, rezervimet, klientët dhe faqen tënde të rezervimeve online — gjithçka nga një panel i vetëm.",
+  "Your first steps": "Hapat e parë",
+  "Add your cars, set up your booking page, and start taking reservations. We'll guide you along the way.": "Shto makinat, rregullo faqen e rezervimeve dhe fillo të pranosh rezervime. Të udhëheqim në çdo hap.",
+  "Skip": "Anashkalo",
+  "Next": "Tjetra",
+  "Let's go": "Ia fillojmë",
+
   // common buttons / words
   "All": "Të gjitha",
   "Cancel": "Anulo",
