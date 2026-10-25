@@ -14,7 +14,8 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/s/") ||
     path.startsWith("/auth/") ||   // email confirmation callback runs before a session exists
     path === "/login" ||
-    path === "/signup";
+    path === "/signup" ||
+    path === "/forgot-password";   // requesting a reset link needs no session
 
   let supabaseResponse = NextResponse.next({ request });
   const supabase = createServerClient(
