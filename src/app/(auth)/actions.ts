@@ -3,8 +3,24 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { validatePasswordRules } from "@/lib/password";
+import { isPwnedPassword } from "@/lib/pwned";
 
 export type AuthState = { error?: string };
+
+const PWNED_MSG = "Ky fjalëkalim gjendet në lista publike të rrjedhura. Zgjidh një tjetër.";
+
+// Full password gate: composition rules first (cheap), then a best-effort
+// breach check. Returns an Albanian error, or null when acceptable.
+async function checkPassword(
+  pw: string,
+  opts: { email?: string; name?: string } = {}
+): Promise<string | null> {
+  const ruleErr = validatePasswordRules(pw, opts);
+  if (ruleErr) return ruleErr;
+  if (await isPwnedPassword(pw)) return PWNED_MSG;
+  return null;
+}
 
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") || "").trim();
@@ -39,7 +55,8 @@ export async function signupStart(
 ): Promise<{ ok?: boolean; verified?: boolean; error?: string }> {
   const e = email.trim();
   if (!e || !password) return { error: "Shkruaj një email dhe një fjalëkalim." };
-  if (password.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
+  const pwErr = await checkPassword(password, { email: e });
+  if (pwErr) return { error: pwErr };
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({ email: e, password });
@@ -100,7 +117,8 @@ export async function resetWithCode(
   const e = email.trim();
   const token = code.trim();
   if (token.length < 4) return { error: "Shkruaj kodin nga email-i." };
-  if (password.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
+  const pwErr = await checkPassword(password, { email: e });
+  if (pwErr) return { error: pwErr };
 
   const supabase = createClient();
   const { error: otpErr } = await supabase.auth.verifyOtp({ email: e, token, type: "recovery" });
@@ -119,8 +137,9 @@ export async function updatePassword(
 ): Promise<AuthState> {
   const pw = String(formData.get("password") || "");
   const pw2 = String(formData.get("password2") || "");
-  if (pw.length < 6) return { error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere." };
   if (pw !== pw2) return { error: "Fjalëkalimet nuk përputhen." };
+  const pwErr = await checkPassword(pw);
+  if (pwErr) return { error: pwErr };
 
   const supabase = createClient();
   const {
