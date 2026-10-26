@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "./settings-form";
+import { DevicesSection } from "./devices-section";
+import { getTrustedDevices } from "./actions";
 import { publicBookingUrl } from "@/lib/brand";
 import { getT } from "@/lib/i18n/server";
 import { LanguageSwitch } from "@/components/language-switch";
@@ -12,6 +14,7 @@ export default async function SettingsPage() {
   if (!business) redirect("/onboarding");
 
   const publicUrl = business.slug ? publicBookingUrl(business.slug) : null;
+  const devices = await getTrustedDevices();
 
   return (
     <div>
@@ -32,6 +35,8 @@ export default async function SettingsPage() {
         <p className="mb-3 mt-0.5 text-xs text-muted-foreground">{t("Choose the language of the app.")}</p>
         <LanguageSwitch />
       </div>
+
+      <DevicesSection devices={devices} />
     </div>
   );
 }
