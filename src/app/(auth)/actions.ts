@@ -121,7 +121,23 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   if (secret && uid) {
     const geo = getGeo();
     const token = cookies().get(DEVICE_COOKIE)?.value;
-    const trustedDevice = token ? await verifyDeviceToken(token, uid, secret) : false;
+    let trustedDevice = false;
+    if (token && (await verifyDeviceToken(token, uid, secret))) {
+      // Signed cookie is valid; confirm the device wasn't removed in Settings.
+      try {
+        const h = await sha256hex(token);
+        const { data, error } = await supabase
+          .from("trusted_devices")
+          .select("id")
+          .eq("user_id", uid)
+          .eq("token_hash", h)
+          .limit(1)
+          .maybeSingle();
+        trustedDevice = error ? true : !!data;
+      } catch {
+        trustedDevice = true;
+      }
+    }
     const knownCountry = await isKnownCountry(supabase, uid, geo.country);
 
     if (!trustedDevice || !knownCountry) {
