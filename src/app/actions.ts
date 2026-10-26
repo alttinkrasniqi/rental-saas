@@ -21,7 +21,7 @@ export async function logout() {
     }
   } catch {}
 
-  redirect("/login");
+  redirect("/");
 }
 
 // Persist the chosen UI language in a cookie (read by getLocale / the provider).
