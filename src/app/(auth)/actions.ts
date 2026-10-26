@@ -6,10 +6,46 @@ import { createClient } from "@/lib/supabase/server";
 import { validatePasswordRules } from "@/lib/password";
 import { isPwnedPassword } from "@/lib/pwned";
 import { DEVICE_COOKIE, createDeviceToken, verifyDeviceToken, sha256hex } from "@/lib/device";
+import { notifySuspiciousLogin } from "@/lib/notify";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AuthState = { error?: string };
 
 const PWNED_MSG = "Ky fjalëkalim gjendet në lista publike të rrjedhura. Zgjidh një tjetër.";
+
+// Client IP + country/city from Vercel's edge geo headers (free; present on
+// Vercel). Empty when self-hosted/local — callers treat empty country as known.
+function getGeo(): { ip: string; country: string; city: string } {
+  const h = headers();
+  const fwd = h.get("x-forwarded-for") || "";
+  const ip = fwd.split(",")[0].trim() || h.get("x-real-ip") || "";
+  const country = (h.get("x-vercel-ip-country") || "").toUpperCase();
+  let city = h.get("x-vercel-ip-city") || "";
+  try { city = decodeURIComponent(city); } catch {}
+  return { ip, country, city };
+}
+
+// Has this user logged in from this country before? Fails open (returns true)
+// on any error so a missing table / DB hiccup never locks anyone out.
+async function isKnownCountry(
+  supabase: SupabaseClient,
+  uid: string,
+  country: string
+): Promise<boolean> {
+  if (!country) return true;
+  try {
+    const { data, error } = await supabase
+      .from("login_locations")
+      .select("country")
+      .eq("user_id", uid)
+      .eq("country", country)
+      .maybeSingle();
+    if (error) return true;
+    return !!data;
+  } catch {
+    return true;
+  }
+}
 
 // Marks the current browser as a trusted device for this user: sets a signed
 // cookie (checked by the middleware) and records a row for later review. No-op
@@ -26,6 +62,7 @@ export async function trustCurrentDevice(uid: string, remember = true): Promise<
     path: "/",
     ...(remember ? { maxAge: 60 * 60 * 24 * days } : {}),
   });
+  const geo = getGeo();
   try {
     const supabase = createClient();
     await supabase.from("trusted_devices").insert({
@@ -34,8 +71,17 @@ export async function trustCurrentDevice(uid: string, remember = true): Promise<
       label: (headers().get("user-agent") || "").slice(0, 200) || null,
       expires_at: new Date(Date.now() + days * 86400000).toISOString(),
     });
+    // Remember this country as known, so future logins from here aren't challenged.
+    if (geo.country) {
+      await supabase
+        .from("login_locations")
+        .upsert(
+          { user_id: uid, country: geo.country, last_seen: new Date().toISOString() },
+          { onConflict: "user_id,country" }
+        );
+    }
   } catch {
-    // table may not exist yet; never block auth on it
+    // tables may not exist yet; never block auth on it
   }
 }
 
@@ -66,18 +112,28 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
     return { error: "Email ose fjalëkalim i gabuar. Provo përsëri." };
   }
 
-  // New-device check: if this browser isn't a trusted device, email a code and
-  // send the user to /verify-device before granting access. Opt-in via
-  // DEVICE_TOKEN_SECRET — when unset, login proceeds straight to the app.
+  // Security gate: challenge with an email code when the browser isn't a
+  // trusted device OR the login comes from a country never used before
+  // ("impossible travel" / account takeover). Opt-in via DEVICE_TOKEN_SECRET —
+  // when unset, login proceeds straight to the app.
   const secret = process.env.DEVICE_TOKEN_SECRET;
   const uid = data.user?.id;
   if (secret && uid) {
+    const geo = getGeo();
     const token = cookies().get(DEVICE_COOKIE)?.value;
-    const trusted = token ? await verifyDeviceToken(token, uid, secret) : false;
-    if (!trusted) {
+    const trustedDevice = token ? await verifyDeviceToken(token, uid, secret) : false;
+    const knownCountry = await isKnownCountry(supabase, uid, geo.country);
+
+    if (!trustedDevice || !knownCountry) {
       try {
         await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
       } catch {}
+      // Extra alert email when the location itself is new/suspicious.
+      if (geo.country && !knownCountry) {
+        try {
+          await notifySuspiciousLogin({ to: email, country: geo.country, city: geo.city, ip: geo.ip });
+        } catch {}
+      }
       redirect("/verify-device?sent=1");
     }
   }
