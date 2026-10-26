@@ -24,6 +24,42 @@ function fmt(s?: string | null): string {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
+// Security alert: emails the account owner when a login looks suspicious
+// (new country / new device). Best-effort — logs and returns on any problem.
+export async function notifySuspiciousLogin(info: {
+  to: string;
+  country?: string;
+  city?: string;
+  ip?: string;
+  when?: Date;
+}): Promise<void> {
+  try {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey || !info.to) return;
+
+    const whereParts = [info.city, info.country].filter(Boolean).map((s) => esc(s!));
+    const where = whereParts.length ? whereParts.join(", ") : "një vendndodhje e panjohur";
+    const when = (info.when || new Date()).toLocaleString("sq-AL", { timeZone: "Europe/Tirane" });
+    const subject = `Hyrje e re në llogarinë tënde — ${APP_NAME}`;
+
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111;line-height:1.6">
+        <h2 style="margin:0 0 12px">Hyrje e re në llogarinë tënde</h2>
+        <p style="margin:4px 0">U bë një përpjekje hyrjeje nga <b>${where}</b> më <b>${esc(when)}</b>${info.ip ? ` (IP: ${esc(info.ip)})` : ""}.</p>
+        <p style="margin:12px 0">Për siguri, po kërkojmë një kod verifikimi për të vazhduar.</p>
+        <p style="margin:12px 0"><b>Nëse ishe ti, injoroje këtë email.</b> Nëse jo, dikush mund ta ketë fjalëkalimin tënd — <b>ndërroje menjëherë</b>.</p>
+      </div>`;
+
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: MAIL_FROM, to: [info.to], subject, html }),
+    });
+  } catch (e: any) {
+    console.error("[notify] suspicious-login alert failed", e?.message || e);
+  }
+}
+
 export async function notifyNewBooking(info: {
   to?: string;              // recipient (the business's email); falls back to NOTIFY_EMAIL
   carName?: string;
