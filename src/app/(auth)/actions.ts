@@ -1,14 +1,43 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { validatePasswordRules } from "@/lib/password";
 import { isPwnedPassword } from "@/lib/pwned";
+import { DEVICE_COOKIE, createDeviceToken, verifyDeviceToken, sha256hex } from "@/lib/device";
 
 export type AuthState = { error?: string };
 
 const PWNED_MSG = "Ky fjalëkalim gjendet në lista publike të rrjedhura. Zgjidh një tjetër.";
+
+// Marks the current browser as a trusted device for this user: sets a signed
+// cookie (checked by the middleware) and records a row for later review. No-op
+// when DEVICE_TOKEN_SECRET isn't configured, so the feature is fully opt-in.
+export async function trustCurrentDevice(uid: string, remember = true): Promise<void> {
+  const secret = process.env.DEVICE_TOKEN_SECRET;
+  if (!secret) return;
+  const days = remember ? 30 : 1;
+  const token = await createDeviceToken(uid, secret, days);
+  cookies().set(DEVICE_COOKIE, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    ...(remember ? { maxAge: 60 * 60 * 24 * days } : {}),
+  });
+  try {
+    const supabase = createClient();
+    await supabase.from("trusted_devices").insert({
+      user_id: uid,
+      token_hash: await sha256hex(token),
+      label: (headers().get("user-agent") || "").slice(0, 200) || null,
+      expires_at: new Date(Date.now() + days * 86400000).toISOString(),
+    });
+  } catch {
+    // table may not exist yet; never block auth on it
+  }
+}
 
 // Full password gate: composition rules first (cheap), then a best-effort
 // breach check. Returns an Albanian error, or null when acceptable.
@@ -29,12 +58,28 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   if (!email || !password) return { error: "Shkruaj email-in dhe fjalëkalimin." };
 
   const supabase = createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     if (/confirm/i.test(error.message)) {
       return { error: "Email-i yt nuk është konfirmuar ende. Kontrollo inboksin për kodin, ose regjistrohu përsëri." };
     }
     return { error: "Email ose fjalëkalim i gabuar. Provo përsëri." };
+  }
+
+  // New-device check: if this browser isn't a trusted device, email a code and
+  // send the user to /verify-device before granting access. Opt-in via
+  // DEVICE_TOKEN_SECRET — when unset, login proceeds straight to the app.
+  const secret = process.env.DEVICE_TOKEN_SECRET;
+  const uid = data.user?.id;
+  if (secret && uid) {
+    const token = cookies().get(DEVICE_COOKIE)?.value;
+    const trusted = token ? await verifyDeviceToken(token, uid, secret) : false;
+    if (!trusted) {
+      try {
+        await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      } catch {}
+      redirect("/verify-device?sent=1");
+    }
   }
 
   redirect("/dashboard");
@@ -76,8 +121,11 @@ export async function verifySignup(
   if (code.length < 4) return { error: "Shkruaj kodin nga email-i." };
 
   const supabase = createClient();
-  const { error } = await supabase.auth.verifyOtp({ email: e, token: code, type: "signup" });
+  const { data, error } = await supabase.auth.verifyOtp({ email: e, token: code, type: "signup" });
   if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
+  // They just proved control of the email — trust this device so onboarding
+  // isn't gated by a second code.
+  if (data.user?.id) await trustCurrentDevice(data.user.id);
   return { ok: true };
 }
 
@@ -121,12 +169,13 @@ export async function resetWithCode(
   if (pwErr) return { error: pwErr };
 
   const supabase = createClient();
-  const { error: otpErr } = await supabase.auth.verifyOtp({ email: e, token, type: "recovery" });
+  const { data, error: otpErr } = await supabase.auth.verifyOtp({ email: e, token, type: "recovery" });
   if (otpErr) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
 
   const { error: updErr } = await supabase.auth.updateUser({ password });
   if (updErr) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
 
+  if (data.user?.id) await trustCurrentDevice(data.user.id);
   return { ok: true };
 }
 
@@ -150,5 +199,6 @@ export async function updatePassword(
   const { error } = await supabase.auth.updateUser({ password: pw });
   if (error) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
 
+  await trustCurrentDevice(user.id);
   redirect("/dashboard");
 }
