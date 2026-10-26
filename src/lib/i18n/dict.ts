@@ -24,6 +24,17 @@ export const SQ: Record<string, string> = {
   "Language": "Gjuha",
   "Choose the language of the app.": "Zgjidh gjuhën e aplikacionit.",
 
+  // trusted devices / security
+  "Trusted devices": "Pajisjet e besuara",
+  "Browsers that can sign in without an email code. Remove any you don't recognize.":
+    "Shfletuesit që hyjnë pa kod në email. Hiq ato që nuk i njeh.",
+  "No trusted devices yet.": "Ende s'ka pajisje të besuara.",
+  "This device": "Kjo pajisje",
+  "Added": "Shtuar më",
+  "expires": "skadon më",
+  "Remove": "Hiq",
+  "Log out of all devices": "Dil nga të gjitha pajisjet",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
