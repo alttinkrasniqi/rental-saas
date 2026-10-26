@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { requestPasswordReset, resetWithCode } from "../actions";
 import { AuthShell } from "@/components/auth-shell";
+import { PasswordField } from "@/components/password-field";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -73,14 +74,19 @@ export default function ForgotPasswordPage() {
               style={{ textAlign: "center", letterSpacing: "6px", fontSize: "20px", fontWeight: 700 }}
             />
           </div>
-          <div className="field">
-            <label htmlFor="password">Fjalëkalimi i ri</label>
-            <input id="password" name="password" type="password" autoComplete="new-password" placeholder="Të paktën 6 karaktere" required />
-          </div>
-          <div className="field">
-            <label htmlFor="password2">Përsërit fjalëkalimin</label>
-            <input id="password2" name="password2" type="password" autoComplete="new-password" placeholder="Shkruaje përsëri" required />
-          </div>
+          <PasswordField
+            id="password"
+            name="password"
+            label="Fjalëkalimi i ri"
+            hint="Të paktën 8 karaktere, me shkronja dhe numra."
+          />
+          <PasswordField
+            id="password2"
+            name="password2"
+            label="Përsërit fjalëkalimin"
+            placeholder="Shkruaje përsëri"
+            meter={false}
+          />
           {info && <p style={{ marginBottom: 12, fontSize: 13.5, color: "#1F6B63" }}>{info}</p>}
           {err && <p className="err">{err}</p>}
           <button type="submit" className="submit" disabled={pending}>
