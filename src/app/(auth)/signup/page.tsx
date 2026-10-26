@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signupStart, verifySignup, resendSignupCode } from "../actions";
 import { AuthShell } from "@/components/auth-shell";
+import { PasswordField } from "@/components/password-field";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -100,11 +101,12 @@ export default function SignupPage() {
           <label htmlFor="email">Email</label>
           <input id="email" name="email" type="email" autoComplete="email" placeholder="ti@biznesi.com" required />
         </div>
-        <div className="field">
-          <label htmlFor="password">Fjalëkalimi</label>
-          <input id="password" name="password" type="password" autoComplete="new-password" placeholder="Të paktën 6 karaktere" required />
-          <p className="hint">Të paktën 6 karaktere.</p>
-        </div>
+        <PasswordField
+          id="password"
+          name="password"
+          label="Fjalëkalimi"
+          hint="Të paktën 8 karaktere, me shkronja dhe numra."
+        />
         {err && <p className="err">{err}</p>}
         <button type="submit" className="submit" disabled={pending}>
           {pending && <span className="spin" aria-hidden="true" />}
