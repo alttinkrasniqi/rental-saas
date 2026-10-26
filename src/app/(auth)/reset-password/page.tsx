@@ -3,6 +3,7 @@
 import { useFormState } from "react-dom";
 import { updatePassword, type AuthState } from "../actions";
 import { AuthShell, AuthSubmit } from "@/components/auth-shell";
+import { PasswordField } from "@/components/password-field";
 
 const initial: AuthState = {};
 
@@ -12,14 +13,19 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell title="Vendos fjalëkalimin e ri" subtitle="Zgjidh një fjalëkalim të ri për llogarinë tënde.">
       <form action={formAction}>
-        <div className="field">
-          <label htmlFor="password">Fjalëkalimi i ri</label>
-          <input id="password" name="password" type="password" autoComplete="new-password" placeholder="Të paktën 6 karaktere" required />
-        </div>
-        <div className="field">
-          <label htmlFor="password2">Përsërit fjalëkalimin</label>
-          <input id="password2" name="password2" type="password" autoComplete="new-password" placeholder="Shkruaje përsëri" required />
-        </div>
+        <PasswordField
+          id="password"
+          name="password"
+          label="Fjalëkalimi i ri"
+          hint="Të paktën 8 karaktere, me shkronja dhe numra."
+        />
+        <PasswordField
+          id="password2"
+          name="password2"
+          label="Përsërit fjalëkalimin"
+          placeholder="Shkruaje përsëri"
+          meter={false}
+        />
         {state.error && <p className="err">{state.error}</p>}
         <AuthSubmit>Ruaj fjalëkalimin</AuthSubmit>
       </form>
