@@ -179,6 +179,12 @@ export async function recordPayment(formData: FormData) {
   const method = String(formData.get("method") || "").trim() || null;
   if (!rentalId || amount <= 0) return;
 
+  // The date the money was actually received (defaults to today). This is what
+  // revenue is counted by everywhere, so a payment taken today for an older
+  // rental lands in today's month — consistently on the dashboard and reports.
+  const paidOn = String(formData.get("paid_on") || "").trim();
+  const paidAtIso = paidOn ? new Date(`${paidOn}T12:00:00`).toISOString() : new Date().toISOString();
+
   const { data: rental } = await supabase
     .from("rentals")
     .select("paid_cents")
@@ -191,6 +197,7 @@ export async function recordPayment(formData: FormData) {
     rental_id: rentalId,
     amount_cents: amount,
     method,
+    paid_at: paidAtIso,
   });
   await supabase
     .from("rentals")
