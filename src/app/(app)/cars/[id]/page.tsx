@@ -21,15 +21,26 @@ async function deleteVehicleAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) return;
   const supabase = createClient();
+  // Defense-in-depth: confirm the car belongs to the caller before touching rows.
+  const { requireBusiness } = await import("@/lib/business");
+  const business = await requireBusiness();
+  const { data: own } = await supabase
+    .from("vehicles")
+    .select("id")
+    .eq("id", id)
+    .eq("business_id", business.id)
+    .maybeSingle();
+  if (!own) return;
+
   const { data: rs } = await supabase.from("rentals").select("id").eq("vehicle_id", id);
   const ids = (rs ?? []).map((r: any) => r.id);
   if (ids.length) {
     await supabase.from("payments").delete().in("rental_id", ids);
     await supabase.from("rentals").delete().eq("vehicle_id", id);
   }
-  await supabase.from("vehicles").delete().eq("id", id);
+  await supabase.from("vehicles").delete().eq("id", id).eq("business_id", business.id);
   const { logAudit } = await import("@/lib/audit");
-  await logAudit({ action: "car_deleted", entity: "car", entityId: id });
+  await logAudit({ action: "car_deleted", entity: "car", entityId: id, businessId: business.id });
   revalidatePath("/cars");
   revalidatePath("/dashboard");
   redirect("/cars");
