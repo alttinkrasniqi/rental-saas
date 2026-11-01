@@ -42,6 +42,7 @@ export function RentalForm({
   preselectClientId,
   preselectVehicleId,
   presetPickupDate,
+  presetReturnDate,
 }: {
   cars: CarOption[];
   clients: ClientOption[];
@@ -50,6 +51,7 @@ export function RentalForm({
   preselectClientId?: string;
   preselectVehicleId?: string;
   presetPickupDate?: string;
+  presetReturnDate?: string;
 }) {
   const t = useT();
   const [state, formAction] = useFormState(createRental, {} as RentalFormState);
@@ -58,7 +60,7 @@ export function RentalForm({
   const [clientId, setClientId] = useState(preselectClientId ?? "");
   const [carId, setCarId] = useState(presetCar ? presetCar.id : "");
   const [pickupDate, setPickupDate] = useState(presetPickupDate ?? "");
-  const [returnDate, setReturnDate] = useState("");
+  const [returnDate, setReturnDate] = useState(presetReturnDate ?? "");
   const [openEnded, setOpenEnded] = useState(false);
   const [dailyRate, setDailyRate] = useState(
     presetCar ? (presetCar.daily_price_cents / 100).toString() : ""
