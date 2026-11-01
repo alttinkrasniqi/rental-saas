@@ -8,6 +8,10 @@ import { LOCALE_COOKIE } from "@/lib/i18n/dict";
 export async function logout() {
   const supabase = createClient();
   try {
+    const { logAudit } = await import("@/lib/audit");
+    await logAudit({ action: "logout" });
+  } catch {}
+  try {
     await supabase.auth.signOut();
   } catch {}
 
