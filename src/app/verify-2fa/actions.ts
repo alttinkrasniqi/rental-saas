@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, clientIp, retryMessage } from "@/lib/ratelimit";
+import { logAudit } from "@/lib/audit";
 
 // Completes the TOTP (authenticator) challenge at login, stepping the session
 // up to AAL2.
@@ -22,5 +23,6 @@ export async function verifyTwoFactor(code: string): Promise<{ ok?: boolean; err
 
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code: token });
   if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
+  await logAudit({ action: "login_2fa", userId: user?.id });
   return { ok: true };
 }
