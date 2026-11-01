@@ -21,17 +21,32 @@ export type CalRow = {
 export type CalDay = { key: string; dow: string; dom: string; today: boolean };
 
 export function CalendarMatrix({
-  rows,
+  rows: allRows,
   days,
   maintenanceLabel,
+  filterText,
 }: {
   rows: CalRow[];
   days: CalDay[];
   maintenanceLabel: string;
+  filterText: { all: string; booked: string; free: string };
 }) {
   const router = useRouter();
   const [sel, setSel] = useState<{ row: number; start: number; end: number } | null>(null);
   const dragging = useRef(false);
+  const [show, setShow] = useState<"all" | "booked" | "free">("all");
+
+  const rowBooked = (r: CalRow) => r.cells.some((c) => c.t === "booked");
+  const rowFree = (r: CalRow) => !r.maintenance && r.cells.every((c) => c.t !== "booked");
+  const bookedCount = allRows.filter(rowBooked).length;
+  const freeCount = allRows.filter(rowFree).length;
+  const rows = show === "booked" ? allRows.filter(rowBooked) : show === "free" ? allRows.filter(rowFree) : allRows;
+
+  const chips: { key: "all" | "booked" | "free"; label: string; n: number }[] = [
+    { key: "all", label: filterText.all, n: allRows.length },
+    { key: "booked", label: filterText.booked, n: bookedCount },
+    { key: "free", label: filterText.free, n: freeCount },
+  ];
 
   const isFree = (row: number, col: number) => rows[row]?.cells[col]?.t === "free";
 
@@ -68,7 +83,23 @@ export function CalendarMatrix({
     sel && sel.row === row && col >= Math.min(sel.start, sel.end) && col <= Math.max(sel.start, sel.end);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card" onPointerUp={finish} onPointerLeave={() => { dragging.current = false; }}>
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {chips.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => setShow(c.key)}
+            className={cn(
+              "h-9 rounded-md border px-3 text-sm font-medium transition-colors",
+              show === c.key ? "border-primary bg-primary/10 text-primary" : "border-input bg-card text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {c.label} ({c.n})
+          </button>
+        ))}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-border bg-card" onPointerUp={finish} onPointerLeave={() => { dragging.current = false; }}>
       <table className="w-full border-collapse select-none text-sm">
         <thead>
           <tr>
@@ -150,6 +181,7 @@ export function CalendarMatrix({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

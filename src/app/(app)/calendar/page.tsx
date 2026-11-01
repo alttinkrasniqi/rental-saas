@@ -188,7 +188,12 @@ export default async function CalendarPage({
     <div>
       <PageHeader title={t("Calendar")} subtitle={t("See what's booked and what's free — drag across free days to book")} />
       {nav}
-      <CalendarMatrix rows={rows} days={daysMeta} maintenanceLabel={t("In service")} />
+      <CalendarMatrix
+        rows={rows}
+        days={daysMeta}
+        maintenanceLabel={t("In service")}
+        filterText={{ all: t("All"), booked: t("Booked"), free: t("Free") }}
+      />
       {legend}
     </div>
   );
