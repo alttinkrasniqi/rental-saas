@@ -65,6 +65,70 @@ export async function revokeDevice(id: string): Promise<SettingsState> {
   return { ok: true };
 }
 
+// ---------- Two-factor authentication (TOTP) ----------
+
+export type MfaStatus = { enabled: boolean };
+
+export async function getMfaStatus(): Promise<MfaStatus> {
+  const supabase = createClient();
+  try {
+    const { data } = await supabase.auth.mfa.listFactors();
+    const verified = (data?.totp ?? []).some((f) => f.status === "verified");
+    return { enabled: verified };
+  } catch {
+    return { enabled: false };
+  }
+}
+
+// Start enrollment: returns a QR code + secret to add to the authenticator app.
+export async function enrollTwoFactor(): Promise<{
+  factorId?: string;
+  qr?: string;
+  secret?: string;
+  error?: string;
+}> {
+  const supabase = createClient();
+  // Clear any half-finished (unverified) factors so we don't pile them up.
+  try {
+    const { data } = await supabase.auth.mfa.listFactors();
+    for (const f of data?.totp ?? []) {
+      if (f.status !== "verified") {
+        try { await supabase.auth.mfa.unenroll({ factorId: f.id }); } catch {}
+      }
+    }
+  } catch {}
+
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+  if (error || !data) return { error: "Nuk u aktivizua dot. Provo përsëri." };
+  return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
+}
+
+// Finish enrollment by verifying the first code from the app.
+export async function verifyEnroll(factorId: string, code: string): Promise<SettingsState> {
+  const token = code.replace(/\s/g, "");
+  if (token.length < 6) return { error: "Shkruaj kodin 6-shifror nga aplikacioni." };
+  const supabase = createClient();
+  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: token });
+  if (error) return { error: "Kodi është i pasaktë. Provo përsëri." };
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+// Turn off 2FA: remove every TOTP factor.
+export async function disableTwoFactor(): Promise<SettingsState> {
+  const supabase = createClient();
+  try {
+    const { data } = await supabase.auth.mfa.listFactors();
+    for (const f of data?.totp ?? []) {
+      try { await supabase.auth.mfa.unenroll({ factorId: f.id }); } catch {}
+    }
+  } catch {
+    return { error: "Nuk u çaktivizua dot. Provo përsëri." };
+  }
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
 // "Log out everywhere": drop every trusted device, revoke all sessions
 // globally, clear local cookies, and bounce to the landing page.
 export async function revokeAllDevices(): Promise<void> {
