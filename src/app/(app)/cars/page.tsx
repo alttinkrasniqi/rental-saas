@@ -8,10 +8,13 @@ import type { Vehicle } from "@/lib/types";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
 import { getT } from "@/lib/i18n/server";
 
-export default async function CarsPage() {
+const CAR_STATUSES = ["AVAILABLE", "RENTED", "RESERVED", "MAINTENANCE", "UNAVAILABLE"];
+
+export default async function CarsPage({ searchParams }: { searchParams: { status?: string } }) {
   const t = getT();
   const business = await getBusiness();
   const supabase = createClient();
+  const initialStatus = CAR_STATUSES.includes(searchParams.status || "") ? (searchParams.status as any) : undefined;
 
   const [{ data: vData }, { data: rData }] = await Promise.all([
     supabase.from("vehicles").select("*").eq("archived", false).order("make", { ascending: true }),
@@ -46,7 +49,7 @@ export default async function CarsPage() {
           action={{ href: "/cars/new", label: t("Add car") }}
         />
       ) : (
-        <CarsList vehicles={vehicles} currency={business?.currency ?? "EUR"} />
+        <CarsList vehicles={vehicles} currency={business?.currency ?? "EUR"} initialStatus={initialStatus} />
       )}
     </div>
   );
