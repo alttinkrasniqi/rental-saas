@@ -106,6 +106,12 @@ export const SQ: Record<string, string> = {
   "Try clearing the filter to see all rentals.": "Provo ta pastrosh filtrin për të parë të gjitha rezervimet.",
   "Search by car, plate or client…": "Kërko sipas makinës, targës ose klientit…",
   "{amount} left": "mbetet {amount}",
+  "Filters": "Filtra",
+  "All cars": "Të gjitha makinat",
+  "Payment": "Pagesa",
+  "From": "Nga",
+  "To": "Deri",
+  "Clear all": "Pastro të gjitha",
 
   // getting started checklist
   "Get started": "Fillimi",
