@@ -18,6 +18,9 @@ export const SQ: Record<string, string> = {
   "Settings": "Cilësimet",
   "Website": "Faqja",
   "Requests": "Kërkesat",
+  "Activity": "Aktiviteti",
+  "Recent security and account activity": "Aktiviteti i fundit i sigurisë dhe llogarisë",
+  "No activity recorded yet.": "Ende s'ka aktivitet të regjistruar.",
   "New Rental": "Rezervim i ri",
   "New rental": "Rezervim i ri",
   "Log out": "Dil",
@@ -49,6 +52,16 @@ export const SQ: Record<string, string> = {
   "Or enter this key manually:": "Ose fute këtë çelës manualisht:",
   "2. Enter the 6-digit code it shows:": "2. Shkruaj kodin 6-shifror që shfaq:",
   "Verify & turn on": "Verifiko & aktivizo",
+
+  // data export
+  "Export your data": "Eksporto të dhënat",
+  "Download a full backup, or individual tables as CSV for your accountant.":
+    "Shkarko një rezervë të plotë, ose tabela veç e veç si CSV për kontabilistin.",
+  "Full backup (JSON)": "Rezervë e plotë (JSON)",
+  "Rentals (CSV)": "Rezervimet (CSV)",
+  "Clients (CSV)": "Klientët (CSV)",
+  "Cars (CSV)": "Makinat (CSV)",
+  "Payments (CSV)": "Pagesat (CSV)",
 
   // getting started checklist
   "Get started": "Fillimi",
