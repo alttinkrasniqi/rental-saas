@@ -110,7 +110,14 @@ export default async function DashboardPage() {
   const SQ_MONTHS = ["Jan", "Shk", "Mar", "Pri", "Maj", "Qer", "Kor", "Gsh", "Sht", "Tet", "Nën", "Dhj"];
   const trend = Array.from({ length: 6 }, (_, i) => {
     const d = subMonths(now, 5 - i);
-    return { label: SQ_MONTHS[d.getMonth()], value: sumRange(startOfMonth(d), endOfMonth(d)) };
+    const s = startOfMonth(d);
+    const e = endOfMonth(d);
+    return {
+      label: SQ_MONTHS[d.getMonth()],
+      value: sumRange(s, e),
+      from: s.toISOString().slice(0, 10),
+      to: e.toISOString().slice(0, 10),
+    };
   });
   const maxTrend = Math.max(1, ...trend.map((m) => m.value));
 
@@ -197,20 +204,20 @@ export default async function DashboardPage() {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Fleet")}</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Stat href="/cars" label={t("Total cars")} value={vehicles.length} icon={Car} />
-          <Stat href="/cars" label={t("Available")} value={countLive("AVAILABLE")} tone="emerald" icon={CheckCircle2} />
-          <Stat href="/cars" label={t("Rented")} value={countLive("RENTED")} tone="blue" icon={KeyRound} />
-          <Stat href="/cars" label={t("Reserved")} value={countLive("RESERVED")} tone="amber" icon={CalendarClock} />
-          <Stat href="/cars" label={t("Maintenance")} value={countLive("MAINTENANCE")} tone="orange" icon={Wrench} />
-          <Stat href="/rentals" label={t("Active rentals")} value={activeCount} icon={ClipboardList} />
+          <Stat href="/cars?status=AVAILABLE" label={t("Available")} value={countLive("AVAILABLE")} tone="emerald" icon={CheckCircle2} />
+          <Stat href="/cars?status=RENTED" label={t("Rented")} value={countLive("RENTED")} tone="blue" icon={KeyRound} />
+          <Stat href="/cars?status=RESERVED" label={t("Reserved")} value={countLive("RESERVED")} tone="amber" icon={CalendarClock} />
+          <Stat href="/cars?status=MAINTENANCE" label={t("Maintenance")} value={countLive("MAINTENANCE")} tone="orange" icon={Wrench} />
+          <Stat href="/rentals?status=ACTIVE" label={t("Active rentals")} value={activeCount} icon={ClipboardList} />
         </div>
       </div>
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Earnings")}</p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <RevCard label={t("Revenue today")} value={formatMoney(revToday, currency)} icon={Coins} />
-          <RevCard label={t("This week")} value={formatMoney(revWeek, currency)} icon={Wallet} />
-          <RevCard label={t("This month")} value={formatMoney(revMonth, currency)} icon={TrendingUp} emphasize delta={monthDelta} t={t} />
+          <RevCard label={t("Revenue today")} value={formatMoney(revToday, currency)} icon={Coins} href="/rentals?paid=today" />
+          <RevCard label={t("This week")} value={formatMoney(revWeek, currency)} icon={Wallet} href="/rentals?paid=this_week" />
+          <RevCard label={t("This month")} value={formatMoney(revMonth, currency)} icon={TrendingUp} emphasize delta={monthDelta} t={t} href="/rentals?paid=this_month" />
         </div>
       </div>
 
@@ -225,18 +232,22 @@ export default async function DashboardPage() {
                 const isCurrent = i === trend.length - 1;
                 const h = Math.round((m.value / maxTrend) * 100);
                 return (
-                  <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                  <Link
+                    key={i}
+                    href={`/rentals?paid_from=${m.from}&paid_to=${m.to}`}
+                    className="group flex flex-1 flex-col items-center gap-1.5"
+                  >
                     <span className="text-[10px] font-medium text-muted-foreground">
                       {m.value > 0 ? formatMoney(m.value, currency) : ""}
                     </span>
                     <div className="flex w-full flex-1 items-end">
                       <div
-                        className={`w-full rounded-t-md ${isCurrent ? "bg-primary" : "bg-primary/25"}`}
+                        className={`w-full rounded-t-md transition group-hover:opacity-80 ${isCurrent ? "bg-primary" : "bg-primary/25"}`}
                         style={{ height: `${Math.max(h, 2)}%` }}
                       />
                     </div>
                     <span className="text-[11px] text-muted-foreground">{m.label}</span>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -249,12 +260,14 @@ export default async function DashboardPage() {
             value={`${utilization}%`}
             sub={t("{out} of {total} cars out", { out: outNow.size, total: vehicles.length })}
             tone="primary"
+            href="/cars?status=RENTED"
           />
           <KpiCard
             label={t("To collect")}
             value={formatMoney(toCollect, currency)}
             sub={t("Unpaid on open rentals")}
             tone={toCollect > 0 ? "rose" : "muted"}
+            href="/rentals?unpaid=1"
           />
         </div>
       </div>
@@ -412,6 +425,7 @@ function RevCard({
   emphasize,
   delta,
   t,
+  href,
 }: {
   label: string;
   value: string;
@@ -419,11 +433,12 @@ function RevCard({
   emphasize?: boolean;
   delta?: number | null;
   t?: TFunc;
+  href?: string;
 }) {
   const hasDelta = delta != null && t;
   const up = (delta ?? 0) >= 0;
-  return (
-    <Card className={`p-5 ${emphasize ? "border-primary/30 bg-primary/5" : ""}`}>
+  const card = (
+    <Card className={`p-5 ${emphasize ? "border-primary/30 bg-primary/5" : ""} ${href ? "transition hover:shadow-md" : ""}`}>
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{label}</p>
         <span
@@ -450,6 +465,13 @@ function RevCard({
       {hasDelta && <p className="mt-1 text-[11px] text-muted-foreground">{t!("vs last month")}</p>}
     </Card>
   );
+  return href ? (
+    <Link href={href} className="block">
+      {card}
+    </Link>
+  ) : (
+    card
+  );
 }
 
 function KpiCard({
@@ -457,19 +479,28 @@ function KpiCard({
   value,
   sub,
   tone,
+  href,
 }: {
   label: string;
   value: string;
   sub: string;
   tone: "primary" | "rose" | "muted";
+  href?: string;
 }) {
   const valueTone = tone === "primary" ? "text-primary" : tone === "rose" ? "text-rose-600" : "";
-  return (
-    <Card className={`p-5 ${tone === "primary" ? "border-primary/30 bg-primary/5" : ""}`}>
+  const card = (
+    <Card className={`p-5 ${tone === "primary" ? "border-primary/30 bg-primary/5" : ""} ${href ? "transition hover:shadow-md" : ""}`}>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className={`mt-2 text-2xl font-bold tracking-tight ${valueTone}`}>{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
     </Card>
+  );
+  return href ? (
+    <Link href={href} className="block">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
 
