@@ -80,6 +80,18 @@ export const SQ: Record<string, string> = {
   "Unpaid on open rentals": "E papaguar në rezervimet e hapura",
   "vs last month": "krahasuar me muajin e kaluar",
 
+  // calendar
+  "Day": "Dita",
+  "Overdue": "Me vonesë",
+  "In service": "Në servis",
+  "open": "hapur",
+  "Out this day": "Jashtë këtë ditë",
+  "No pickups.": "Asnjë marrje.",
+  "No returns.": "Asnjë kthim.",
+  "Nothing out.": "Asgjë jashtë.",
+  "See what's booked and what's free — drag across free days to book":
+    "Shiko çfarë është zënë e çfarë është e lirë — tërhiq nëpër ditët e lira për të rezervuar",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
