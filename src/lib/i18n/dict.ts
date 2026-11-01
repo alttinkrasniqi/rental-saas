@@ -35,6 +35,21 @@ export const SQ: Record<string, string> = {
   "Remove": "Hiq",
   "Log out of all devices": "Dil nga të gjitha pajisjet",
 
+  // two-factor authentication
+  "Two-factor authentication": "Verifikim në dy hapa",
+  "Ask for a code from an authenticator app at login. Strongly recommended.":
+    "Kërko një kod nga aplikacioni i autentikimit gjatë hyrjes. Rekomandohet fort.",
+  "On": "Aktiv",
+  "Off": "Joaktiv",
+  "Turn on": "Aktivizo",
+  "Turn off": "Çaktivizo",
+  "Turn off two-factor authentication?": "Të çaktivizohet verifikimi në dy hapa?",
+  "1. Scan this code with Google Authenticator, Authy or similar.":
+    "1. Skano këtë kod me Google Authenticator, Authy ose të ngjashëm.",
+  "Or enter this key manually:": "Ose fute këtë çelës manualisht:",
+  "2. Enter the 6-digit code it shows:": "2. Shkruaj kodin 6-shifror që shfaq:",
+  "Verify & turn on": "Verifiko & aktivizo",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
