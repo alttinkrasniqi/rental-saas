@@ -12,10 +12,18 @@ import { cn } from "@/lib/utils";
 import type { Vehicle, VehicleStatus } from "@/lib/types";
 import { useT } from "@/lib/i18n/provider";
 
-export function CarsList({ vehicles, currency }: { vehicles: Vehicle[]; currency: string }) {
+export function CarsList({
+  vehicles,
+  currency,
+  initialStatus,
+}: {
+  vehicles: Vehicle[];
+  currency: string;
+  initialStatus?: VehicleStatus | "ALL";
+}) {
   const t = useT();
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<VehicleStatus | "ALL">("ALL");
+  const [status, setStatus] = useState<VehicleStatus | "ALL">(initialStatus ?? "ALL");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
