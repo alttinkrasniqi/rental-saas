@@ -30,6 +30,8 @@ async function deleteRentalAction(formData: FormData) {
   if (!id) return;
   const supabase = createClient();
   await supabase.from("rentals").delete().eq("id", id);
+  const { logAudit } = await import("@/lib/audit");
+  await logAudit({ action: "rental_deleted", entity: "rental", entityId: id });
   revalidatePath("/rentals");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
