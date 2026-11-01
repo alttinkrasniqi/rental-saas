@@ -1,0 +1,19 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+
+// Completes the TOTP (authenticator) challenge at login, stepping the session
+// up to AAL2.
+export async function verifyTwoFactor(code: string): Promise<{ ok?: boolean; error?: string }> {
+  const token = code.replace(/\s/g, "");
+  if (token.length < 6) return { error: "Shkruaj kodin 6-shifror nga aplikacioni." };
+
+  const supabase = createClient();
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  const factor = (factors?.totp ?? []).find((f) => f.status === "verified");
+  if (!factor) return { error: "Nuk u gjet asnjë faktor i verifikuar." };
+
+  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code: token });
+  if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
+  return { ok: true };
+}
