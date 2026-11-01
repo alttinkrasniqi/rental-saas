@@ -92,6 +92,19 @@ export const SQ: Record<string, string> = {
   "See what's booked and what's free — drag across free days to book":
     "Shiko çfarë është zënë e çfarë është e lirë — tërhiq nëpër ditët e lira për të rezervuar",
 
+  // rentals drill-down filters
+  "today": "sot",
+  "this week": "këtë javë",
+  "this month": "këtë muaj",
+  "Paid {range}": "Paguar {range}",
+  "Paid in the selected range": "Paguar në periudhën e zgjedhur",
+  "With a balance to collect": "Me bilanc për t'u arkëtuar",
+  "Filtered: {filter}": "Filtruar: {filter}",
+  "Clear": "Pastro",
+  "Clear filter": "Pastro filtrin",
+  "Nothing matches this filter": "Asgjë s'përputhet me këtë filtër",
+  "Try clearing the filter to see all rentals.": "Provo ta pastrosh filtrin për të parë të gjitha rezervimet.",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
