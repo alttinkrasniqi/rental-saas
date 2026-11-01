@@ -29,9 +29,12 @@ async function deleteRentalAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) return;
   const supabase = createClient();
-  await supabase.from("rentals").delete().eq("id", id);
+  // Defense-in-depth: scope by the caller's business (RLS already enforces this).
+  const { requireBusiness } = await import("@/lib/business");
+  const business = await requireBusiness();
+  await supabase.from("rentals").delete().eq("id", id).eq("business_id", business.id);
   const { logAudit } = await import("@/lib/audit");
-  await logAudit({ action: "rental_deleted", entity: "rental", entityId: id });
+  await logAudit({ action: "rental_deleted", entity: "rental", entityId: id, businessId: business.id });
   revalidatePath("/rentals");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
