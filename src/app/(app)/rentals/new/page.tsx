@@ -7,7 +7,7 @@ import { getT } from "@/lib/i18n/server";
 export default async function NewRentalPage({
   searchParams,
 }: {
-  searchParams: { client?: string; vehicle?: string; date?: string };
+  searchParams: { client?: string; vehicle?: string; date?: string; return?: string };
 }) {
   const t = getT();
   const business = await getBusiness();
@@ -47,6 +47,7 @@ export default async function NewRentalPage({
         preselectClientId={searchParams.client}
         preselectVehicleId={searchParams.vehicle}
         presetPickupDate={searchParams.date}
+        presetReturnDate={searchParams.return}
       />
     </div>
   );
