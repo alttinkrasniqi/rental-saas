@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { trustCurrentDevice } from "../(auth)/actions";
+import { rateLimit, retryMessage } from "@/lib/ratelimit";
 
 // Email a fresh verification code to the signed-in user (Supabase email OTP,
 // rendered with the "Magic Link" template).
@@ -11,6 +12,9 @@ export async function sendDeviceCode(): Promise<{ ok?: boolean; error?: string }
     data: { user },
   } = await supabase.auth.getUser();
   if (!user?.email) return { error: "Sesioni ka skaduar. Kyçu përsëri." };
+
+  const limit = await rateLimit(`devcode:send:${user.id}`, 6, 3600);
+  if (!limit.allowed) return { error: retryMessage(limit.retryAfter) };
 
   const { error } = await supabase.auth.signInWithOtp({
     email: user.email,
@@ -33,6 +37,9 @@ export async function verifyDeviceCode(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user?.email) return { error: "Sesioni ka skaduar. Kyçu përsëri." };
+
+  const limit = await rateLimit(`devcode:verify:${user.id}`, 10, 600);
+  if (!limit.allowed) return { error: retryMessage(limit.retryAfter) };
 
   const { error } = await supabase.auth.verifyOtp({ email: user.email, token, type: "email" });
   if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
