@@ -28,6 +28,8 @@ async function deleteVehicleAction(formData: FormData) {
     await supabase.from("rentals").delete().eq("vehicle_id", id);
   }
   await supabase.from("vehicles").delete().eq("id", id);
+  const { logAudit } = await import("@/lib/audit");
+  await logAudit({ action: "car_deleted", entity: "car", entityId: id });
   revalidatePath("/cars");
   revalidatePath("/dashboard");
   redirect("/cars");
