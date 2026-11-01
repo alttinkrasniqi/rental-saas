@@ -137,6 +137,16 @@ export function RentalsList({
       {panelOpen && (
         <Card className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">{t("Status")}</label>
+            <select value={filter} onChange={(e) => setFilter(e.target.value as FilterValue)} className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary">
+              {FILTERS.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {t(f.label)} ({counts[f.value]})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">{t("Car")}</label>
             <select value={carId} onChange={(e) => setCarId(e.target.value)} className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary">
               <option value="">{t("All cars")}</option>
