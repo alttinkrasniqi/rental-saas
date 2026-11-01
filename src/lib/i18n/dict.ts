@@ -73,6 +73,12 @@ export const SQ: Record<string, string> = {
   // dashboard
   "Fleet": "Flota",
   "Earnings": "Të ardhurat",
+  "Revenue — last 6 months": "Të ardhurat — 6 muajt e fundit",
+  "Fleet in use now": "Flota në përdorim tani",
+  "{out} of {total} cars out": "{out} nga {total} makina jashtë",
+  "To collect": "Për t'u arkëtuar",
+  "Unpaid on open rentals": "E papaguar në rezervimet e hapura",
+  "vs last month": "krahasuar me muajin e kaluar",
 
   // getting started checklist
   "Get started": "Fillimi",
