@@ -63,6 +63,17 @@ export const SQ: Record<string, string> = {
   "Cars (CSV)": "Makinat (CSV)",
   "Payments (CSV)": "Pagesat (CSV)",
 
+  // payments / revenue
+  "Date received": "Data e arkëtimit",
+  "The day the money came in — counts toward that month's revenue.":
+    "Dita kur erdhën paratë — llogaritet te të ardhurat e atij muaji.",
+  "{n} payment": "{n} pagesë",
+  "{n} payments": "{n} pagesa",
+
+  // dashboard
+  "Fleet": "Flota",
+  "Earnings": "Të ardhurat",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
