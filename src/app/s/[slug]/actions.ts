@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rentalDays, formatDate } from "@/lib/format";
 import { notifyNewBooking } from "@/lib/notify";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export type BookingState = {
   ok?: boolean;
@@ -23,6 +24,10 @@ export async function createOnlineReservation(
   _prev: BookingState,
   formData: FormData
 ): Promise<BookingState> {
+  // Throttle anonymous booking spam per IP.
+  const rl = await rateLimit(`booking:ip:${clientIp()}`, 10, 3600);
+  if (!rl.allowed) return { error: "Too many booking attempts. Please try again later." };
+
   const admin = createAdminClient();
 
   const slug = String(formData.get("slug") || "").trim();
