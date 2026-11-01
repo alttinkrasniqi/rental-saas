@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { trustCurrentDevice } from "../(auth)/actions";
 import { rateLimit, retryMessage } from "@/lib/ratelimit";
+import { logAudit } from "@/lib/audit";
 
 // Email a fresh verification code to the signed-in user (Supabase email OTP,
 // rendered with the "Magic Link" template).
@@ -45,5 +46,6 @@ export async function verifyDeviceCode(
   if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
 
   await trustCurrentDevice(user.id, remember);
+  await logAudit({ action: "device_verified", userId: user.id });
   return { ok: true };
 }
