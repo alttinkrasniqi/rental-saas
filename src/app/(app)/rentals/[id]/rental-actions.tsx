@@ -102,6 +102,11 @@ export function RentalActions({
                 ))}
               </Select>
             </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>{t("Date received")}</Label>
+              <Input type="date" name="paid_on" defaultValue={new Date().toISOString().slice(0, 10)} />
+              <p className="text-xs text-muted-foreground">{t("The day the money came in — counts toward that month's revenue.")}</p>
+            </div>
             <div className="sm:col-span-2">
               <SubmitButton>{t("Save payment")}</SubmitButton>
             </div>
