@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusiness } from "@/lib/business";
 import { DEVICE_COOKIE, sha256hex } from "@/lib/device";
+import { logAudit } from "@/lib/audit";
 
 export type SettingsState = { error?: string; ok?: boolean };
 
@@ -61,6 +62,7 @@ export async function revokeDevice(id: string): Promise<SettingsState> {
 
   const { error } = await supabase.from("trusted_devices").delete().eq("id", id).eq("user_id", user.id);
   if (error) return { error: "Nuk u hoq dot pajisja." };
+  await logAudit({ action: "device_removed", entity: "device", entityId: id, userId: user.id });
   revalidatePath("/settings");
   return { ok: true };
 }
@@ -110,6 +112,7 @@ export async function verifyEnroll(factorId: string, code: string): Promise<Sett
   const supabase = createClient();
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: token });
   if (error) return { error: "Kodi është i pasaktë. Provo përsëri." };
+  await logAudit({ action: "mfa_enabled" });
   revalidatePath("/settings");
   return { ok: true };
 }
@@ -125,6 +128,7 @@ export async function disableTwoFactor(): Promise<SettingsState> {
   } catch {
     return { error: "Nuk u çaktivizua dot. Provo përsëri." };
   }
+  await logAudit({ action: "mfa_disabled" });
   revalidatePath("/settings");
   return { ok: true };
 }
@@ -141,6 +145,7 @@ export async function revokeAllDevices(): Promise<void> {
     try {
       await supabase.from("trusted_devices").delete().eq("user_id", user.id);
     } catch {}
+    await logAudit({ action: "logout_all", userId: user.id });
   }
   try {
     await supabase.auth.signOut({ scope: "global" });
@@ -178,6 +183,7 @@ export async function updateBusiness(
 
   if (error) return { error: error.message };
 
+  await logAudit({ action: "settings_updated", businessId: business.id });
   revalidatePath("/settings");
   revalidatePath("/dashboard");
   return { ok: true };
