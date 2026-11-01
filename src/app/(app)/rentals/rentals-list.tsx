@@ -17,9 +17,17 @@ const FILTERS: { value: RentalStatus | "ALL"; label: string }[] = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
-export function RentalsList({ rentals, currency }: { rentals: any[]; currency: string }) {
+export function RentalsList({
+  rentals,
+  currency,
+  initialFilter,
+}: {
+  rentals: any[];
+  currency: string;
+  initialFilter?: RentalStatus | "ALL";
+}) {
   const t = useT();
-  const [filter, setFilter] = useState<RentalStatus | "ALL">("ALL");
+  const [filter, setFilter] = useState<RentalStatus | "ALL">(initialFilter ?? "ALL");
 
   const filtered = useMemo(
     () => (filter === "ALL" ? rentals : rentals.filter((r) => r.status === filter)),
