@@ -41,6 +41,33 @@ export default async function SettingsPage() {
       <TwoFactorSection enabled={mfa.enabled} />
 
       <DevicesSection devices={devices} />
+
+      <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
+        <p className="text-sm font-medium">{t("Export your data")}</p>
+        <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
+          {t("Download a full backup, or individual tables as CSV for your accountant.")}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/export"
+            className="rounded-md bg-[#A11E22] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#851519]"
+          >
+            {t("Full backup (JSON)")}
+          </a>
+          <a href="/export?format=csv&table=rentals" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
+            {t("Rentals (CSV)")}
+          </a>
+          <a href="/export?format=csv&table=clients" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
+            {t("Clients (CSV)")}
+          </a>
+          <a href="/export?format=csv&table=vehicles" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
+            {t("Cars (CSV)")}
+          </a>
+          <a href="/export?format=csv&table=payments" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
+            {t("Payments (CSV)")}
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
