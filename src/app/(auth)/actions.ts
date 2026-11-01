@@ -7,6 +7,7 @@ import { validatePasswordRules } from "@/lib/password";
 import { isPwnedPassword } from "@/lib/pwned";
 import { DEVICE_COOKIE, createDeviceToken, verifyDeviceToken, sha256hex } from "@/lib/device";
 import { notifySuspiciousLogin } from "@/lib/notify";
+import { rateLimit, clientIp, retryMessage } from "@/lib/ratelimit";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AuthState = { error?: string };
@@ -103,6 +104,12 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
 
   if (!email || !password) return { error: "Shkruaj email-in dhe fjalëkalimin." };
 
+  // Brute-force protection: cap attempts per IP and per email.
+  const ipLimit = await rateLimit(`login:ip:${clientIp()}`, 20, 900);
+  if (!ipLimit.allowed) return { error: retryMessage(ipLimit.retryAfter) };
+  const emailLimit = await rateLimit(`login:email:${email.toLowerCase()}`, 10, 900);
+  if (!emailLimit.allowed) return { error: retryMessage(emailLimit.retryAfter) };
+
   const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
@@ -183,6 +190,8 @@ export async function signupStart(
 ): Promise<{ ok?: boolean; verified?: boolean; error?: string }> {
   const e = email.trim();
   if (!e || !password) return { error: "Shkruaj një email dhe një fjalëkalim." };
+  const sLimit = await rateLimit(`signup:ip:${clientIp()}`, 6, 3600);
+  if (!sLimit.allowed) return { error: retryMessage(sLimit.retryAfter) };
   const pwErr = await checkPassword(password, { email: e });
   if (pwErr) return { error: pwErr };
 
@@ -202,6 +211,8 @@ export async function verifySignup(
   const e = email.trim();
   const code = token.trim();
   if (code.length < 4) return { error: "Shkruaj kodin nga email-i." };
+  const vLimit = await rateLimit(`verifysignup:${e.toLowerCase()}`, 10, 600);
+  if (!vLimit.allowed) return { error: retryMessage(vLimit.retryAfter) };
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.verifyOtp({ email: e, token: code, type: "signup" });
@@ -213,6 +224,8 @@ export async function verifySignup(
 }
 
 export async function resendSignupCode(email: string): Promise<{ ok?: boolean; error?: string }> {
+  const rLimit = await rateLimit(`resend:${email.trim().toLowerCase()}`, 6, 3600);
+  if (!rLimit.allowed) return { error: retryMessage(rLimit.retryAfter) };
   const supabase = createClient();
   const { error } = await supabase.auth.resend({ type: "signup", email: email.trim() });
   if (error) return { error: "Nuk u dërgua dot kodi. Provo pas pak." };
@@ -227,6 +240,10 @@ export async function requestPasswordReset(
 ): Promise<{ ok?: boolean; error?: string }> {
   const e = email.trim();
   if (!e) return { error: "Shkruaj email-in tënd." };
+  const emailLimit = await rateLimit(`reset:email:${e.toLowerCase()}`, 5, 3600);
+  if (!emailLimit.allowed) return { error: retryMessage(emailLimit.retryAfter) };
+  const ipLimit = await rateLimit(`reset:ip:${clientIp()}`, 15, 3600);
+  if (!ipLimit.allowed) return { error: retryMessage(ipLimit.retryAfter) };
 
   const h = headers();
   const origin = h.get("origin") || (h.get("host") ? `https://${h.get("host")}` : "");
@@ -248,6 +265,8 @@ export async function resetWithCode(
   const e = email.trim();
   const token = code.trim();
   if (token.length < 4) return { error: "Shkruaj kodin nga email-i." };
+  const vLimit = await rateLimit(`resetcode:${e.toLowerCase()}`, 10, 600);
+  if (!vLimit.allowed) return { error: retryMessage(vLimit.retryAfter) };
   const pwErr = await checkPassword(password, { email: e });
   if (pwErr) return { error: pwErr };
 
