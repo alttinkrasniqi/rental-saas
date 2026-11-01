@@ -112,6 +112,17 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
     return { error: "Email ose fjalëkalim i gabuar. Provo përsëri." };
   }
 
+  // MFA step-up: if the user has a verified authenticator (TOTP) factor, require
+  // the 6-digit code before granting access. This is the second factor and
+  // replaces the email device-code challenge below. (redirect() must stay
+  // outside try/catch — it works by throwing.)
+  let needsMfa = false;
+  try {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    needsMfa = !!aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2";
+  } catch {}
+  if (needsMfa) redirect("/verify-2fa");
+
   // Security gate: challenge with an email code when the browser isn't a
   // trusted device OR the login comes from a country never used before
   // ("impossible travel" / account takeover). Opt-in via DEVICE_TOKEN_SECRET —
