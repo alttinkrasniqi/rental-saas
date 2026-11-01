@@ -8,6 +8,7 @@ import { isPwnedPassword } from "@/lib/pwned";
 import { DEVICE_COOKIE, createDeviceToken, verifyDeviceToken, sha256hex } from "@/lib/device";
 import { notifySuspiciousLogin } from "@/lib/notify";
 import { rateLimit, clientIp, retryMessage } from "@/lib/ratelimit";
+import { logAudit } from "@/lib/audit";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AuthState = { error?: string };
@@ -167,11 +168,13 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
         try {
           await notifySuspiciousLogin({ to: email, country: geo.country, city: geo.city, ip: geo.ip });
         } catch {}
+        await logAudit({ action: "suspicious_login", userId: uid, metadata: { country: geo.country, city: geo.city } });
       }
       redirect("/verify-device?sent=1");
     }
   }
 
+  await logAudit({ action: "login", userId: data.user?.id });
   redirect("/dashboard");
 }
 
@@ -219,7 +222,10 @@ export async function verifySignup(
   if (error) return { error: "Kodi është i pasaktë ose ka skaduar. Provo përsëri." };
   // They just proved control of the email — trust this device so onboarding
   // isn't gated by a second code.
-  if (data.user?.id) await trustCurrentDevice(data.user.id);
+  if (data.user?.id) {
+    await trustCurrentDevice(data.user.id);
+    await logAudit({ action: "signup_verified", userId: data.user.id });
+  }
   return { ok: true };
 }
 
@@ -277,7 +283,10 @@ export async function resetWithCode(
   const { error: updErr } = await supabase.auth.updateUser({ password });
   if (updErr) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
 
-  if (data.user?.id) await trustCurrentDevice(data.user.id);
+  if (data.user?.id) {
+    await trustCurrentDevice(data.user.id);
+    await logAudit({ action: "password_changed", userId: data.user.id });
+  }
   return { ok: true };
 }
 
@@ -302,5 +311,6 @@ export async function updatePassword(
   if (error) return { error: "Nuk u ndryshua dot fjalëkalimi. Provo përsëri." };
 
   await trustCurrentDevice(user.id);
+  await logAudit({ action: "password_changed", userId: user.id });
   redirect("/dashboard");
 }
