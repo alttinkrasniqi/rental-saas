@@ -6,6 +6,7 @@ import {
   endOfWeek,
   startOfMonth,
   endOfMonth,
+  subMonths,
   isWithinInterval,
 } from "date-fns";
 import {
@@ -16,7 +17,7 @@ import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatMoney, formatDate, formatTime, toDate, rentalDays } from "@/lib/format";
+import { formatMoney, formatDate, formatTime, toDate, rentalDays, remainingCents } from "@/lib/format";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
 import { markReturned } from "../rentals/actions";
 import { getT } from "@/lib/i18n/server";
@@ -38,7 +39,7 @@ export default async function DashboardPage() {
     supabase.from("vehicles").select("*").eq("archived", false),
     supabase
       .from("rentals")
-      .select("id, vehicle_id, status, open_ended, source, created_at, pickup_at, return_at, vehicle:vehicles(make, model, plate), client:clients(full_name, phone)")
+      .select("id, vehicle_id, status, open_ended, source, created_at, pickup_at, return_at, total_cents, paid_cents, vehicle:vehicles(make, model, plate), client:clients(full_name, phone)")
       .neq("status", "CANCELLED"),
     supabase.from("payments").select("amount_cents, paid_at"),
     supabase.from("clients").select("id", { count: "exact", head: true }),
@@ -98,6 +99,24 @@ export default async function DashboardPage() {
   const revToday = sumRange(startOfDay(now), endOfDay(now));
   const revWeek = sumRange(startOfWeek(now, WEEK_OPTS), endOfWeek(now, WEEK_OPTS));
   const revMonth = sumRange(startOfMonth(now), endOfMonth(now));
+
+  // This month vs last month (context for the headline number).
+  const lastM = subMonths(now, 1);
+  const revLastMonth = sumRange(startOfMonth(lastM), endOfMonth(lastM));
+  const monthDelta =
+    revLastMonth > 0 ? Math.round(((revMonth - revLastMonth) / revLastMonth) * 100) : null;
+
+  // 6-month revenue trend (cash-basis, by payment date).
+  const SQ_MONTHS = ["Jan", "Shk", "Mar", "Pri", "Maj", "Qer", "Kor", "Gsh", "Sht", "Tet", "Nën", "Dhj"];
+  const trend = Array.from({ length: 6 }, (_, i) => {
+    const d = subMonths(now, 5 - i);
+    return { label: SQ_MONTHS[d.getMonth()], value: sumRange(startOfMonth(d), endOfMonth(d)) };
+  });
+  const maxTrend = Math.max(1, ...trend.map((m) => m.value));
+
+  // Fleet utilization right now + money still to collect on open rentals.
+  const utilization = vehicles.length ? Math.round((outNow.size / vehicles.length) * 100) : 0;
+  const toCollect = openRentals.reduce((s, r) => s + remainingCents(r), 0);
 
   const upcoming = [
     ...rentals
@@ -191,7 +210,52 @@ export default async function DashboardPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           <RevCard label={t("Revenue today")} value={formatMoney(revToday, currency)} icon={Coins} />
           <RevCard label={t("This week")} value={formatMoney(revWeek, currency)} icon={Wallet} />
-          <RevCard label={t("This month")} value={formatMoney(revMonth, currency)} icon={TrendingUp} emphasize />
+          <RevCard label={t("This month")} value={formatMoney(revMonth, currency)} icon={TrendingUp} emphasize delta={monthDelta} t={t} />
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-sm">{t("Revenue — last 6 months")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end justify-between gap-2" style={{ height: 120 }}>
+              {trend.map((m, i) => {
+                const isCurrent = i === trend.length - 1;
+                const h = Math.round((m.value / maxTrend) * 100);
+                return (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      {m.value > 0 ? formatMoney(m.value, currency) : ""}
+                    </span>
+                    <div className="flex w-full flex-1 items-end">
+                      <div
+                        className={`w-full rounded-t-md ${isCurrent ? "bg-primary" : "bg-primary/25"}`}
+                        style={{ height: `${Math.max(h, 2)}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">{m.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-6">
+          <KpiCard
+            label={t("Fleet in use now")}
+            value={`${utilization}%`}
+            sub={t("{out} of {total} cars out", { out: outNow.size, total: vehicles.length })}
+            tone="primary"
+          />
+          <KpiCard
+            label={t("To collect")}
+            value={formatMoney(toCollect, currency)}
+            sub={t("Unpaid on open rentals")}
+            tone={toCollect > 0 ? "rose" : "muted"}
+          />
         </div>
       </div>
 
@@ -346,12 +410,18 @@ function RevCard({
   value,
   icon: Icon,
   emphasize,
+  delta,
+  t,
 }: {
   label: string;
   value: string;
   icon: LucideIcon;
   emphasize?: boolean;
+  delta?: number | null;
+  t?: TFunc;
 }) {
+  const hasDelta = delta != null && t;
+  const up = (delta ?? 0) >= 0;
   return (
     <Card className={`p-5 ${emphasize ? "border-primary/30 bg-primary/5" : ""}`}>
       <div className="flex items-center justify-between">
@@ -364,7 +434,41 @@ function RevCard({
           <Icon className="h-4 w-4" />
         </span>
       </div>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${emphasize ? "text-primary" : ""}`}>{value}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <p className={`text-2xl font-bold tracking-tight ${emphasize ? "text-primary" : ""}`}>{value}</p>
+        {hasDelta && (
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+              up ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+            }`}
+          >
+            {up ? "+" : ""}
+            {delta}%
+          </span>
+        )}
+      </div>
+      {hasDelta && <p className="mt-1 text-[11px] text-muted-foreground">{t!("vs last month")}</p>}
+    </Card>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  tone: "primary" | "rose" | "muted";
+}) {
+  const valueTone = tone === "primary" ? "text-primary" : tone === "rose" ? "text-rose-600" : "";
+  return (
+    <Card className={`p-5 ${tone === "primary" ? "border-primary/30 bg-primary/5" : ""}`}>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`mt-2 text-2xl font-bold tracking-tight ${valueTone}`}>{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
     </Card>
   );
 }
