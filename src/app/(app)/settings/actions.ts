@@ -178,6 +178,12 @@ export async function updateBusiness(
       address: String(formData.get("address") || "").trim() || null,
       currency: String(formData.get("currency") || "EUR").trim() || "EUR",
       timezone: String(formData.get("timezone") || "Europe/Tirane").trim(),
+      business_no: String(formData.get("business_no") || "").trim() || null,
+      fiscal_number: String(formData.get("fiscal_number") || "").trim() || null,
+      vat_number: String(formData.get("vat_number") || "").trim() || null,
+      bank_name: String(formData.get("bank_name") || "").trim() || null,
+      bank_iban: String(formData.get("bank_iban") || "").trim() || null,
+      vat_rate: Math.max(0, Math.min(100, parseInt(String(formData.get("vat_rate") || "0"), 10) || 0)),
     })
     .eq("id", business.id);
 
