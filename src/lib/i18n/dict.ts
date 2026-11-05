@@ -114,6 +114,17 @@ export const SQ: Record<string, string> = {
   "To": "Deri",
   "Clear all": "Pastro të gjitha",
 
+  // invoice / fiscal
+  "Fatura": "Fatura",
+  "Fiscal details (for invoices)": "Të dhënat fiskale (për faturë)",
+  "Shown on invoices you issue to clients.": "Shfaqen në faturat që u lëshon klientëve.",
+  "Business number (NUI)": "Numri i biznesit (NUI)",
+  "Fiscal number": "Numri fiskal",
+  "VAT number": "Numri i TVSH-së",
+  "VAT rate (%)": "Përqindja e TVSH-së (%)",
+  "Bank": "Banka",
+  "IBAN": "IBAN",
+
   // getting started checklist
   "Get started": "Fillimi",
   "A few steps to set up your rental business.": "Disa hapa për të rregulluar biznesin tënd.",
