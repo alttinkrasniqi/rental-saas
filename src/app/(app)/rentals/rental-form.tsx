@@ -6,6 +6,7 @@ import { useFormState } from "react-dom";
 import { differenceInCalendarDays } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/date-field";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -155,7 +156,7 @@ export function RentalForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>{t("Pickup date")}</Label>
-                <Input type="date" name="pickup_date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required />
+                <DateField name="pickup_date" value={pickupDate} onChange={setPickupDate} required />
               </div>
               <div className="space-y-1.5">
                 <Label>{t("Pickup time")}</Label>
@@ -182,7 +183,7 @@ export function RentalForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>{t("Return date")}</Label>
-                  <Input type="date" name="return_date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required={!openEnded} />
+                  <DateField name="return_date" value={returnDate} onChange={setReturnDate} required={!openEnded} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>{t("Return time")}</Label>

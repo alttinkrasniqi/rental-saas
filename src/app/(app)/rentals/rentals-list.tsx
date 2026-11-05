@@ -6,6 +6,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badges";
 import { formatMoney, formatDate, remainingCents } from "@/lib/format";
+import { DateField } from "@/components/date-field";
 import { cn } from "@/lib/utils";
 import type { RentalStatus } from "@/lib/types";
 import { useT } from "@/lib/i18n/provider";
@@ -166,11 +167,11 @@ export function RentalsList({
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">{t("From")}</label>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary" />
+            <DateField value={from} onChange={setFrom} />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">{t("To")}</label>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary" />
+            <DateField value={to} onChange={setTo} />
           </div>
           {activeAdvanced > 0 && (
             <div className="sm:col-span-2 lg:col-span-4">
