@@ -92,23 +92,30 @@ export default async function CalendarPage({
   const nav = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        <Link href={navHref(prev)} className="flex h-9 w-9 items-center justify-center rounded-md border border-input bg-card hover:bg-muted">
-          <ChevronLeft className="h-4 w-4" />
-        </Link>
-        <span className="min-w-[10rem] text-center text-sm font-semibold">{rangeLabel}</span>
-        <Link href={navHref(next)} className="flex h-9 w-9 items-center justify-center rounded-md border border-input bg-card hover:bg-muted">
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-        <Link href={`/calendar?view=${view}`} className="ml-1 flex h-9 items-center rounded-md border border-input bg-card px-3 text-sm hover:bg-muted">
+        <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-input bg-card shadow-sm">
+          <Link href={navHref(prev)} className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          <span className="flex min-w-[12rem] items-center justify-center border-x border-input px-4 text-sm font-semibold capitalize">
+            {rangeLabel}
+          </span>
+          <Link href={navHref(next)} className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <Link href={`/calendar?view=${view}`} className="flex h-9 items-center rounded-lg border border-input bg-card px-3.5 text-sm font-medium shadow-sm transition-colors hover:bg-muted">
           {t("Today")}
         </Link>
       </div>
-      <div className="flex items-center gap-1 rounded-md border border-input bg-card p-1">
+      <div className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
         {(["day", "week", "month"] as const).map((v) => (
           <Link
             key={v}
             href={`/calendar?view=${v}`}
-            className={cn("rounded px-3 py-1 text-sm font-medium", view === v ? "bg-primary/10 text-primary" : "text-muted-foreground")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
           >
             {t(v === "day" ? "Day" : v === "week" ? "Week" : "Month")}
           </Link>

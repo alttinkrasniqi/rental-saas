@@ -78,19 +78,26 @@ export function CalendarMatrix({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
         {chips.map((c) => (
           <button
             key={c.key}
             type="button"
             onClick={() => setShow(c.key)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
-              show === c.key ? "border-primary bg-primary/10 text-primary" : "border-input bg-card text-muted-foreground hover:bg-muted"
+              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              show === c.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             {c.label}
-            <span className={cn("rounded-full px-1.5 text-xs font-semibold", show === c.key ? "bg-primary/15" : "bg-muted")}>{c.n}</span>
+            <span
+              className={cn(
+                "rounded-full px-1.5 text-xs font-semibold tabular-nums",
+                show === c.key ? "bg-white/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {c.n}
+            </span>
           </button>
         ))}
       </div>
