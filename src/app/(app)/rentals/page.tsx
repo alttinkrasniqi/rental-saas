@@ -17,7 +17,7 @@ const STATUSES = ["ACTIVE", "RESERVED", "COMPLETED", "CANCELLED"];
 export default async function RentalsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; paid?: string; paid_from?: string; paid_to?: string; unpaid?: string; overdue?: string };
+  searchParams: { status?: string; paid?: string; paid_from?: string; paid_to?: string; unpaid?: string; overdue?: string; car?: string };
 }) {
   const t = getT();
   const business = await getBusiness();
@@ -68,6 +68,14 @@ export default async function RentalsPage({
     banner = t("Overdue");
   }
 
+  // History of a single car (from the calendar car menu).
+  const carId = searchParams.car;
+  if (carId) {
+    const carName = rentals.find((r) => r.vehicle_id === carId)?.vehicle;
+    rentals = rentals.filter((r) => r.vehicle_id === carId);
+    if (carName) banner = `${carName.make} ${carName.model}${carName.plate ? ` · ${carName.plate}` : ""}`;
+  }
+
   const initialFilter = STATUSES.includes(searchParams.status || "")
     ? (searchParams.status as RentalStatus)
     : undefined;
@@ -101,7 +109,7 @@ export default async function RentalsPage({
           action={banner ? { href: "/rentals", label: t("Clear filter") } : { href: "/rentals/new", label: t("New rental") }}
         />
       ) : (
-        <RentalsList rentals={rentals} currency={business?.currency ?? "EUR"} initialFilter={initialFilter} />
+        <RentalsList rentals={rentals} currency={business?.currency ?? "EUR"} initialFilter={initialFilter} initialCar={carId} />
       )}
     </div>
   );

@@ -35,16 +35,18 @@ export function RentalsList({
   rentals,
   currency,
   initialFilter,
+  initialCar,
 }: {
   rentals: any[];
   currency: string;
   initialFilter?: FilterValue;
+  initialCar?: string;
 }) {
   const t = useT();
   const [filter, setFilter] = useState<FilterValue>(initialFilter ?? "ALL");
   const [query, setQuery] = useState("");
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [carId, setCarId] = useState("");
+  const [panelOpen, setPanelOpen] = useState(!!initialCar);
+  const [carId, setCarId] = useState(initialCar ?? "");
   const [pay, setPay] = useState<PayFilter>("ALL");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
