@@ -22,7 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toDate, formatDate, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Vehicle } from "@/lib/types";
-import { getT } from "@/lib/i18n/server";
+import { sq } from "date-fns/locale";
+import { getT, getLocale } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n";
 import { CalendarMatrix, type CalRow, type CalDay, type CalCell } from "./calendar-matrix";
 
@@ -34,6 +35,7 @@ export default async function CalendarPage({
   searchParams: { view?: string; start?: string };
 }) {
   const t = getT();
+  const df = getLocale() === "sq" ? { locale: sq } : undefined;
   const view = searchParams.view === "month" ? "month" : searchParams.view === "day" ? "day" : "week";
   const anchor = searchParams.start ? new Date(searchParams.start) : new Date();
   const now = new Date();
@@ -82,10 +84,10 @@ export default async function CalendarPage({
 
   const rangeLabel =
     view === "month"
-      ? format(anchor, "MMMM yyyy")
+      ? format(anchor, "MMMM yyyy", df)
       : view === "day"
-      ? format(anchor, "EEEE, d MMM yyyy")
-      : `${format(windowStart, "d MMM")} – ${format(windowEnd, "d MMM yyyy")}`;
+      ? format(anchor, "EEEE, d MMM yyyy", df)
+      : `${format(windowStart, "d MMM", df)} – ${format(windowEnd, "d MMM yyyy", df)}`;
 
   const nav = (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -179,7 +181,7 @@ export default async function CalendarPage({
 
   const daysMeta: CalDay[] = days.map((d) => ({
     key: fmt(d),
-    dow: format(d, "EEE"),
+    dow: format(d, "EEE", df),
     dom: format(d, "d"),
     today: isToday(d),
   }));
