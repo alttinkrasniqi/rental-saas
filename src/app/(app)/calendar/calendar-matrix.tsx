@@ -3,12 +3,13 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type CalCell =
   | { t: "blocked" }
   | { t: "free" }
-  | { t: "booked"; id: string; cls: string; isStart: boolean; label: string; title: string };
+  | { t: "booked"; id: string; cls: string; isStart: boolean; isEnd: boolean; label: string; title: string };
 
 export type CalRow = {
   vehicleId: string;
@@ -18,7 +19,7 @@ export type CalRow = {
   cells: CalCell[];
 };
 
-export type CalDay = { key: string; dow: string; dom: string; today: boolean };
+export type CalDay = { key: string; dow: string; dom: string; today: boolean; weekend: boolean };
 
 export function CalendarMatrix({
   rows: allRows,
@@ -49,14 +50,10 @@ export function CalendarMatrix({
   ];
 
   const isFree = (row: number, col: number) => rows[row]?.cells[col]?.t === "free";
-
   const rangeAllFree = (row: number, a: number, b: number) => {
-    const lo = Math.min(a, b);
-    const hi = Math.max(a, b);
-    for (let c = lo; c <= hi; c++) if (!isFree(row, c)) return false;
+    for (let c = Math.min(a, b); c <= Math.max(a, b); c++) if (!isFree(row, c)) return false;
     return true;
   };
-
   const start = (row: number, col: number) => {
     if (!isFree(row, col)) return;
     dragging.current = true;
@@ -64,9 +61,7 @@ export function CalendarMatrix({
   };
   const extend = (row: number, col: number) => {
     if (!dragging.current || !sel || sel.row !== row) return;
-    if (isFree(row, col) && rangeAllFree(row, sel.start, col)) {
-      setSel({ ...sel, end: col });
-    }
+    if (isFree(row, col) && rangeAllFree(row, sel.start, col)) setSel({ ...sel, end: col });
   };
   const finish = () => {
     if (!dragging.current || !sel) return;
@@ -78,7 +73,6 @@ export function CalendarMatrix({
     const base = `/rentals/new?vehicle=${vehicle}&date=${days[lo].key}`;
     router.push(lo === hi ? base : `${base}&return=${days[hi].key}`);
   };
-
   const inSel = (row: number, col: number) =>
     sel && sel.row === row && col >= Math.min(sel.start, sel.end) && col <= Math.max(sel.start, sel.end);
 
@@ -91,96 +85,120 @@ export function CalendarMatrix({
             type="button"
             onClick={() => setShow(c.key)}
             className={cn(
-              "h-9 rounded-md border px-3 text-sm font-medium transition-colors",
+              "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
               show === c.key ? "border-primary bg-primary/10 text-primary" : "border-input bg-card text-muted-foreground hover:bg-muted"
             )}
           >
-            {c.label} ({c.n})
+            {c.label}
+            <span className={cn("rounded-full px-1.5 text-xs font-semibold", show === c.key ? "bg-primary/15" : "bg-muted")}>{c.n}</span>
           </button>
         ))}
       </div>
-      <div className="overflow-x-auto rounded-xl border border-border bg-card" onPointerUp={finish} onPointerLeave={() => { dragging.current = false; }}>
-      <table className="w-full border-collapse select-none text-sm">
-        <thead>
-          <tr>
-            <th className="sticky left-0 z-10 min-w-[9rem] bg-card p-3 text-left font-medium text-muted-foreground">
-              &nbsp;
-            </th>
-            {days.map((d) => (
-              <th
-                key={d.key}
-                className={cn(
-                  "min-w-[5.5rem] border-l border-border p-2 text-center font-medium",
-                  d.today ? "bg-primary/5 text-primary" : "text-muted-foreground"
-                )}
-              >
-                <div className="text-[11px] uppercase">{d.dow}</div>
-                <div className="text-base">{d.dom}</div>
+
+      <div
+        className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm"
+        onPointerUp={finish}
+        onPointerLeave={() => { dragging.current = false; }}
+      >
+        <table className="w-full border-separate border-spacing-0 select-none text-sm">
+          <thead>
+            <tr>
+              <th className="sticky left-0 z-20 min-w-[10rem] border-b border-r border-border bg-card px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Makina
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, ri) => (
-            <tr key={row.vehicleId} className="border-t border-border">
-              <td className="sticky left-0 z-10 bg-card p-3 align-top">
-                <p className="font-medium leading-tight">{row.name}</p>
-                <p className="text-xs text-muted-foreground">{row.plate}</p>
-                {row.maintenance && (
-                  <span className="mt-1 inline-block rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700">
-                    {maintenanceLabel}
-                  </span>
-                )}
-              </td>
-              {row.cells.map((cell, ci) => {
-                if (cell.t === "booked") {
-                  return (
-                    <td key={ci} className="border-l border-border p-1 align-middle">
-                      <Link
-                        href={`/rentals/${cell.id}`}
-                        title={cell.title}
-                        className={cn(
-                          "flex h-10 items-center justify-center rounded px-1 text-center text-[11px] font-medium leading-tight",
-                          cell.cls
-                        )}
-                      >
-                        <span className="line-clamp-2">{cell.isStart ? cell.label : ""}</span>
-                      </Link>
-                    </td>
-                  );
-                }
-                if (cell.t === "blocked") {
-                  return (
-                    <td key={ci} className="border-l border-border p-1">
-                      <div
-                        className="h-10 rounded"
-                        style={{
-                          backgroundImage:
-                            "repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 6px, #e2e8f0 6px, #e2e8f0 12px)",
-                        }}
-                      />
-                    </td>
-                  );
-                }
-                return (
-                  <td key={ci} className="border-l border-border p-1">
-                    <div
-                      onPointerDown={(e) => { e.preventDefault(); start(ri, ci); }}
-                      onPointerEnter={() => extend(ri, ci)}
+              {days.map((d) => (
+                <th
+                  key={d.key}
+                  className={cn(
+                    "min-w-[4.5rem] border-b border-border px-1 py-2 text-center font-medium",
+                    d.weekend && "bg-muted/40",
+                    d.today && "bg-primary/5"
+                  )}
+                >
+                  <div className={cn("text-[10px] uppercase tracking-wide", d.today ? "text-primary" : "text-muted-foreground")}>{d.dow}</div>
+                  <div className="mt-0.5 flex justify-center">
+                    <span
                       className={cn(
-                        "flex h-10 cursor-pointer items-center justify-center rounded text-primary/60",
-                        inSel(ri, ci) ? "bg-primary/20" : "hover:bg-primary/5"
+                        "flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold",
+                        d.today ? "bg-primary text-primary-foreground" : "text-foreground"
                       )}
                     >
-                      {inSel(ri, ci) ? "" : "+"}
-                    </div>
-                  </td>
-                );
-              })}
+                      {d.dom}
+                    </span>
+                  </div>
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={row.vehicleId} className="group">
+                <td className="sticky left-0 z-10 border-b border-r border-border bg-card px-4 py-2.5 align-middle group-hover:bg-muted/40">
+                  <div className="flex items-center gap-2">
+                    <span className={cn("h-2 w-2 shrink-0 rounded-full", row.maintenance ? "bg-orange-400" : rowBooked(row) ? "bg-blue-500" : "bg-emerald-500")} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold leading-tight">{row.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{row.plate}</p>
+                    </div>
+                  </div>
+                  {row.maintenance && (
+                    <span className="mt-1 inline-block rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700">{maintenanceLabel}</span>
+                  )}
+                </td>
+
+                {row.cells.map((cell, ci) => {
+                  const day = days[ci];
+                  const tdTint = cn(day?.weekend && "bg-muted/30", day?.today && "bg-primary/5");
+
+                  if (cell.t === "booked") {
+                    return (
+                      <td key={ci} className={cn("border-b border-border px-0 py-1.5", tdTint)}>
+                        <Link
+                          href={`/rentals/${cell.id}`}
+                          title={cell.title}
+                          className={cn(
+                            "flex h-8 items-center px-2 text-[11px] font-semibold leading-tight shadow-sm transition-opacity hover:opacity-90",
+                            cell.cls,
+                            cell.isStart && "ml-1 rounded-l-lg",
+                            cell.isEnd && "mr-1 rounded-r-lg"
+                          )}
+                        >
+                          <span className="truncate">{cell.isStart ? cell.label : ""}</span>
+                        </Link>
+                      </td>
+                    );
+                  }
+
+                  if (cell.t === "blocked") {
+                    return (
+                      <td key={ci} className={cn("border-b border-l border-border/40 px-1 py-1.5", tdTint)}>
+                        <div
+                          className="h-8 rounded-md"
+                          style={{ backgroundImage: "repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 6px,#e2e8f0 6px,#e2e8f0 12px)" }}
+                        />
+                      </td>
+                    );
+                  }
+
+                  return (
+                    <td key={ci} className={cn("border-b border-l border-border/40 px-1 py-1.5", tdTint)}>
+                      <div
+                        onPointerDown={(e) => { e.preventDefault(); start(ri, ci); }}
+                        onPointerEnter={() => extend(ri, ci)}
+                        className={cn(
+                          "flex h-8 cursor-pointer items-center justify-center rounded-md transition-colors",
+                          inSel(ri, ci) ? "bg-primary/25 text-primary" : "text-transparent hover:bg-primary/5 hover:text-primary/50"
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

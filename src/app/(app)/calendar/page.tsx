@@ -174,7 +174,9 @@ export default async function CalendarPage({
       const label = `${r.client?.full_name ?? t("Booked")}${open ? ` (${t("open")})` : ""}`;
       const endLabel = open ? t("open") : formatDate(r.return_at);
       const title = `${r.client?.full_name ?? t("Booked")} · ${formatDate(r.pickup_at)} → ${endLabel}${isOverdue(r) ? ` · ${t("Overdue")}` : ""}`;
-      return { t: "booked", id: r.id, cls: cellCls(r), isStart: isSameDay(toDate(r.pickup_at), d), label, title };
+      const isStart = isSameDay(toDate(r.pickup_at), d);
+      const isEnd = !covers(r, addDays(d, 1)) || isSameDay(d, windowEnd);
+      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title };
     });
     return { vehicleId: v.id, name: `${v.make} ${v.model}`, plate: v.plate, maintenance: maint, cells };
   });
@@ -184,6 +186,7 @@ export default async function CalendarPage({
     dow: format(d, "EEE", df),
     dom: format(d, "d"),
     today: isToday(d),
+    weekend: d.getDay() === 0 || d.getDay() === 6,
   }));
 
   return (
