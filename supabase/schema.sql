@@ -27,6 +27,16 @@ create table if not exists public.businesses (
 -- For databases created before this column existed:
 alter table public.businesses add column if not exists welcome_seen boolean not null default false;
 
+-- Invoice / fiscal details (Kosovo).
+alter table public.businesses add column if not exists fiscal_number text;
+alter table public.businesses add column if not exists business_no   text;
+alter table public.businesses add column if not exists vat_number    text;
+alter table public.businesses add column if not exists bank_name     text;
+alter table public.businesses add column if not exists bank_iban     text;
+alter table public.businesses add column if not exists vat_rate      int not null default 0;
+alter table public.rentals    add column if not exists invoice_no        int;
+alter table public.rentals    add column if not exists invoice_issued_at timestamptz;
+
 create table if not exists public.vehicles (
   id                uuid primary key default gen_random_uuid(),
   business_id       uuid not null references public.businesses (id) on delete cascade,
@@ -182,5 +192,55 @@ create policy "public read site" on storage.objects
 --     vehicle_id with =,
 --     tstzrange(pickup_at, return_at) with &&
 --   ) where (status in ('ACTIVE','RESERVED'));
+
+-- ---------- Trusted devices (new-device email verification) ----------
+-- Records browsers a user has verified by email. The signed cookie is the
+-- fast gate (checked in middleware); this table is for review/revocation.
+create table if not exists public.trusted_devices (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  token_hash text not null,
+  label text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz
+);
+create index if not exists trusted_devices_user_idx on public.trusted_devices(user_id);
+
+alter table public.trusted_devices enable row level security;
+
+-- A user may see and remove only their own devices. Inserts are done
+-- server-side by the signed-in user (user_id must equal auth.uid()).
+drop policy if exists "own devices select" on public.trusted_devices;
+create policy "own devices select" on public.trusted_devices
+  for select using (user_id = auth.uid());
+drop policy if exists "own devices insert" on public.trusted_devices;
+create policy "own devices insert" on public.trusted_devices
+  for insert with check (user_id = auth.uid());
+drop policy if exists "own devices delete" on public.trusted_devices;
+create policy "own devices delete" on public.trusted_devices
+  for delete using (user_id = auth.uid());
+
+-- ---------- Known login locations (anomalous-login detection) ----------
+-- The set of countries a user has logged in from. A login from a country not
+-- in this set triggers an email-code challenge + alert.
+create table if not exists public.login_locations (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  country text not null,
+  first_seen timestamptz not null default now(),
+  last_seen timestamptz not null default now(),
+  primary key (user_id, country)
+);
+
+alter table public.login_locations enable row level security;
+
+drop policy if exists "own locations select" on public.login_locations;
+create policy "own locations select" on public.login_locations
+  for select using (user_id = auth.uid());
+drop policy if exists "own locations insert" on public.login_locations;
+create policy "own locations insert" on public.login_locations
+  for insert with check (user_id = auth.uid());
+drop policy if exists "own locations update" on public.login_locations;
+create policy "own locations update" on public.login_locations
+  for update using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Done.
