@@ -144,7 +144,6 @@ export default async function ContractPage({ params }: { params: { id: string } 
             <div className="c"><span>Targa:</span> <b>{val(v.plate)}</b></div>
             <div className="c"><span>Ngjyra:</span> <b>{val(v.color)}</b></div>
             <div className="c"><span>Transmisioni:</span> <b>{val(v.transmission)}</b></div>
-            <div className="c"><span>Km në nisje:</span> <b>{v.mileage != null ? `${v.mileage.toLocaleString()} km` : dash}</b></div>
           </div>
         </div>
 
@@ -157,7 +156,6 @@ export default async function ContractPage({ params }: { params: { id: string } 
             <div className="c"><span>Numri i ditëve:</span> <b>{openEnded ? dash : days}</b></div>
             <div className="c"><span>Çmimi ditor:</span> <b>{formatMoney(r.daily_rate_cents ?? 0, currency)}</b></div>
             <div className="c"><span>Totali:</span> <b>{openEnded ? dash : formatMoney(r.total_cents ?? 0, currency)}</b></div>
-            <div className="c"><span>Depozita:</span> <b>{formatMoney(r.deposit_cents ?? 0, currency)}</b></div>
             <div className="c"><span>Paguar:</span> <b>{formatMoney(r.paid_cents ?? 0, currency)}</b></div>
             <div className="c"><span>Mbetet:</span> <b>{openEnded ? dash : formatMoney(remaining, currency)}</b></div>
             <div className="c"><span>Mënyra e pagesës:</span> <b>{labelMethod(r.payment_method)}</b></div>
@@ -174,7 +172,6 @@ export default async function ContractPage({ params }: { params: { id: string } 
             <li>Qiramarrësi mban përgjegjësi për gjobat e trafikut, dëmtimet dhe humbjet e shkaktuara gjatë periudhës së qirasë.</li>
             <li>Automjeti kthehet me të njëjtin nivel karburanti si në marrje.</li>
             <li>Vonesa në kthim ngarkohet me tarifë shtesë sipas çmimit ditor për çdo ditë vonesë.</li>
-            <li>Depozita i kthehet qiramarrësit pas kontrollit të gjendjes së automjetit.</li>
             <li>Në rast aksidenti apo dëmtimi, qiramarrësi njofton menjëherë qiradhënësin dhe, kur është e nevojshme, policinë.</li>
           </ol>
         </div>
