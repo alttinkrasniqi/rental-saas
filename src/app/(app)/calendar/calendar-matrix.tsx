@@ -38,7 +38,7 @@ export function CalendarMatrix({
   const [sel, setSel] = useState<{ row: number; start: number; end: number } | null>(null);
   const dragging = useRef(false);
   const [show, setShow] = useState<"all" | "booked" | "free">("all");
-  const [menuRow, setMenuRow] = useState<string | null>(null);
+  const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
 
   const rowBooked = (r: CalRow) => r.cells.some((c) => c.t === "booked");
   const rowFree = (r: CalRow) => !r.maintenance && r.cells.every((c) => c.t !== "booked");
@@ -144,7 +144,7 @@ export function CalendarMatrix({
             {rows.map((row, ri) => (
               <tr key={row.vehicleId} className="group">
                 <td className="sticky left-0 z-10 border-b border-r border-border bg-card px-4 py-2.5 align-middle group-hover:bg-muted/40">
-                  <div className="relative flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <span className={cn("h-2 w-2 shrink-0 rounded-full", row.maintenance ? "bg-orange-400" : rowBooked(row) ? "bg-blue-500" : "bg-emerald-500")} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold leading-tight">{row.name}</p>
@@ -153,28 +153,14 @@ export function CalendarMatrix({
                     <button
                       type="button"
                       aria-label="Veprime"
-                      onClick={() => setMenuRow((cur) => (cur === row.vehicleId ? null : row.vehicleId))}
+                      onClick={(e) => {
+                        const rc = e.currentTarget.getBoundingClientRect();
+                        setMenu((cur) => (cur?.id === row.vehicleId ? null : { id: row.vehicleId, top: rc.bottom + 4, left: Math.max(8, rc.right - 208) }));
+                      }}
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </button>
-
-                    {menuRow === row.vehicleId && (
-                      <>
-                        <div className="fixed inset-0 z-20" onClick={() => setMenuRow(null)} />
-                        <div className="absolute right-0 top-8 z-30 w-52 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg">
-                          <Link href={`/cars/${row.vehicleId}`} onClick={() => setMenuRow(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
-                            <Eye className="h-4 w-4 text-muted-foreground" /> {menuText.view}
-                          </Link>
-                          <Link href={`/rentals/new?vehicle=${row.vehicleId}`} onClick={() => setMenuRow(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
-                            <CalendarPlus className="h-4 w-4 text-muted-foreground" /> {menuText.newRental}
-                          </Link>
-                          <Link href={`/cars/${row.vehicleId}/edit`} onClick={() => setMenuRow(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
-                            <Pencil className="h-4 w-4 text-muted-foreground" /> {menuText.edit}
-                          </Link>
-                        </div>
-                      </>
-                    )}
                   </div>
                   {row.maintenance && (
                     <span className="mt-1 inline-block rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700">{maintenanceLabel}</span>
@@ -235,6 +221,26 @@ export function CalendarMatrix({
           </tbody>
         </table>
       </div>
+
+      {menu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} />
+          <div
+            className="fixed z-50 w-52 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl"
+            style={{ top: menu.top, left: menu.left }}
+          >
+            <Link href={`/cars/${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <Eye className="h-4 w-4 text-muted-foreground" /> {menuText.view}
+            </Link>
+            <Link href={`/rentals/new?vehicle=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <CalendarPlus className="h-4 w-4 text-muted-foreground" /> {menuText.newRental}
+            </Link>
+            <Link href={`/cars/${menu.id}/edit`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <Pencil className="h-4 w-4 text-muted-foreground" /> {menuText.edit}
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }
