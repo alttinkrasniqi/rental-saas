@@ -263,6 +263,7 @@ export const SQ: Record<string, string> = {
   "Manage rental": "Menaxho rezervimin",
   "Record payment": "Regjistro pagesë",
   "Mark returned": "Shëno si të kthyer",
+  "View rental": "Shiko rezervimin",
   "Extend": "Zgjat",
   "Call client": "Thirr klientin",
   "Kontrata": "Kontrata",
