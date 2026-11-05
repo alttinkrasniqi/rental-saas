@@ -37,11 +37,11 @@ export function toDate(value: string | Date): Date {
 }
 
 export function formatDate(value: string | Date): string {
-  return format(toDate(value), "d MMM yyyy");
+  return format(toDate(value), "dd/MM/yyyy");
 }
 
 export function formatDateTime(value: string | Date): string {
-  return format(toDate(value), "d MMM yyyy, HH:mm");
+  return format(toDate(value), "dd/MM/yyyy, HH:mm");
 }
 
 export function formatTime(value: string | Date): string {
