@@ -24,6 +24,12 @@ export interface Business {
   currency: string;
   timezone: string;
   welcome_seen?: boolean;
+  fiscal_number?: string | null;
+  business_no?: string | null;
+  vat_number?: string | null;
+  bank_name?: string | null;
+  bank_iban?: string | null;
+  vat_rate?: number | null;
   created_at: string;
 }
 
