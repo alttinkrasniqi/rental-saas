@@ -183,7 +183,7 @@ export default async function CalendarPage({
       const title = `${r.client?.full_name ?? t("Booked")} · ${formatDate(r.pickup_at)} → ${endLabel}${isOverdue(r) ? ` · ${t("Overdue")}` : ""}`;
       const isStart = isSameDay(toDate(r.pickup_at), d);
       const isEnd = !covers(r, addDays(d, 1)) || isSameDay(d, windowEnd);
-      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title };
+      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title, active: r.status === "ACTIVE" };
     });
     return { vehicleId: v.id, name: `${v.make} ${v.model}`, plate: v.plate, maintenance: maint, cells };
   });
@@ -198,14 +198,27 @@ export default async function CalendarPage({
 
   return (
     <div>
-      <PageHeader title={t("Calendar")} subtitle={t("See what's booked and what's free — drag across free days to book")} />
+      <PageHeader
+        title={t("Calendar")}
+        subtitle={t("See what's booked and what's free — drag across free days to book")}
+        action={{ href: "/rentals/new", label: t("New rental") }}
+      />
       {nav}
       <CalendarMatrix
         rows={rows}
         days={daysMeta}
         maintenanceLabel={t("In service")}
         filterText={{ all: t("All"), booked: t("Booked"), free: t("Free") }}
-        menuText={{ view: t("View car"), newRental: t("New rental"), edit: t("Edit car") }}
+        menuText={{
+          view: t("View car"),
+          history: t("Rental history"),
+          newRental: t("New rental"),
+          edit: t("Edit car"),
+          viewRental: t("View rental"),
+          markReturned: t("Mark returned"),
+          contract: t("Kontrata"),
+          invoice: t("Fatura"),
+        }}
       />
       {legend}
     </div>

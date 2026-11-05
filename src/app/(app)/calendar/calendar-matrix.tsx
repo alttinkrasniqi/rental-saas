@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, MoreVertical, Eye, CalendarPlus, Pencil } from "lucide-react";
+import { Plus, MoreVertical, Eye, CalendarPlus, Pencil, RotateCcw, FileText, Receipt, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { markReturned } from "../rentals/actions";
 
 export type CalCell =
   | { t: "blocked" }
   | { t: "free" }
-  | { t: "booked"; id: string; cls: string; isStart: boolean; isEnd: boolean; label: string; title: string };
+  | { t: "booked"; id: string; cls: string; isStart: boolean; isEnd: boolean; label: string; title: string; active: boolean };
 
 export type CalRow = {
   vehicleId: string;
@@ -32,13 +33,35 @@ export function CalendarMatrix({
   days: CalDay[];
   maintenanceLabel: string;
   filterText: { all: string; booked: string; free: string };
-  menuText: { view: string; newRental: string; edit: string };
+  menuText: {
+    view: string;
+    history: string;
+    newRental: string;
+    edit: string;
+    viewRental: string;
+    markReturned: string;
+    contract: string;
+    invoice: string;
+  };
 }) {
   const router = useRouter();
   const [sel, setSel] = useState<{ row: number; start: number; end: number } | null>(null);
   const dragging = useRef(false);
   const [show, setShow] = useState<"all" | "booked" | "free">("all");
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
+  const [rmenu, setRmenu] = useState<{ id: string; vehicleId: string; active: boolean; top: number; left: number } | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const doReturn = (rentalId: string, vehicleId: string) => {
+    const fd = new FormData();
+    fd.set("rental_id", rentalId);
+    fd.set("vehicle_id", vehicleId);
+    setRmenu(null);
+    startTransition(async () => {
+      await markReturned(fd);
+      router.refresh();
+    });
+  };
 
   const rowBooked = (r: CalRow) => r.cells.some((c) => c.t === "booked");
   const rowFree = (r: CalRow) => !r.maintenance && r.cells.every((c) => c.t !== "booked");
@@ -172,20 +195,31 @@ export function CalendarMatrix({
                   const tdTint = cn(day?.weekend && "bg-muted/30", day?.today && "bg-primary/5");
 
                   if (cell.t === "booked") {
+                    const rid = cell.id;
+                    const active = cell.active;
                     return (
                       <td key={ci} className={cn("border-b border-border px-0 py-1.5", tdTint)}>
-                        <Link
-                          href={`/rentals/${cell.id}`}
+                        <button
+                          type="button"
                           title={cell.title}
+                          onClick={(e) => {
+                            const rc = e.currentTarget.getBoundingClientRect();
+                            setMenu(null);
+                            setRmenu((cur) =>
+                              cur?.id === rid
+                                ? null
+                                : { id: rid, vehicleId: row.vehicleId, active, top: rc.bottom + 4, left: Math.min(rc.left, window.innerWidth - 220) }
+                            );
+                          }}
                           className={cn(
-                            "flex h-8 items-center px-2 text-[11px] font-semibold leading-tight shadow-sm transition-opacity hover:opacity-90",
+                            "flex h-8 w-full items-center px-2 text-[11px] font-semibold leading-tight shadow-sm transition-opacity hover:opacity-90",
                             cell.cls,
                             cell.isStart && "ml-1 rounded-l-lg",
                             cell.isEnd && "mr-1 rounded-r-lg"
                           )}
                         >
                           <span className="truncate">{cell.isStart ? cell.label : ""}</span>
-                        </Link>
+                        </button>
                       </td>
                     );
                   }
@@ -232,11 +266,44 @@ export function CalendarMatrix({
             <Link href={`/cars/${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <Eye className="h-4 w-4 text-muted-foreground" /> {menuText.view}
             </Link>
+            <Link href={`/rentals?car=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <History className="h-4 w-4 text-muted-foreground" /> {menuText.history}
+            </Link>
             <Link href={`/rentals/new?vehicle=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <CalendarPlus className="h-4 w-4 text-muted-foreground" /> {menuText.newRental}
             </Link>
             <Link href={`/cars/${menu.id}/edit`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <Pencil className="h-4 w-4 text-muted-foreground" /> {menuText.edit}
+            </Link>
+          </div>
+        </>
+      )}
+
+      {rmenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setRmenu(null)} />
+          <div
+            className="fixed z-50 w-52 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl"
+            style={{ top: rmenu.top, left: rmenu.left }}
+          >
+            <Link href={`/rentals/${rmenu.id}`} onClick={() => setRmenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <Eye className="h-4 w-4 text-muted-foreground" /> {menuText.viewRental}
+            </Link>
+            {rmenu.active && (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => doReturn(rmenu.id, rmenu.vehicleId)}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-muted disabled:opacity-50"
+              >
+                <RotateCcw className="h-4 w-4 text-muted-foreground" /> {menuText.markReturned}
+              </button>
+            )}
+            <Link href={`/contract/${rmenu.id}`} onClick={() => setRmenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <FileText className="h-4 w-4 text-muted-foreground" /> {menuText.contract}
+            </Link>
+            <Link href={`/invoice/${rmenu.id}`} onClick={() => setRmenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <Receipt className="h-4 w-4 text-muted-foreground" /> {menuText.invoice}
             </Link>
           </div>
         </>
