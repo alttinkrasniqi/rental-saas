@@ -90,6 +90,8 @@ export const SQ: Record<string, string> = {
   "No returns.": "Asnjë kthim.",
   "Nothing out.": "Asgjë jashtë.",
   "Free": "Të lira",
+  "View car": "Shiko makinën",
+  "Edit car": "Ndrysho makinën",
   "See what's booked and what's free — drag across free days to book":
     "Shiko çfarë është zënë e çfarë është e lirë — tërhiq nëpër ditët e lira për të rezervuar",
 
