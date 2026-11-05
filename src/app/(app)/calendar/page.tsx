@@ -205,6 +205,7 @@ export default async function CalendarPage({
         days={daysMeta}
         maintenanceLabel={t("In service")}
         filterText={{ all: t("All"), booked: t("Booked"), free: t("Free") }}
+        menuText={{ view: t("View car"), newRental: t("New rental"), edit: t("Edit car") }}
       />
       {legend}
     </div>
