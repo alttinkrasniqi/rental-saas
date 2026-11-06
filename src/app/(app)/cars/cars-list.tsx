@@ -373,9 +373,12 @@ export function CarsList({
       {/* Car quick-view drawer */}
       {selected && (
         <>
-          <div onClick={closeCar} className={cn("fixed inset-0 z-40 bg-black/40 transition-opacity duration-200", shown ? "opacity-100" : "opacity-0")} />
-          <aside className={cn("fixed right-0 top-0 z-50 flex h-full w-full max-w-md transform flex-col bg-card shadow-2xl transition-transform duration-200", shown ? "translate-x-0" : "translate-x-full")}>
-            <div className="relative h-48 shrink-0 bg-muted">
+          <div onClick={closeCar} className={cn("fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300", shown ? "opacity-100" : "opacity-0")} />
+          <aside className={cn(
+            "fixed inset-y-2 right-2 z-50 flex w-[calc(100%-1rem)] max-w-md transform flex-col overflow-hidden rounded-3xl bg-card shadow-2xl ring-1 ring-black/5 transition-transform duration-300 ease-out sm:inset-y-4 sm:right-4",
+            shown ? "translate-x-0" : "translate-x-[calc(100%+1.5rem)]"
+          )}>
+            <div className="relative h-52 shrink-0 bg-muted">
               {selected.photos?.[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={selected.photos[0]} alt="" className="h-full w-full object-cover" style={{ objectPosition: selected.cover_position || "50% 50%" }} />
@@ -419,7 +422,7 @@ export function CarsList({
                 <div className="grid grid-cols-4 gap-2">
                   {selected.photos.slice(0, 8).map((u) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={u} src={u} alt="" className="aspect-square w-full rounded-md border border-border object-cover" />
+                    <img key={u} src={u} alt="" className="aspect-square w-full rounded-xl border border-border object-cover" />
                   ))}
                 </div>
               )}
@@ -427,16 +430,16 @@ export function CarsList({
 
             <div className="shrink-0 border-t border-border p-4">
               <div className="grid grid-cols-2 gap-2">
-                <Link href={`/cars/${selected.id}/edit`} className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+                <Link href={`/cars/${selected.id}/edit`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
                   <Pencil className="h-4 w-4" /> {t("Edit car")}
                 </Link>
-                <Link href={`/rentals/new?vehicle=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                <Link href={`/rentals/new?vehicle=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
                   <CalendarPlus className="h-4 w-4" /> {t("New rental")}
                 </Link>
-                <Link href={`/rentals?car=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                <Link href={`/rentals?car=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
                   <History className="h-4 w-4" /> {t("Rental history")}
                 </Link>
-                <Link href={`/cars/${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                <Link href={`/cars/${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
                   <ExternalLink className="h-4 w-4" /> {t("Open full page")}
                 </Link>
               </div>
