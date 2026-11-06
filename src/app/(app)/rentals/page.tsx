@@ -17,7 +17,7 @@ const STATUSES = ["ACTIVE", "RESERVED", "COMPLETED", "CANCELLED"];
 export default async function RentalsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; paid?: string; paid_from?: string; paid_to?: string; unpaid?: string; overdue?: string; car?: string };
+  searchParams: { status?: string; paid?: string; paid_from?: string; paid_to?: string; unpaid?: string; overdue?: string; car?: string; client?: string };
 }) {
   const t = getT();
   const business = await getBusiness();
@@ -74,6 +74,14 @@ export default async function RentalsPage({
     const carName = rentals.find((r) => r.vehicle_id === carId)?.vehicle;
     rentals = rentals.filter((r) => r.vehicle_id === carId);
     if (carName) banner = `${carName.make} ${carName.model}${carName.plate ? ` · ${carName.plate}` : ""}`;
+  }
+
+  // History of a single client (from the clients panel).
+  const clientId = searchParams.client;
+  if (clientId) {
+    const cName = rentals.find((r) => r.client_id === clientId)?.client?.full_name;
+    rentals = rentals.filter((r) => r.client_id === clientId);
+    if (cName) banner = cName;
   }
 
   const initialFilter = STATUSES.includes(searchParams.status || "")
