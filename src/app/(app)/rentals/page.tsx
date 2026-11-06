@@ -26,7 +26,7 @@ export default async function RentalsPage({
 
   const { data } = await supabase
     .from("rentals")
-    .select("*, vehicle:vehicles(make, model, plate), client:clients(full_name)")
+    .select("*, vehicle:vehicles(make, model, plate), client:clients(full_name, phone)")
     .order("pickup_at", { ascending: false });
 
   let rentals = (data ?? []) as any[];
