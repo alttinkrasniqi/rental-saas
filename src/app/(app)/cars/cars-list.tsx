@@ -273,17 +273,17 @@ export function CarsList({
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} />
           <div className="fixed z-50 w-52 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl" style={{ top: menu.top, left: menu.left }}>
-            <Link href={`/rentals/new?vehicle=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
-              <CalendarPlus className="h-4 w-4 text-muted-foreground" /> {t("New rental")}
-            </Link>
             <Link href={`/cars/${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <Eye className="h-4 w-4 text-muted-foreground" /> {t("View car")}
             </Link>
-            <Link href={`/rentals?car=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
-              <History className="h-4 w-4 text-muted-foreground" /> {t("Rental history")}
-            </Link>
             <Link href={`/cars/${menu.id}/edit`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <Pencil className="h-4 w-4 text-muted-foreground" /> {t("Edit car")}
+            </Link>
+            <Link href={`/rentals/new?vehicle=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <CalendarPlus className="h-4 w-4 text-muted-foreground" /> {t("New rental")}
+            </Link>
+            <Link href={`/rentals?car=${menu.id}`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
+              <History className="h-4 w-4 text-muted-foreground" /> {t("Rental history")}
             </Link>
           </div>
         </>
