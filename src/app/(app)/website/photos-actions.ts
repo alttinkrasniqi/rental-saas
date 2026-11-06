@@ -83,9 +83,19 @@ export async function removeCarPhoto(vehicleId: string, url: string): Promise<Ph
     const business = await requireBusiness();
     const admin = createAdminClient();
 
-    let photos = await ownedPhotos(admin, vehicleId, business.id);
-    photos = photos.filter((u) => u !== url);
-    await savePhotos(admin, vehicleId, business.id, photos);
+    const existing = await ownedPhotos(admin, vehicleId, business.id);
+    const wasCover = existing[0] === url;
+    const photos = existing.filter((u) => u !== url);
+    if (wasCover) {
+      // Removing the cover → the next photo becomes cover; reset focal point.
+      await admin
+        .from("vehicles")
+        .update({ photos, cover_position: null })
+        .eq("id", vehicleId)
+        .eq("business_id", business.id);
+    } else {
+      await savePhotos(admin, vehicleId, business.id, photos);
+    }
 
     // best-effort delete from storage
     const marker = `/object/public/${BUCKET}/`;
@@ -113,13 +123,42 @@ export async function makeCoverPhoto(vehicleId: string, url: string): Promise<Ph
 
     let photos = await ownedPhotos(admin, vehicleId, business.id);
     photos = [url, ...photos.filter((u) => u !== url)];
-    await savePhotos(admin, vehicleId, business.id, photos);
+    // New cover → reset the focal point to centered.
+    await admin
+      .from("vehicles")
+      .update({ photos, cover_position: null })
+      .eq("id", vehicleId)
+      .eq("business_id", business.id);
 
     revalidatePath("/website");
     revalidatePath("/s/[slug]", "page");
     revalidatePath("/cars");
     revalidatePath(`/cars/${vehicleId}`);
     return { ok: true, photos };
+  } catch (e: any) {
+    return fail(e);
+  }
+}
+
+// Saves the cover photo's focal point as a CSS object-position value, e.g.
+// "50% 30%". Invalid input falls back to centered.
+export async function setCoverPosition(vehicleId: string, position: string): Promise<PhotoResult> {
+  try {
+    if (!vehicleId) return { ok: false, error: "Missing car." };
+    const business = await requireBusiness();
+    const admin = createAdminClient();
+
+    const { data } = await admin.from("vehicles").select("business_id").eq("id", vehicleId).maybeSingle();
+    if (!data || data.business_id !== business.id) throw new Error("FORBIDDEN");
+
+    const pos = /^\d{1,3}% \d{1,3}%$/.test(position) ? position : "50% 50%";
+    await admin.from("vehicles").update({ cover_position: pos }).eq("id", vehicleId).eq("business_id", business.id);
+
+    revalidatePath("/website");
+    revalidatePath("/s/[slug]", "page");
+    revalidatePath("/cars");
+    revalidatePath(`/cars/${vehicleId}`);
+    return { ok: true };
   } catch (e: any) {
     return fail(e);
   }

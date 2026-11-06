@@ -214,7 +214,7 @@ export function CarsList({
                 {cover && (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: v.cover_position || "50% 50%" }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-black/45" />
                   </>
                 )}

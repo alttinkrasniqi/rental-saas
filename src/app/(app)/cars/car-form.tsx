@@ -111,7 +111,7 @@ export function CarForm({
             {vehicle && <span className="text-xs text-muted-foreground">{t("Photos save instantly, separately from the form.")}</span>}
           </div>
           {vehicle ? (
-            <CarPhotos vehicleId={vehicle.id} initial={vehicle.photos ?? []} />
+            <CarPhotos vehicleId={vehicle.id} initial={vehicle.photos ?? []} coverPosition={vehicle.cover_position} />
           ) : (
             <p className="rounded-lg border border-dashed border-input bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
               {t("Save the car first, then come back to add photos.")}

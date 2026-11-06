@@ -50,6 +50,7 @@ export interface Vehicle {
   status: VehicleStatus;
   description: string | null;
   photos: string[];
+  cover_position: string | null;
   notes: string | null;
   archived: boolean;
   created_at: string;
