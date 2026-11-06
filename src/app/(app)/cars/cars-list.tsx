@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -16,6 +16,9 @@ import {
   Cog,
   Calendar,
   Gauge,
+  LayoutGrid,
+  List as ListIcon,
+  Car as CarIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { VehicleStatusBadge } from "@/components/status-badges";
@@ -46,6 +49,18 @@ export function CarsList({
   const [fuel, setFuel] = useState("");
   const [sort, setSort] = useState<Sort>("name");
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
+  const [view, setView] = useState<"grid" | "list">("grid");
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("carsView");
+      if (v === "grid" || v === "list") setView(v);
+    } catch {}
+  }, []);
+  const changeView = (v: "grid" | "list") => {
+    setView(v);
+    try { localStorage.setItem("carsView", v); } catch {}
+  };
 
   const makes = useMemo(
     () => [...new Set(vehicles.map((v) => v.make).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
@@ -169,8 +184,9 @@ export function CarsList({
         </Card>
       )}
 
-      {/* Status segmented control */}
-      <div className="-mx-1 overflow-x-auto px-1 pb-1">
+      {/* Status segmented control + view toggle */}
+      <div className="flex items-start justify-between gap-3">
+      <div className="-mx-1 flex-1 overflow-x-auto px-1 pb-1">
         <div className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
           {chips.map((c) => {
             const on = status === c.key;
@@ -194,10 +210,19 @@ export function CarsList({
           })}
         </div>
       </div>
+        <div className="inline-flex shrink-0 items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
+          <button type="button" onClick={() => changeView("grid")} aria-label={t("Grid")} className={cn("flex h-7 w-7 items-center justify-center rounded-md transition-colors", view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={() => changeView("list")} aria-label={t("List")} className={cn("flex h-7 w-7 items-center justify-center rounded-md transition-colors", view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+            <ListIcon className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">{t("No cars match your search.")}</p>
-      ) : (
+      ) : view === "grid" ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((v) => {
             const meta = VEHICLE_STATUS_META[v.status];
@@ -266,6 +291,56 @@ export function CarsList({
               </div>
             );
           })}
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="divide-y divide-border">
+            {filtered.map((v) => {
+              const meta = VEHICLE_STATUS_META[v.status];
+              const cover = v.photos?.[0];
+              return (
+                <div key={v.id} className="group relative flex items-center gap-3 p-3 pr-12 transition-colors hover:bg-muted/50">
+                  <Link href={`/cars/${v.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                      {cover ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={cover} alt="" className="h-full w-full object-cover" style={{ objectPosition: v.cover_position || "50% 50%" }} />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground"><CarIcon className="h-5 w-5" /></div>
+                      )}
+                      <span className={cn("absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full ring-2 ring-card", meta.dot)} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold leading-tight">{v.make} {v.model}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                        <span className="text-xs text-muted-foreground">{v.plate}</span>
+                        <VehicleStatusBadge status={v.status} />
+                        {v.year != null && <Spec icon={Calendar}>{v.year}</Spec>}
+                        {v.transmission && <Spec icon={Cog} className="hidden sm:inline-flex">{t(v.transmission)}</Spec>}
+                        {v.fuel_type && <Spec icon={Fuel} className="hidden sm:inline-flex">{t(v.fuel_type)}</Spec>}
+                        {v.seats != null && <Spec icon={Users} className="hidden md:inline-flex">{t("{n} seats", { n: v.seats })}</Spec>}
+                      </div>
+                    </div>
+                    <div className="shrink-0 pl-2 text-right">
+                      <div className="font-bold">
+                        {formatMoney(v.daily_price_cents, currency)}
+                        <span className="text-xs font-normal text-muted-foreground">{t("/day")}</span>
+                      </div>
+                      {v.mileage != null && <div className="text-xs text-muted-foreground">{v.mileage.toLocaleString()} km</div>}
+                    </div>
+                  </Link>
+                  <button
+                    type="button"
+                    aria-label={t("Actions")}
+                    onClick={(e) => openMenu(v.id, e)}
+                    className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
