@@ -227,7 +227,7 @@ export function RentalsList({
       ) : (
         <Card className="overflow-hidden">
           {/* Column header — desktop only */}
-          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_auto] items-center gap-4 border-b border-border bg-muted/40 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
+          <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(12rem,0.9fr)] items-center gap-4 border-b border-border bg-muted/40 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
             <span>{t("Car")}</span>
             <span>{t("Client")}</span>
             <span>{t("Dates")}</span>
@@ -245,7 +245,7 @@ export function RentalsList({
                   key={r.id}
                   href={`/rentals/${r.id}`}
                   className={cn(
-                    "grid grid-cols-1 gap-3 p-4 transition-colors hover:bg-muted/60 sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_auto] sm:items-center sm:gap-4",
+                    "grid grid-cols-1 gap-3 p-4 transition-colors hover:bg-muted/60 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(12rem,0.9fr)] sm:items-center sm:gap-4",
                     overdue && "border-l-2 border-rose-500"
                   )}
                 >
