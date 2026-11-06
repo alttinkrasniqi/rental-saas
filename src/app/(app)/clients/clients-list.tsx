@@ -14,6 +14,7 @@ import {
   MapPin,
   Hash,
   CreditCard,
+  MoreVertical,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
@@ -91,7 +92,7 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
       ) : (
         <Card className="divide-y divide-border">
           {filtered.map((c) => (
-            <button key={c.id} type="button" onClick={() => openClient(c)} className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/60">
+            <button key={c.id} type="button" onClick={() => openClient(c)} className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/60">
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar name={c.full_name} deleted={c.deleted} />
                 <div className="min-w-0">
@@ -105,11 +106,9 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
                   </p>
                 </div>
               </div>
-              <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold">{t("{n} rentals", { n: c.count ?? 0 })}</p>
-                {(c.spent ?? 0) > 0 && <p className="text-xs text-muted-foreground">{formatMoney(c.spent, currency)}</p>}
-                {(c.outstanding ?? 0) > 0 && <p className="text-xs text-rose-600">{t("{amount} left", { amount: formatMoney(c.outstanding, currency) })}</p>}
-              </div>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors group-hover:bg-muted group-hover:text-foreground">
+                <MoreVertical className="h-4 w-4" />
+              </span>
             </button>
           ))}
         </Card>
