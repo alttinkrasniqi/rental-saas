@@ -69,6 +69,8 @@ export async function addCarPhoto(vehicleId: string, dataUrl: string): Promise<P
 
     revalidatePath("/website");
     revalidatePath("/s/[slug]", "page");
+    revalidatePath("/cars");
+    revalidatePath(`/cars/${vehicleId}`);
     return { ok: true, photos };
   } catch (e: any) {
     return fail(e);
@@ -95,6 +97,8 @@ export async function removeCarPhoto(vehicleId: string, url: string): Promise<Ph
 
     revalidatePath("/website");
     revalidatePath("/s/[slug]", "page");
+    revalidatePath("/cars");
+    revalidatePath(`/cars/${vehicleId}`);
     return { ok: true, photos };
   } catch (e: any) {
     return fail(e);
@@ -113,6 +117,8 @@ export async function makeCoverPhoto(vehicleId: string, url: string): Promise<Ph
 
     revalidatePath("/website");
     revalidatePath("/s/[slug]", "page");
+    revalidatePath("/cars");
+    revalidatePath(`/cars/${vehicleId}`);
     return { ok: true, photos };
   } catch (e: any) {
     return fail(e);

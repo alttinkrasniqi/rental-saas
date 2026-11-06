@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/submit-button";
+import { CarPhotos } from "@/components/car-photos";
 import { VEHICLE_STATUSES, VEHICLE_STATUS_META, FUEL_TYPES, TRANSMISSIONS } from "@/lib/constants";
 import type { Vehicle } from "@/lib/types";
 import type { VehicleFormState } from "./actions";
@@ -100,6 +101,22 @@ export function CarForm({
               <Textarea name="notes" defaultValue={vehicle?.notes ?? ""} placeholder={t("Anything worth remembering about this car")} />
             </Field>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold">{t("Photos")}</h3>
+            {vehicle && <span className="text-xs text-muted-foreground">{t("Photos save instantly, separately from the form.")}</span>}
+          </div>
+          {vehicle ? (
+            <CarPhotos vehicleId={vehicle.id} initial={vehicle.photos ?? []} />
+          ) : (
+            <p className="rounded-lg border border-dashed border-input bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+              {t("Save the car first, then come back to add photos.")}
+            </p>
+          )}
         </CardContent>
       </Card>
 

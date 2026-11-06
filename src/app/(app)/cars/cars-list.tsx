@@ -201,27 +201,42 @@ export function CarsList({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((v) => {
             const meta = VEHICLE_STATUS_META[v.status];
+            const cover = v.photos?.[0];
+            const specCls = cover ? "bg-white/15 text-white" : undefined;
             return (
               <div
                 key={v.id}
-                className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className={cn(
+                  "group relative flex min-h-[172px] flex-col overflow-hidden rounded-xl border shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                  cover ? "border-transparent" : "border-border bg-card"
+                )}
               >
-                <span className={cn("absolute inset-x-0 top-0 h-1", meta.dot)} />
+                {cover && (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-black/45" />
+                  </>
+                )}
+                <span className={cn("absolute inset-x-0 top-0 z-20 h-1", meta.dot)} />
                 <button
                   type="button"
                   aria-label={t("Actions")}
                   onClick={(e) => openMenu(v.id, e)}
-                  className="absolute right-2.5 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className={cn(
+                    "absolute right-2.5 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+                    cover ? "text-white/90 hover:bg-white/20" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </button>
 
-                <Link href={`/cars/${v.id}`} className="flex flex-1 flex-col p-4 pt-5">
+                <Link href={`/cars/${v.id}`} className="relative z-10 flex flex-1 flex-col p-4 pt-5">
                   <div className="flex items-start gap-2 pr-7">
                     <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", meta.dot)} />
                     <div className="min-w-0">
-                      <p className="truncate font-semibold leading-tight">{v.make} {v.model}</p>
-                      <p className="truncate text-xs text-muted-foreground">{v.plate}</p>
+                      <p className={cn("truncate font-semibold leading-tight", cover && "text-white")}>{v.make} {v.model}</p>
+                      <p className={cn("truncate text-xs", cover ? "text-white/70" : "text-muted-foreground")}>{v.plate}</p>
                     </div>
                   </div>
 
@@ -230,19 +245,19 @@ export function CarsList({
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {v.year != null && <Spec icon={Calendar}>{v.year}</Spec>}
-                    {v.transmission && <Spec icon={Cog}>{t(v.transmission)}</Spec>}
-                    {v.fuel_type && <Spec icon={Fuel}>{t(v.fuel_type)}</Spec>}
-                    {v.seats != null && <Spec icon={Users}>{t("{n} seats", { n: v.seats })}</Spec>}
+                    {v.year != null && <Spec icon={Calendar} className={specCls}>{v.year}</Spec>}
+                    {v.transmission && <Spec icon={Cog} className={specCls}>{t(v.transmission)}</Spec>}
+                    {v.fuel_type && <Spec icon={Fuel} className={specCls}>{t(v.fuel_type)}</Spec>}
+                    {v.seats != null && <Spec icon={Users} className={specCls}>{t("{n} seats", { n: v.seats })}</Spec>}
                   </div>
 
                   <div className="mt-auto flex items-end justify-between pt-4">
-                    <span className="text-lg font-bold">
+                    <span className={cn("text-lg font-bold", cover && "text-white")}>
                       {formatMoney(v.daily_price_cents, currency)}
-                      <span className="text-sm font-normal text-muted-foreground">{t("/day")}</span>
+                      <span className={cn("text-sm font-normal", cover ? "text-white/70" : "text-muted-foreground")}>{t("/day")}</span>
                     </span>
                     {v.mileage != null && (
-                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className={cn("inline-flex items-center gap-1 text-xs", cover ? "text-white/70" : "text-muted-foreground")}>
                         <Gauge className="h-3.5 w-3.5" /> {v.mileage.toLocaleString()} km
                       </span>
                     )}
@@ -277,9 +292,9 @@ export function CarsList({
   );
 }
 
-function Spec({ icon: Icon, children }: { icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+function Spec({ icon: Icon, children, className }: { icon: React.ComponentType<{ className?: string }>; children: React.ReactNode; className?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+    <span className={cn("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium", className ?? "bg-muted text-muted-foreground")}>
       <Icon className="h-3 w-3" /> {children}
     </span>
   );

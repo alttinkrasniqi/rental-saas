@@ -48,6 +48,8 @@ export interface Vehicle {
   doors: number | null;
   daily_price_cents: number;
   status: VehicleStatus;
+  description: string | null;
+  photos: string[];
   notes: string | null;
   archived: boolean;
   created_at: string;
