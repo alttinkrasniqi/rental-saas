@@ -266,6 +266,7 @@ export const SQ: Record<string, string> = {
   "Grid": "Rrjetë",
   "List": "Listë",
   "Actions": "Veprime",
+  "Open full page": "Hap faqen e plotë",
   "Save the car first, then come back to add photos.": "Ruaje makinën së pari, pastaj kthehu për të shtuar foto.",
   "No past rentals yet.": "Ende s'ka rezervime të kaluara.",
   "Client": "Klienti",

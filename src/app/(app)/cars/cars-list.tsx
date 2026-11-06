@@ -19,6 +19,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   Car as CarIcon,
+  ExternalLink,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { VehicleStatusBadge } from "@/components/status-badges";
@@ -50,6 +51,11 @@ export function CarsList({
   const [sort, setSort] = useState<Sort>("name");
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [shown, setShown] = useState(false);
+
+  const openCar = (v: Vehicle) => { setMenu(null); setSelected(v); requestAnimationFrame(() => setShown(true)); };
+  const closeCar = () => { setShown(false); setTimeout(() => setSelected(null), 200); };
 
   useEffect(() => {
     try {
@@ -256,7 +262,7 @@ export function CarsList({
                   <MoreVertical className="h-4 w-4" />
                 </button>
 
-                <Link href={`/cars/${v.id}`} className="relative z-10 flex flex-1 flex-col p-4 pt-5">
+                <Link href={`/cars/${v.id}`} onClick={(e) => { e.preventDefault(); openCar(v); }} className="relative z-10 flex flex-1 flex-col p-4 pt-5">
                   <div className="flex items-start gap-2 pr-7">
                     <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", meta.dot)} />
                     <div className="min-w-0">
@@ -300,7 +306,7 @@ export function CarsList({
               const cover = v.photos?.[0];
               return (
                 <div key={v.id} className="group relative flex items-center gap-3 p-3 pr-12 transition-colors hover:bg-muted/50">
-                  <Link href={`/cars/${v.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                  <Link href={`/cars/${v.id}`} onClick={(e) => { e.preventDefault(); openCar(v); }} className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
                       {cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -363,6 +369,91 @@ export function CarsList({
           </div>
         </>
       )}
+
+      {/* Car quick-view drawer */}
+      {selected && (
+        <>
+          <div onClick={closeCar} className={cn("fixed inset-0 z-40 bg-black/40 transition-opacity duration-200", shown ? "opacity-100" : "opacity-0")} />
+          <aside className={cn("fixed right-0 top-0 z-50 flex h-full w-full max-w-md transform flex-col bg-card shadow-2xl transition-transform duration-200", shown ? "translate-x-0" : "translate-x-full")}>
+            <div className="relative h-48 shrink-0 bg-muted">
+              {selected.photos?.[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selected.photos[0]} alt="" className="h-full w-full object-cover" style={{ objectPosition: selected.cover_position || "50% 50%" }} />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground"><CarIcon className="h-10 w-10" /></div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <button type="button" onClick={closeCar} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-black/60">
+                <X className="h-4 w-4" />
+              </button>
+              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                <h2 className="text-xl font-bold leading-tight">{selected.make} {selected.model}</h2>
+                <p className="text-sm text-white/80">{selected.plate}</p>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-5 overflow-y-auto p-4">
+              <div className="flex items-center justify-between">
+                <VehicleStatusBadge status={selected.status} />
+                <span className="text-lg font-bold">
+                  {formatMoney(selected.daily_price_cents, currency)}
+                  <span className="text-sm font-normal text-muted-foreground">{t("/day")}</span>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <Detail label={t("Year")} value={selected.year} />
+                <Detail label={t("Color")} value={selected.color} />
+                <Detail label={t("Transmission")} value={selected.transmission ? t(selected.transmission) : null} />
+                <Detail label={t("Fuel")} value={selected.fuel_type ? t(selected.fuel_type) : null} />
+                <Detail label={t("Seats")} value={selected.seats} />
+                <Detail label={t("Doors")} value={selected.doors} />
+                <Detail label={t("Mileage")} value={selected.mileage != null ? `${selected.mileage.toLocaleString()} km` : null} />
+              </div>
+
+              {selected.description && (
+                <p className="whitespace-pre-line text-sm text-muted-foreground">{selected.description}</p>
+              )}
+
+              {selected.photos && selected.photos.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {selected.photos.slice(0, 8).map((u) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={u} src={u} alt="" className="aspect-square w-full rounded-md border border-border object-cover" />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0 border-t border-border p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Link href={`/cars/${selected.id}/edit`} className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+                  <Pencil className="h-4 w-4" /> {t("Edit car")}
+                </Link>
+                <Link href={`/rentals/new?vehicle=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                  <CalendarPlus className="h-4 w-4" /> {t("New rental")}
+                </Link>
+                <Link href={`/rentals?car=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                  <History className="h-4 w-4" /> {t("Rental history")}
+                </Link>
+                <Link href={`/cars/${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-md border border-input bg-card text-sm font-medium hover:bg-muted">
+                  <ExternalLink className="h-4 w-4" /> {t("Open full page")}
+                </Link>
+              </div>
+            </div>
+          </aside>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value == null || value === "") return null;
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium">{value}</p>
     </div>
   );
 }
