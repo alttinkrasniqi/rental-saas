@@ -63,6 +63,14 @@ export function CarsList({
       if (v === "grid" || v === "list") setView(v);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeCar(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
   const changeView = (v: "grid" | "list") => {
     setView(v);
     try { localStorage.setItem("carsView", v); } catch {}
@@ -373,7 +381,6 @@ export function CarsList({
       {/* Car quick-view drawer */}
       {selected && (
         <>
-          <div onClick={closeCar} className={cn("fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300", shown ? "opacity-100" : "opacity-0")} />
           <aside className={cn(
             "fixed inset-y-2 right-2 z-50 flex w-[calc(100%-1rem)] max-w-md transform flex-col overflow-hidden rounded-3xl bg-card shadow-2xl ring-1 ring-black/5 transition-transform duration-300 ease-out sm:inset-y-4 sm:right-4",
             shown ? "translate-x-0" : "translate-x-[calc(100%+1.5rem)]"
