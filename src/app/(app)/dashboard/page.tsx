@@ -17,7 +17,7 @@ import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatMoney, formatDate, formatTime, toDate, rentalDays, remainingCents } from "@/lib/format";
+import { formatMoney, formatDate, formatTime, toDate, rentalDays, remainingCents, effectiveStatus } from "@/lib/format";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
 import { markReturned } from "../rentals/actions";
 import { getT } from "@/lib/i18n/server";
@@ -69,12 +69,13 @@ export default async function DashboardPage() {
   const pickupsToday = rentals.filter(
     (r) => (r.status === "RESERVED" || r.status === "ACTIVE") && isWithinInterval(toDate(r.pickup_at), todayItv)
   );
+  const eff = (r: any) => effectiveStatus(r, now);
   const returnsToday = rentals.filter(
-    (r) => r.status === "ACTIVE" && !r.open_ended && isWithinInterval(toDate(r.return_at), todayItv)
+    (r) => eff(r) === "ACTIVE" && !r.open_ended && isWithinInterval(toDate(r.return_at), todayItv)
   );
-  const activeCount = rentals.filter((r) => r.status === "ACTIVE").length;
-  const overdue = rentals.filter((r) => r.status === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now);
-  const stillOut = rentals.filter((r) => r.status === "ACTIVE" && r.open_ended);
+  const activeCount = rentals.filter((r) => eff(r) === "ACTIVE").length;
+  const overdue = rentals.filter((r) => eff(r) === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now);
+  const stillOut = rentals.filter((r) => eff(r) === "ACTIVE" && r.open_ended);
 
   const attention = [
     ...overdue.map((r) => ({ r, kind: "overdue" as const })),
@@ -127,10 +128,10 @@ export default async function DashboardPage() {
 
   const upcoming = [
     ...rentals
-      .filter((r) => r.status === "RESERVED" && toDate(r.pickup_at) >= startOfDay(now))
+      .filter((r) => eff(r) === "RESERVED" && toDate(r.pickup_at) >= startOfDay(now))
       .map((r) => ({ type: "Pickup" as const, at: r.pickup_at, r })),
     ...rentals
-      .filter((r) => r.status === "ACTIVE" && !r.open_ended && toDate(r.return_at) >= startOfDay(now))
+      .filter((r) => eff(r) === "ACTIVE" && !r.open_ended && toDate(r.return_at) >= startOfDay(now))
       .map((r) => ({ type: "Return" as const, at: r.return_at, r })),
   ]
     .sort((a, b) => toDate(a.at).getTime() - toDate(b.at).getTime())

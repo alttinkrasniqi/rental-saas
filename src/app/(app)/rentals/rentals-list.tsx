@@ -6,7 +6,7 @@ import { differenceInCalendarDays } from "date-fns";
 import { Search, SlidersHorizontal, X, Globe, Store, Phone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badges";
-import { formatMoney, formatDate, remainingCents } from "@/lib/format";
+import { formatMoney, formatDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { DateField } from "@/components/date-field";
 import { cn } from "@/lib/utils";
 import type { RentalStatus } from "@/lib/types";
@@ -69,7 +69,7 @@ export function RentalsList({
   const now = Date.now();
 
   const isOverdue = (r: any) =>
-    r.status === "ACTIVE" && !r.open_ended && new Date(r.return_at).getTime() < now;
+    effectiveStatus(r) === "ACTIVE" && !r.open_ended && new Date(r.return_at).getTime() < now;
 
   // Unique cars present in these rentals, for the car dropdown.
   const cars = useMemo(() => {
@@ -101,7 +101,7 @@ export function RentalsList({
       if (pay !== "ALL" && payBucket(r) !== pay) return false;
       if (from || to) {
         const p = new Date(r.pickup_at).getTime();
-        const ret = r.open_ended && r.status === "ACTIVE" ? now : new Date(r.return_at).getTime();
+        const ret = r.open_ended && effectiveStatus(r) === "ACTIVE" ? now : new Date(r.return_at).getTime();
         if (!(p <= tt && ret >= f)) return false; // overlaps the range
       }
       return true;
@@ -111,7 +111,8 @@ export function RentalsList({
   const counts = useMemo(() => {
     const c: Record<FilterValue, number> = { ALL: pool.length, ACTIVE: 0, OVERDUE: 0, RESERVED: 0, COMPLETED: 0, CANCELLED: 0 };
     for (const r of pool) {
-      if (r.status in c) c[r.status as FilterValue]++;
+      const s = effectiveStatus(r);
+      if (s in c) c[s as FilterValue]++;
       if (isOverdue(r)) c.OVERDUE++;
     }
     return c;
@@ -120,7 +121,7 @@ export function RentalsList({
   const filtered = useMemo(() => {
     if (filter === "ALL") return pool;
     if (filter === "OVERDUE") return pool.filter(isOverdue);
-    return pool.filter((r) => r.status === filter);
+    return pool.filter((r) => effectiveStatus(r) === filter);
   }, [pool, filter]);
 
   const clearAdvanced = () => { setCarId(""); setPay("ALL"); setFrom(""); setTo(""); };
@@ -238,7 +239,8 @@ export function RentalsList({
             {filtered.map((r) => {
               const overdue = isOverdue(r);
               const remaining = remainingCents(r);
-              const open = r.open_ended && r.status === "ACTIVE";
+              const eff = effectiveStatus(r);
+              const open = r.open_ended && eff === "ACTIVE";
               const nights = open ? null : Math.max(1, differenceInCalendarDays(new Date(r.return_at), new Date(r.pickup_at)));
               return (
                 <Link
@@ -251,7 +253,7 @@ export function RentalsList({
                 >
                   {/* Car */}
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className={cn("h-2 w-2 shrink-0 rounded-full", overdue ? "bg-rose-500" : r.status === "ACTIVE" ? "bg-blue-500" : r.status === "RESERVED" ? "bg-amber-400" : "bg-slate-300")} />
+                    <span className={cn("h-2 w-2 shrink-0 rounded-full", overdue ? "bg-rose-500" : eff === "ACTIVE" ? "bg-blue-500" : eff === "RESERVED" ? "bg-amber-400" : "bg-slate-300")} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold leading-tight">
                         {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}
@@ -297,7 +299,7 @@ export function RentalsList({
                         <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-700">{t("Overdue")}</span>
                       )}
                       <PaymentStatusBadge paid_cents={r.paid_cents} total_cents={r.total_cents} />
-                      <RentalStatusBadge status={r.status} />
+                      <RentalStatusBadge status={eff} />
                     </div>
                   </div>
                 </Link>

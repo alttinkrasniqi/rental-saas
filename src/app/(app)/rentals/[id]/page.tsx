@@ -14,6 +14,7 @@ import {
   formatDateTime,
   rentalDays,
   remainingCents,
+  effectiveStatus,
 } from "@/lib/format";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { getT } from "@/lib/i18n/server";
@@ -64,7 +65,8 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
 
   const days = rentalDays(r.pickup_at, r.return_at);
   const openEnded = !!r.open_ended;
-  const ongoing = openEnded && r.status === "ACTIVE";
+  const effStatus = effectiveStatus(r);
+  const ongoing = openEnded && effStatus === "ACTIVE";
   const liveDays = ongoing ? rentalDays(r.pickup_at, new Date()) : days;
   const displayTotal = ongoing ? liveDays * (r.daily_rate_cents ?? 0) : r.total_cents;
   const remaining = Math.max(0, displayTotal - (r.paid_cents ?? 0));
@@ -85,7 +87,7 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
             </h1>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <RentalStatusBadge status={r.status} />
+            <RentalStatusBadge status={effStatus} />
             <PaymentStatusBadge paid_cents={r.paid_cents} total_cents={displayTotal} />
             {openEnded && (
               <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
@@ -166,7 +168,7 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
       <RentalActions
         rentalId={r.id}
         vehicleId={r.vehicle?.id ?? ""}
-        status={r.status}
+        status={effStatus}
         clientPhone={r.client?.phone ?? null}
         remaining={remaining / 100}
         currency={currency}

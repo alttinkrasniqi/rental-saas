@@ -3,7 +3,7 @@ import {
   format,
   parseISO,
 } from "date-fns";
-import type { PaymentState, Rental } from "./types";
+import type { PaymentState, Rental, RentalStatus } from "./types";
 
 // ---------- Money ----------
 // All money is stored as integer "cents" (minor units) to avoid rounding bugs.
@@ -65,4 +65,22 @@ export function paymentState(rental: Pick<Rental, "paid_cents" | "total_cents">)
 
 export function remainingCents(rental: Pick<Rental, "paid_cents" | "total_cents">): number {
   return Math.max(0, rental.total_cents - rental.paid_cents);
+}
+
+// ---------- Effective rental status (derived) ----------
+// The stored status is set once, at creation: RESERVED if the pickup date is
+// still in the future, ACTIVE if it has already arrived. A reservation whose
+// pickup day later passes is, in reality, active (the car is out) — but the
+// stored value never changes on its own. This derives the real status for
+// display, filtering, counts and reports everywhere, so a reservation flips to
+// "active" automatically the day it starts. Terminal states (COMPLETED,
+// CANCELLED) are always returned as-is.
+export function effectiveStatus(
+  rental: Pick<Rental, "status" | "pickup_at">,
+  at: Date = new Date()
+): RentalStatus {
+  if (rental.status === "RESERVED" && toDate(rental.pickup_at).getTime() <= at.getTime()) {
+    return "ACTIVE";
+  }
+  return rental.status;
 }

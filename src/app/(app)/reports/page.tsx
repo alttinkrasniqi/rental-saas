@@ -6,7 +6,7 @@ import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateFilter } from "@/components/date-filter";
 import { resolveRange, type RangePreset } from "@/lib/date-range";
-import { formatMoney, rentalDays, toDate, remainingCents } from "@/lib/format";
+import { formatMoney, rentalDays, toDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getT } from "@/lib/i18n/server";
 
@@ -53,7 +53,7 @@ export default async function ReportsPage({
   const avgDuration = counted.length ? Math.round((totalDays / counted.length) * 10) / 10 : 0;
   const avgRevenue = counted.length ? Math.round(revenue / counted.length) : 0;
 
-  const statusCount = (s: string) => inPeriod.filter((r) => r.status === s).length;
+  const statusCount = (s: string) => inPeriod.filter((r) => effectiveStatus(r) === s).length;
 
   // Top cars — by revenue received in the period (cash-basis).
   const carMap = new Map<string, { name: string; plate: string; revenue: number; count: number }>();

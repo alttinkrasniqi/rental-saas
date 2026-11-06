@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ClipboardList } from "lucide-react";
 import { RentalsList } from "./rentals-list";
-import { toDate, remainingCents } from "@/lib/format";
+import { toDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import type { RentalStatus } from "@/lib/types";
 
@@ -64,7 +64,7 @@ export default async function RentalsPage({
     );
     banner = t("With a balance to collect");
   } else if (searchParams.overdue === "1") {
-    rentals = rentals.filter((r) => r.status === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now);
+    rentals = rentals.filter((r) => effectiveStatus(r, now) === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now);
     banner = t("Overdue");
   }
 

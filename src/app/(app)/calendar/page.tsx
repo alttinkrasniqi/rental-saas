@@ -19,7 +19,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toDate, formatDate, formatTime } from "@/lib/format";
+import { toDate, formatDate, formatTime, effectiveStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Vehicle } from "@/lib/types";
 import { sq } from "date-fns/locale";
@@ -64,15 +64,16 @@ export default async function CalendarPage({
 
   // Effective end of a rental: an ongoing open-ended ACTIVE rental is "out"
   // through now (its stored return_at is just a placeholder = pickup).
-  const effEnd = (r: any) => (r.open_ended && r.status === "ACTIVE" ? now : toDate(r.return_at));
+  const effStatus = (r: any) => effectiveStatus(r, now);
+  const effEnd = (r: any) => (r.open_ended && effStatus(r) === "ACTIVE" ? now : toDate(r.return_at));
   const covers = (r: any, day: Date) =>
     toDate(r.pickup_at) <= endOfDay(day) && effEnd(r) >= startOfDay(day);
-  const isOverdue = (r: any) => r.status === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now;
+  const isOverdue = (r: any) => effStatus(r) === "ACTIVE" && !r.open_ended && toDate(r.return_at) < now;
 
   function cellCls(r: any) {
     if (isOverdue(r)) return "bg-rose-500 text-white";
-    if (r.status === "ACTIVE") return "bg-blue-500 text-white";
-    if (r.status === "RESERVED") return "bg-amber-400 text-amber-950";
+    if (effStatus(r) === "ACTIVE") return "bg-blue-500 text-white";
+    if (effStatus(r) === "RESERVED") return "bg-amber-400 text-amber-950";
     return "bg-slate-300 text-slate-700";
   }
 
@@ -152,7 +153,7 @@ export default async function CalendarPage({
   if (view === "day") {
     const d = anchor;
     const pickups = rentals.filter((r) => isSameDay(toDate(r.pickup_at), d));
-    const returns = rentals.filter((r) => r.status === "ACTIVE" && !r.open_ended && isSameDay(toDate(r.return_at), d));
+    const returns = rentals.filter((r) => effStatus(r) === "ACTIVE" && !r.open_ended && isSameDay(toDate(r.return_at), d));
     const vehName = new Map(vehicles.map((v) => [v.id, `${v.make} ${v.model}`]));
     const out = rentals.filter((r) => covers(r, d));
 
@@ -177,13 +178,13 @@ export default async function CalendarPage({
       if (maint) return { t: "blocked" };
       const r = rentals.find((x) => x.vehicle_id === v.id && covers(x, d));
       if (!r) return { t: "free" };
-      const open = r.open_ended && r.status === "ACTIVE";
+      const open = r.open_ended && effStatus(r) === "ACTIVE";
       const label = `${r.client?.full_name ?? t("Booked")}${open ? ` (${t("open")})` : ""}`;
       const endLabel = open ? t("open") : formatDate(r.return_at);
       const title = `${r.client?.full_name ?? t("Booked")} · ${formatDate(r.pickup_at)} → ${endLabel}${isOverdue(r) ? ` · ${t("Overdue")}` : ""}`;
       const isStart = isSameDay(toDate(r.pickup_at), d);
       const isEnd = !covers(r, addDays(d, 1)) || isSameDay(d, windowEnd);
-      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title, active: r.status === "ACTIVE" };
+      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title, active: effStatus(r) === "ACTIVE" };
     });
     return { vehicleId: v.id, name: `${v.make} ${v.model}`, plate: v.plate, maintenance: maint, cells };
   });
