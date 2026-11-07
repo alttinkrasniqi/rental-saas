@@ -290,6 +290,7 @@ export const SQ: Record<string, string> = {
   "ID / Passport number": "Nr. letërnjoftimi / pasaporte",
   "Driver's license number": "Nr. i patentës",
   "Street, City": "Rruga, Qyteti",
+  "Page {n} of {m}": "Faqja {n} nga {m}",
   "Changes saved": "Ndryshimet u ruajtën",
   "Created successfully": "U krijua",
   "Deleted successfully": "U fshi",

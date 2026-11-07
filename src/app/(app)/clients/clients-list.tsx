@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   Phone,
@@ -15,22 +16,62 @@ import {
   Hash,
   CreditCard,
   MoreVertical,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/provider";
 
-type Sort = "name" | "rentals" | "recent" | "spent";
 const digits = (p?: string | null) => (p ?? "").replace(/\D/g, "");
 
-export function ClientsList({ clients, currency }: { clients: any[]; currency: string }) {
+export function ClientsList({
+  clients,
+  currency,
+  q,
+  tab,
+  sort,
+  page,
+  totalPages,
+  deletedCount,
+}: {
+  clients: any[];
+  currency: string;
+  q: string;
+  tab: "active" | "deleted";
+  sort: string;
+  page: number;
+  totalPages: number;
+  deletedCount: number;
+}) {
   const t = useT();
-  const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<"active" | "deleted">("active");
-  const [sort, setSort] = useState<Sort>("name");
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+
+  const [search, setSearch] = useState(q);
   const [selected, setSelected] = useState<any | null>(null);
   const [shown, setShown] = useState(false);
+
+  const push = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(Array.from(sp.entries()));
+    for (const [k, v] of Object.entries(updates)) {
+      if (v == null || v === "") next.delete(k);
+      else next.set(k, v);
+    }
+    const qs = next.toString();
+    router.replace(pathname + (qs ? `?${qs}` : ""), { scroll: false });
+  };
+
+  // Debounced search → URL (server refetches). Resets to page 1.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (search.trim() !== q) push({ q: search.trim() || null, page: null });
+    }, 350);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const openClient = (c: any) => { setSelected(c); requestAnimationFrame(() => setShown(true)); };
   const closeClient = () => { setShown(false); setTimeout(() => setSelected(null), 200); };
@@ -43,31 +84,20 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
 
-  const deletedCount = useMemo(() => clients.filter((c) => c.deleted).length, [clients]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = clients
-      .filter((c) => (tab === "deleted" ? c.deleted : !c.deleted))
-      .filter((c) => !q || c.full_name.toLowerCase().includes(q) || (c.phone ?? "").toLowerCase().includes(q) || (c.email ?? "").toLowerCase().includes(q));
-    return [...list].sort((a, b) => {
-      if (sort === "rentals") return (b.count ?? 0) - (a.count ?? 0);
-      if (sort === "spent") return (b.spent ?? 0) - (a.spent ?? 0);
-      if (sort === "recent") return (b.last ?? "").localeCompare(a.last ?? "");
-      return a.full_name.localeCompare(b.full_name);
-    });
-  }, [clients, query, tab, sort]);
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          <Tab active={tab === "active"} onClick={() => setTab("active")}>{t("Active:tab")}</Tab>
-          <Tab active={tab === "deleted"} onClick={() => setTab("deleted")}>
+          <Tab active={tab === "active"} onClick={() => push({ tab: null, page: null })}>{t("Active:tab")}</Tab>
+          <Tab active={tab === "deleted"} onClick={() => push({ tab: "deleted", page: null })}>
             {t("Deleted")}{deletedCount > 0 ? ` (${deletedCount})` : ""}
           </Tab>
         </div>
-        <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="h-9 rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary">
+        <select
+          value={sort}
+          onChange={(e) => push({ sort: e.target.value === "name" ? null : e.target.value, page: null })}
+          className="h-9 rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary"
+        >
           <option value="name">{t("Name")}</option>
           <option value="rentals">{t("Most rentals")}</option>
           <option value="spent">{t("Most spent")}</option>
@@ -78,20 +108,20 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search name, phone or email")}
           className="h-10 w-full rounded-md border border-input bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {clients.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">
           {tab === "deleted" ? t("No deleted clients.") : t("No clients match your search.")}
         </p>
       ) : (
         <Card className="divide-y divide-border">
-          {filtered.map((c) => (
+          {clients.map((c) => (
             <button key={c.id} type="button" onClick={() => openClient(c)} className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/60">
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar name={c.full_name} deleted={c.deleted} />
@@ -112,6 +142,28 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
             </button>
           ))}
         </Card>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => push({ page: page - 1 <= 1 ? null : String(page - 1) })}
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-input bg-card transition-colors hover:bg-muted disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm text-muted-foreground">{t("Page {n} of {m}", { n: page, m: totalPages })}</span>
+          <button
+            type="button"
+            disabled={page >= totalPages}
+            onClick={() => push({ page: String(page + 1) })}
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-input bg-card transition-colors hover:bg-muted disabled:opacity-40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
       {/* Client quick-view drawer (non-modal) */}
@@ -143,14 +195,12 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
             </div>
 
             <div className="flex-1 space-y-5 overflow-y-auto p-4">
-              {/* contact quick actions */}
               <div className="grid grid-cols-3 gap-2">
                 <ContactBtn href={c.phone ? `tel:${c.phone}` : undefined} icon={Phone} label={t("Call")} />
                 <ContactBtn href={wa ? `https://wa.me/${wa}` : undefined} icon={MessageCircle} label={t("WhatsApp")} external />
                 <ContactBtn href={c.email ? `mailto:${c.email}` : undefined} icon={Mail} label={t("Email")} />
               </div>
 
-              {/* details */}
               <div className="space-y-1">
                 <DetailRow icon={Phone} value={c.phone} />
                 <DetailRow icon={Mail} value={c.email} />
@@ -161,7 +211,6 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
 
               {c.notes && <p className="whitespace-pre-line rounded-xl border border-border p-3 text-sm text-muted-foreground">{c.notes}</p>}
 
-              {/* stats */}
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl border border-border p-3">
                   <p className="text-xs text-muted-foreground">{t("Rentals")}</p>
@@ -187,7 +236,7 @@ export function ClientsList({ clients, currency }: { clients: any[]; currency: s
                   <History className="h-4 w-4" /> {t("Rental history")}
                 </Link>
                 <Link href={`/clients/${c.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
-                  <Pencil className="h-4 w-4" /> {t("Edit client")}
+                  <Pencil className="h-4 w-4" /> {t("Open profile")}
                 </Link>
               </div>
             </div>
