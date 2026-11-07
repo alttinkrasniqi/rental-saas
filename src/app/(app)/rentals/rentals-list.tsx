@@ -22,6 +22,7 @@ import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badge
 import { formatMoney, formatDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { DateField } from "@/components/date-field";
 import { markReturned } from "./actions";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { RentalStatus } from "@/lib/types";
 import { useT } from "@/lib/i18n/provider";
@@ -117,6 +118,7 @@ export function RentalsList({
     fd.set("vehicle_id", r.vehicle_id ?? "");
     startTransition(async () => {
       await markReturned(fd);
+      toast.success(t("Marked as returned"));
       closeRental();
       router.refresh();
     });

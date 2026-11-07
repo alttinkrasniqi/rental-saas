@@ -23,7 +23,7 @@ async function softDeleteClientAction(formData: FormData) {
   await supabase.from("clients").update({ deleted: true, updated_at: new Date().toISOString() }).eq("id", id).eq("business_id", business.id);
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
-  redirect("/clients");
+  redirect("/clients?toast=deleted");
 }
 
 async function restoreClientAction(formData: FormData) {
@@ -35,7 +35,7 @@ async function restoreClientAction(formData: FormData) {
   await supabase.from("clients").update({ deleted: false, updated_at: new Date().toISOString() }).eq("id", id).eq("business_id", business.id);
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
-  redirect(`/clients/${id}`);
+  redirect(`/clients/${id}?toast=restored`);
 }
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {

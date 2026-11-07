@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Plus, MoreVertical, Eye, CalendarPlus, Pencil, RotateCcw, FileText, Receipt, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { markReturned } from "../rentals/actions";
+import { toast } from "sonner";
+import { useT } from "@/lib/i18n/provider";
 
 export type CalCell =
   | { t: "blocked" }
@@ -45,6 +47,7 @@ export function CalendarMatrix({
   };
 }) {
   const router = useRouter();
+  const t = useT();
   const [sel, setSel] = useState<{ row: number; start: number; end: number } | null>(null);
   const dragging = useRef(false);
   const [show, setShow] = useState<"all" | "booked" | "free">("all");
@@ -59,6 +62,7 @@ export function CalendarMatrix({
     setRmenu(null);
     startTransition(async () => {
       await markReturned(fd);
+      toast.success(t("Marked as returned"));
       router.refresh();
     });
   };

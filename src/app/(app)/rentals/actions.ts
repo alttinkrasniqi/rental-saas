@@ -168,7 +168,7 @@ export async function createRental(
   revalidatePath("/rentals");
   revalidatePath("/calendar");
   revalidatePath("/dashboard");
-  redirect(`/rentals/${inserted.id}`);
+  redirect(`/rentals/${inserted.id}?toast=created`);
 }
 
 export async function recordPayment(formData: FormData) {
@@ -207,6 +207,7 @@ export async function recordPayment(formData: FormData) {
   revalidatePath(`/rentals/${rentalId}`);
   revalidatePath("/dashboard");
   revalidatePath("/reports");
+  redirect(`/rentals/${rentalId}?toast=payment`);
 }
 
 export async function markReturned(formData: FormData) {
@@ -295,7 +296,7 @@ export async function extendRental(
 
   revalidatePath(`/rentals/${rentalId}`);
   revalidatePath("/calendar");
-  redirect(`/rentals/${rentalId}`);
+  redirect(`/rentals/${rentalId}?toast=saved`);
 }
 
 export async function cancelRental(formData: FormData) {
@@ -327,5 +328,5 @@ export async function cancelRental(formData: FormData) {
   revalidatePath("/calendar");
   revalidatePath("/dashboard");
   revalidatePath("/cars");
-  redirect(`/rentals/${rentalId}`);
+  redirect(`/rentals/${rentalId}?toast=saved`);
 }

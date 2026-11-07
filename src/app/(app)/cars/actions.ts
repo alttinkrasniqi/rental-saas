@@ -59,7 +59,7 @@ export async function createVehicle(
   if (error) return { error: error.message };
 
   revalidatePath("/cars");
-  redirect("/cars");
+  redirect("/cars?toast=created");
 }
 
 export async function updateVehicle(
@@ -83,7 +83,7 @@ export async function updateVehicle(
 
   revalidatePath("/cars");
   revalidatePath(`/cars/${id}`);
-  redirect(`/cars/${id}`);
+  redirect(`/cars/${id}?toast=saved`);
 }
 
 export async function setVehicleStatus(id: string, status: VehicleStatus) {
@@ -107,5 +107,5 @@ export async function archiveVehicle(formData: FormData) {
     .update({ archived: true, status: "UNAVAILABLE", updated_at: new Date().toISOString() })
     .eq("id", id);
   revalidatePath("/cars");
-  redirect("/cars");
+  redirect("/cars?toast=archived");
 }

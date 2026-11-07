@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/nav/sidebar";
 import { BottomNav } from "@/components/nav/bottom-nav";
 import { MobileTopBar } from "@/components/nav/mobile-top-bar";
 import { SupportWidget } from "@/components/support-widget";
+import { AppToaster } from "@/components/app-toaster";
 import { LocaleProvider } from "@/lib/i18n/provider";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </main>
       <BottomNav />
       <SupportWidget />
+      <AppToaster />
     </div>
     </LocaleProvider>
   );

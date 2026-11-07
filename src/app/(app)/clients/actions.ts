@@ -33,7 +33,7 @@ export async function createClientRecord(
   if (error) return { error: error.message };
 
   revalidatePath("/clients");
-  redirect("/clients");
+  redirect("/clients?toast=created");
 }
 
 export async function updateClientRecord(
@@ -57,5 +57,5 @@ export async function updateClientRecord(
 
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
-  redirect(`/clients/${id}`);
+  redirect(`/clients/${id}?toast=saved`);
 }
