@@ -40,7 +40,7 @@ export async function updateClientRecord(
   _prev: ClientFormState,
   formData: FormData
 ): Promise<ClientFormState> {
-  await requireBusiness();
+  const business = await requireBusiness();
   const id = String(formData.get("id") || "");
   if (!id) return { error: "Missing client id." };
 
@@ -51,7 +51,8 @@ export async function updateClientRecord(
   const { error } = await supabase
     .from("clients")
     .update({ ...data, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", business.id);
   if (error) return { error: error.message };
 
   revalidatePath("/clients");

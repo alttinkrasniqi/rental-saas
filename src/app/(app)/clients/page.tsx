@@ -26,7 +26,10 @@ export default async function ClientsPage() {
     s.count += 1;
     s.spent += r.paid_cents ?? 0;
     const eff = effectiveStatus(r as any, now);
-    if (eff === "ACTIVE" || eff === "RESERVED") {
+    // Owed = unpaid balance on rentals that are under way or already finished.
+    // A RESERVED (future) rental isn't due yet, so it is not counted; a
+    // COMPLETED rental that was never fully paid IS still owed.
+    if (eff !== "RESERVED") {
       s.outstanding += Math.max(0, (r.total_cents ?? 0) - (r.paid_cents ?? 0));
     }
     if (eff === "ACTIVE") {
