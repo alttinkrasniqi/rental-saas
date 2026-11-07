@@ -67,6 +67,7 @@ export interface Client {
   country: string | null;
   id_number: string | null;
   license_number: string | null;
+  documents: { url: string; label: string }[];
   notes: string | null;
   created_at: string;
   updated_at: string;

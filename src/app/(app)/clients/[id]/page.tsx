@@ -7,6 +7,7 @@ import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badges";
 import { ConfirmButton } from "@/components/confirm-button";
+import { ClientDocuments } from "@/components/client-documents";
 import { formatMoney, formatDate } from "@/lib/format";
 
 // Soft-delete: hide the client but KEEP their rentals and payments. The client
@@ -128,6 +129,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dokumentet (foto)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClientDocuments clientId={client.id} initial={client.documents ?? []} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
