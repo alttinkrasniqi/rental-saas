@@ -10,6 +10,7 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { ClientDocuments } from "@/components/client-documents";
 import { signClientDocs } from "@/lib/client-docs";
 import { formatMoney, formatDate } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
 
 // Soft-delete: hide the client but KEEP their rentals and payments. The client
 // row stays so rentals/payments can still link back to it (shown as "Deleted").
@@ -36,6 +37,7 @@ async function restoreClientAction(formData: FormData) {
 }
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
+  const t = getT();
   const business = await getBusiness();
   const currency = business?.currency ?? "EUR";
   const supabase = createClient();
@@ -59,11 +61,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     [<Mail key="m" className="h-4 w-4" />, client.email],
     [<MapPin key="a" className="h-4 w-4" />, client.address],
   ];
+  const hasTextDocs = !!(client.country || client.id_number || client.license_number);
 
   return (
     <div className="space-y-6">
       <Link href="/clients" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to clients
+        <ArrowLeft className="h-4 w-4" /> {t("Back to clients")}
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -72,7 +75,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <h1 className="text-2xl font-semibold">{client.full_name}</h1>
             {client.deleted && (
               <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
-                Deleted
+                {t("Deleted")}
               </span>
             )}
           </div>
@@ -92,62 +95,56 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               href={`/rentals/new?client=${client.id}`}
               className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              <Plus className="h-4 w-4" /> New rental
+              <Plus className="h-4 w-4" /> {t("New rental")}
             </Link>
           )}
           <Link
             href={`/clients/${client.id}/edit`}
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"
           >
-            <Pencil className="h-4 w-4" /> Edit
+            <Pencil className="h-4 w-4" /> {t("Edit")}
           </Link>
         </div>
       </div>
 
       {client.deleted && (
         <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">
-          This client is deleted. Their history is kept here, but they won&apos;t appear in the
-          active list or when creating new rentals until restored.
+          {t("This client is deleted. Their history is kept here, but they won't appear in the active list or when creating new rentals until restored.")}
         </p>
       )}
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Rentals" value={String(counted.length)} />
-        <StatCard label="Total spent" value={formatMoney(totalSpent, currency)} />
-        <StatCard label="Last rental" value={rentals[0] ? formatDate(rentals[0].pickup_at) : "—"} />
+        <StatCard label={t("Rentals")} value={String(counted.length)} />
+        <StatCard label={t("Total spent")} value={formatMoney(totalSpent, currency)} />
+        <StatCard label={t("Last rental")} value={rentals[0] ? formatDate(rentals[0].pickup_at) : "—"} />
       </div>
-
-      {(client.id_number || client.license_number || client.country) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Documents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-y-3 text-sm sm:grid-cols-3">
-              {client.country && <Info k="Country" v={client.country} />}
-              {client.id_number && <Info k="ID / Passport" v={client.id_number} />}
-              {client.license_number && <Info k="Driver's license" v={client.license_number} />}
-            </dl>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Dokumentet (foto)</CardTitle>
+          <CardTitle>{t("Documents")}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ClientDocuments clientId={client.id} initial={clientDocs} />
+        <CardContent className="space-y-5">
+          {hasTextDocs && (
+            <dl className="grid grid-cols-2 gap-y-3 text-sm sm:grid-cols-3">
+              {client.country && <Info k={t("Country")} v={client.country} />}
+              {client.id_number && <Info k={t("ID / Passport")} v={client.id_number} />}
+              {client.license_number && <Info k={t("Driver's license")} v={client.license_number} />}
+            </dl>
+          )}
+          <div>
+            {hasTextDocs && <p className="mb-3 text-sm font-medium">{t("Document photos")}</p>}
+            <ClientDocuments clientId={client.id} initial={clientDocs} />
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Rental history</CardTitle>
+          <CardTitle>{t("Rental history")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {rentals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No rentals yet.</p>
+            <p className="text-sm text-muted-foreground">{t("No rentals yet.")}</p>
           ) : (
             rentals.map((r) => (
               <Link
@@ -157,7 +154,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">
-                    {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : "Vehicle"}{" "}
+                    {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
                     <span className="text-muted-foreground">{r.vehicle?.plate}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -177,7 +174,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       {client.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>{t("Notes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">{client.notes}</p>
@@ -190,17 +187,17 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           <form action={restoreClientAction}>
             <input type="hidden" name="id" value={client.id} />
             <button type="submit" className="text-sm font-medium text-emerald-700 hover:underline">
-              Restore this client
+              {t("Restore this client")}
             </button>
           </form>
         ) : (
           <ConfirmButton
             action={softDeleteClientAction}
             id={client.id}
-            message="Delete this client? Their past rentals and payments are kept — the client just moves to the 'Deleted' filter and won't appear when creating new rentals. You can restore them anytime."
+            message={t("Delete this client? Their past rentals and payments are kept — the client just moves to the 'Deleted' filter and won't appear when creating new rentals. You can restore them anytime.")}
             className="text-sm font-medium text-rose-600 hover:underline"
           >
-            Delete this client
+            {t("Delete this client")}
           </ConfirmButton>
         )}
       </div>
