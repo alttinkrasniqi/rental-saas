@@ -11,8 +11,6 @@ import {
   Globe,
   Store,
   Phone,
-  LayoutGrid,
-  List as ListIcon,
   Eye,
   RotateCcw,
   FileText,
@@ -86,18 +84,10 @@ export function RentalsList({
   const [pay, setPay] = useState<PayFilter>("ALL");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [view, setView] = useState<"grid" | "list">("list");
   const [selected, setSelected] = useState<any | null>(null);
   const [shown, setShown] = useState(false);
   const [pending, startTransition] = useTransition();
   const now = Date.now();
-
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem("rentalsView");
-      if (v === "grid" || v === "list") setView(v);
-    } catch {}
-  }, []);
 
   useEffect(() => {
     if (!selected) return;
@@ -106,10 +96,6 @@ export function RentalsList({
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
-  const changeView = (v: "grid" | "list") => {
-    setView(v);
-    try { localStorage.setItem("rentalsView", v); } catch {}
-  };
 
   const openRental = (r: any) => { setSelected(r); requestAnimationFrame(() => setShown(true)); };
   const closeRental = () => { setShown(false); setTimeout(() => setSelected(null), 200); };
@@ -258,10 +244,9 @@ export function RentalsList({
         </Card>
       )}
 
-      {/* Status segmented control + view toggle */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="-mx-1 flex-1 overflow-x-auto px-1 pb-1">
-          <div className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
+      {/* Status segmented control */}
+      <div className="-mx-1 overflow-x-auto px-1 pb-1">
+        <div className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
             {FILTERS.map((f) => {
               const activeChip = filter === f.value;
               const overdueHot = f.value === "OVERDUE" && counts.OVERDUE > 0 && !activeChip;
@@ -287,21 +272,12 @@ export function RentalsList({
                 </button>
               );
             })}
-          </div>
-        </div>
-        <div className="inline-flex shrink-0 items-center gap-0.5 rounded-lg border border-input bg-card p-1 shadow-sm">
-          <button type="button" onClick={() => changeView("grid")} aria-label={t("Grid")} className={cn("flex h-7 w-7 items-center justify-center rounded-md transition-colors", view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={() => changeView("list")} aria-label={t("List")} className={cn("flex h-7 w-7 items-center justify-center rounded-md transition-colors", view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-            <ListIcon className="h-4 w-4" />
-          </button>
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">{t("No rentals in this view.")}</p>
-      ) : view === "grid" ? (
+      ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((r) => {
             const { eff, overdue, open, nights, remaining } = derive(r);
@@ -360,76 +336,6 @@ export function RentalsList({
             );
           })}
         </div>
-      ) : (
-        <Card className="overflow-hidden">
-          <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(12rem,0.9fr)] items-center gap-4 border-b border-border bg-muted/40 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
-            <span>{t("Car")}</span>
-            <span>{t("Client")}</span>
-            <span>{t("Dates")}</span>
-            <span className="text-right">{t("Status")}</span>
-          </div>
-
-          <div className="divide-y divide-border">
-            {filtered.map((r) => {
-              const { eff, overdue, open, nights, remaining } = derive(r);
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => openRental(r)}
-                  className={cn(
-                    "grid w-full grid-cols-1 gap-3 p-4 text-left transition-colors hover:bg-muted/60 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(12rem,0.9fr)] sm:items-center sm:gap-4",
-                    overdue && "border-l-2 border-rose-500"
-                  )}
-                >
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span className={cn("h-2 w-2 shrink-0 rounded-full", dotCls(eff, overdue))} />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold leading-tight">{carName(r)}</p>
-                      <p className="truncate text-xs text-muted-foreground">{r.vehicle?.plate}</p>
-                    </div>
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-medium">{r.client?.full_name ?? t("Client")}</p>
-                      <SourceChip source={r.source} t={t} />
-                    </div>
-                    {r.client?.phone && (
-                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3" /> {r.client.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 text-sm">
-                    <p className="truncate">
-                      {formatDate(r.pickup_at)} <span className="text-muted-foreground">→</span>{" "}
-                      {open ? <span className="font-medium text-blue-600">{t("open")}</span> : formatDate(r.return_at)}
-                    </p>
-                    {nights !== null && <p className="mt-0.5 text-xs text-muted-foreground">{t("{n} days", { n: nights })}</p>}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end sm:gap-1.5">
-                    <div className="text-left sm:text-right">
-                      <div className="text-sm font-semibold">{formatMoney(r.total_cents, currency)}</div>
-                      {remaining > 0 && (
-                        <div className="text-xs text-rose-600">{t("{amount} left", { amount: formatMoney(remaining, currency) })}</div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {overdue && (
-                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-700">{t("Overdue")}</span>
-                      )}
-                      <PaymentStatusBadge paid_cents={r.paid_cents} total_cents={r.total_cents} />
-                      <RentalStatusBadge status={eff} />
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </Card>
       )}
 
       {/* Rental quick-view drawer */}
