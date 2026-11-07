@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { ImagePlus, Trash2, Loader2, ExternalLink } from "lucide-react";
-import { addClientDocument, removeClientDocument, type ClientDoc } from "@/app/(app)/clients/document-actions";
+import { addClientDocument, removeClientDocument } from "@/app/(app)/clients/document-actions";
+import type { SignedDoc } from "@/lib/client-docs";
 import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
@@ -35,9 +36,9 @@ async function compress(file: File): Promise<string> {
   }
 }
 
-export function ClientDocuments({ clientId, initial }: { clientId: string; initial: ClientDoc[] }) {
+export function ClientDocuments({ clientId, initial }: { clientId: string; initial: SignedDoc[] }) {
   const t = useT();
-  const [docs, setDocs] = useState<ClientDoc[]>(initial ?? []);
+  const [docs, setDocs] = useState<SignedDoc[]>(initial ?? []);
   const [label, setLabel] = useState("id");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -61,9 +62,9 @@ export function ClientDocuments({ clientId, initial }: { clientId: string; initi
     }
   }
 
-  async function onDelete(url: string) {
+  async function onDelete(path: string) {
     setBusy(true);
-    const r = await removeClientDocument(clientId, url);
+    const r = await removeClientDocument(clientId, path);
     if (r.ok && r.documents) setDocs(r.documents);
     else if (!r.ok) setErr(r.error || t("Delete failed."));
     setBusy(false);
@@ -97,7 +98,7 @@ export function ClientDocuments({ clientId, initial }: { clientId: string; initi
       {docs.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {docs.map((d) => (
-            <div key={d.url} className="group relative aspect-[3/2] overflow-hidden rounded-xl border border-border">
+            <div key={d.path || d.url} className="group relative aspect-[3/2] overflow-hidden rounded-xl border border-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={d.url} alt="" className="h-full w-full object-cover" />
               <span className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">{labelText(d.label)}</span>
@@ -105,7 +106,7 @@ export function ClientDocuments({ clientId, initial }: { clientId: string; initi
                 <a href={d.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded bg-white/90 px-2 py-1 text-[11px] font-semibold text-black hover:bg-white">
                   <ExternalLink className="h-3 w-3" /> {t("Open")}
                 </a>
-                <button type="button" onClick={() => onDelete(d.url)} className="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-500">
+                <button type="button" onClick={() => onDelete(d.path)} className="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-500">
                   <Trash2 className="h-3 w-3" /> {t("Delete")}
                 </button>
               </div>

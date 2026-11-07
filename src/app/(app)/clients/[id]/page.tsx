@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RentalStatusBadge, PaymentStatusBadge } from "@/components/status-badges";
 import { ConfirmButton } from "@/components/confirm-button";
 import { ClientDocuments } from "@/components/client-documents";
+import { signClientDocs } from "@/lib/client-docs";
 import { formatMoney, formatDate } from "@/lib/format";
 
 // Soft-delete: hide the client but KEEP their rentals and payments. The client
@@ -49,6 +50,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     .eq("client_id", client.id)
     .order("pickup_at", { ascending: false });
   const rentals = (rData ?? []) as any[];
+  const clientDocs = await signClientDocs(client.documents ?? []);
 
   const counted = rentals.filter((r) => r.status !== "CANCELLED");
   const totalSpent = counted.reduce((s, r) => s + (r.paid_cents ?? 0), 0);
@@ -135,7 +137,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           <CardTitle>Dokumentet (foto)</CardTitle>
         </CardHeader>
         <CardContent>
-          <ClientDocuments clientId={client.id} initial={client.documents ?? []} />
+          <ClientDocuments clientId={client.id} initial={clientDocs} />
         </CardContent>
       </Card>
 
