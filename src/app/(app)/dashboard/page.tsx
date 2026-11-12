@@ -11,7 +11,7 @@ import {
 } from "date-fns";
 import {
   ArrowRight, ArrowDownLeft, AlertTriangle, KeyRound, Globe, BellRing, RotateCcw, CalendarPlus,
-  Plus, Car, CheckCircle2, CalendarClock, Wrench, ClipboardList, Wallet, Coins, TrendingUp,
+  Plus, Car, ClipboardList, Wallet, Gauge,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -97,8 +97,6 @@ export default async function DashboardPage() {
         return d >= start && d <= end;
       })
       .reduce((s, p) => s + (p.amount_cents ?? 0), 0);
-  const revToday = sumRange(startOfDay(now), endOfDay(now));
-  const revWeek = sumRange(startOfWeek(now, WEEK_OPTS), endOfWeek(now, WEEK_OPTS));
   const revMonth = sumRange(startOfMonth(now), endOfMonth(now));
 
   // This month vs last month (context for the headline number).
@@ -125,6 +123,16 @@ export default async function DashboardPage() {
   // Fleet utilization right now + money still to collect on open rentals.
   const utilization = vehicles.length ? Math.round((outNow.size / vehicles.length) * 100) : 0;
   const toCollect = openRentals.reduce((s, r) => s + remainingCents(r), 0);
+  const unpaidCount = openRentals.filter((r) => remainingCents(r) > 0).length;
+
+  // Fleet breakdown for the status bar.
+  const total = vehicles.length;
+  const fleet = [
+    { label: t("Available"), n: countLive("AVAILABLE"), color: "#10b981", href: "/cars?status=AVAILABLE" },
+    { label: t("Rented"), n: countLive("RENTED"), color: "#3b82f6", href: "/cars?status=RENTED" },
+    { label: t("Reserved"), n: countLive("RESERVED"), color: "#f59e0b", href: "/cars?status=RESERVED" },
+    { label: t("Maintenance"), n: countLive("MAINTENANCE"), color: "#f97316", href: "/cars?status=MAINTENANCE" },
+  ];
 
   const upcoming = [
     ...rentals
@@ -140,12 +148,16 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <WelcomeModal seen={!!(business as any)?.welcome_seen} startHref={firstStepHref} />
+
+      {/* Top bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {business ? business.name : t("Dashboard")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("Here's what's happening today.")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {formatDate(now)} · {t("Here's what's happening today.")}
+          </p>
         </div>
         <div className="flex gap-2">
           <Link
@@ -182,326 +194,286 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {attention.length > 0 && (
-        <Card className="border-rose-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-rose-700">
-              <AlertTriangle className="h-4 w-4" />
-              {t("Needs attention")}
-              <span className="ml-1 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
-                {attention.length}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {attention.map(({ r, kind }) => (
-              <AttentionRow key={r.id} r={r} kind={kind} now={now} t={t} />
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {/* Executive KPI strip */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Link href="/rentals?paid=this_month" className="group block">
+          <Card className="h-full border-transparent bg-primary p-5 text-primary-foreground transition group-hover:shadow-md">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[13px] font-medium text-primary-foreground/85">{t("Revenue this month")}</span>
+              {monthDelta != null && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">
+                  {monthDelta >= 0 ? "▲" : "▼"} {Math.abs(monthDelta)}%
+                </span>
+              )}
+            </div>
+            <p className="mt-2 text-[28px] font-extrabold leading-none tracking-tight">{formatMoney(revMonth, currency)}</p>
+            <p className="mt-2 text-[11.5px] text-primary-foreground/80">
+              {t("vs last month")} · {formatMoney(revLastMonth, currency)}
+            </p>
+          </Card>
+        </Link>
 
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Fleet")}</p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <Stat href="/cars" label={t("Total cars")} value={vehicles.length} icon={Car} />
-          <Stat href="/cars?status=AVAILABLE" label={t("Available")} value={countLive("AVAILABLE")} tone="emerald" icon={CheckCircle2} />
-          <Stat href="/cars?status=RENTED" label={t("Rented")} value={countLive("RENTED")} tone="blue" icon={KeyRound} />
-          <Stat href="/cars?status=RESERVED" label={t("Reserved")} value={countLive("RESERVED")} tone="amber" icon={CalendarClock} />
-          <Stat href="/cars?status=MAINTENANCE" label={t("Maintenance")} value={countLive("MAINTENANCE")} tone="orange" icon={Wrench} />
-          <Stat href="/rentals?status=ACTIVE" label={t("Active rentals")} value={activeCount} icon={ClipboardList} />
-        </div>
+        <KpiTile
+          href="/rentals?status=ACTIVE"
+          label={t("Active rentals")}
+          value={String(activeCount)}
+          sub={t("cars out now")}
+          icon={ClipboardList}
+        />
+        <KpiTile
+          href="/cars?status=RENTED"
+          label={t("Fleet in use now")}
+          value={`${utilization}%`}
+          sub={t("{out} of {total} cars out", { out: outNow.size, total: vehicles.length })}
+          icon={Gauge}
+          valueTone="text-primary"
+        />
+        <KpiTile
+          href="/rentals?unpaid=1"
+          label={t("To collect")}
+          value={formatMoney(toCollect, currency)}
+          sub={unpaidCount > 0 ? t("{n} unpaid", { n: unpaidCount }) : t("Unpaid on open rentals")}
+          icon={Wallet}
+          iconTone={toCollect > 0 ? "bg-rose-50 text-rose-600" : undefined}
+          valueTone={toCollect > 0 ? "text-rose-600" : undefined}
+        />
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Earnings")}</p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <RevCard label={t("Revenue today")} value={formatMoney(revToday, currency)} icon={Coins} href="/rentals?paid=today" />
-          <RevCard label={t("This week")} value={formatMoney(revWeek, currency)} icon={Wallet} href="/rentals?paid=this_week" />
-          <RevCard label={t("This month")} value={formatMoney(revMonth, currency)} icon={TrendingUp} emphasize delta={monthDelta} t={t} href="/rentals?paid=this_month" />
+      {/* Fleet status bar */}
+      <Card className="p-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Fleet")}</p>
+          <Link href="/cars" className="text-xs font-semibold text-primary hover:underline">
+            {t("Cars")} →
+          </Link>
         </div>
-      </div>
+        <div className="mb-3.5 flex h-2.5 overflow-hidden rounded-full bg-muted">
+          {total > 0 &&
+            fleet.map((f) =>
+              f.n > 0 ? (
+                <div key={f.label} style={{ width: `${(f.n / total) * 100}%`, backgroundColor: f.color }} />
+              ) : null
+            )}
+        </div>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          <span className="flex items-center gap-2 text-sm">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "#64748b" }} />
+            {t("Total cars")} <b className="font-bold">{total}</b>
+          </span>
+          {fleet.map((f) => (
+            <Link key={f.label} href={f.href} className="flex items-center gap-2 text-sm hover:underline">
+              <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: f.color }} />
+              {f.label} <b className="font-bold">{f.n}</b>
+            </Link>
+          ))}
+        </div>
+      </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm">{t("Revenue — last 6 months")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end justify-between gap-2" style={{ height: 120 }}>
-              {trend.map((m, i) => {
-                const isCurrent = i === trend.length - 1;
-                const h = Math.round((m.value / maxTrend) * 100);
-                return (
+      {/* Two columns: main + rail */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        {/* MAIN */}
+        <div className="space-y-6">
+          {attention.length > 0 && (
+            <Card className="border-rose-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-rose-700">
+                  <AlertTriangle className="h-4 w-4" />
+                  {t("Needs attention")}
+                  <span className="ml-1 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                    {attention.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {attention.map(({ r, kind }) => (
+                  <AttentionRow key={r.id} r={r} kind={kind} now={now} t={t} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm">{t("Revenue — last 6 months")}</CardTitle>
+              <span className="text-xs text-muted-foreground">{t("by collection date")}</span>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end justify-between gap-2" style={{ height: 130 }}>
+                {trend.map((m, i) => {
+                  const isCurrent = i === trend.length - 1;
+                  const h = Math.round((m.value / maxTrend) * 100);
+                  return (
+                    <Link
+                      key={i}
+                      href={`/rentals?paid_from=${m.from}&paid_to=${m.to}`}
+                      className="group flex flex-1 flex-col items-center gap-1.5"
+                    >
+                      <span className={`text-[10px] font-medium ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
+                        {m.value > 0 ? formatMoney(m.value, currency) : ""}
+                      </span>
+                      <div className="flex w-full flex-1 items-end">
+                        <div
+                          className={`w-full rounded-t-md transition group-hover:opacity-80 ${isCurrent ? "bg-primary" : "bg-primary/25"}`}
+                          style={{ height: `${Math.max(h, 2)}%` }}
+                        />
+                      </div>
+                      <span className={`text-[11px] ${isCurrent ? "font-semibold" : "text-muted-foreground"}`}>{m.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("Today")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <TodayBlock title={t("Pickups")} icon={<ArrowRight className="h-4 w-4 text-blue-600" />} items={pickupsToday} field="pickup_at" empty={t("No pickups today.")} tr={t} />
+                <TodayBlock title={t("Returns")} icon={<ArrowDownLeft className="h-4 w-4 text-emerald-600" />} items={returnsToday} field="return_at" empty={t("No returns today.")} tr={t} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* RAIL */}
+        <div className="space-y-6">
+          {onlineBookings.length > 0 && (
+            <Card id="online">
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-4 w-4 text-amber-600" /> {t("Online bookings")}
+                </CardTitle>
+                {recentOnline.length > 0 && (
+                  <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                    {t("{n} new", { n: recentOnline.length })}
+                  </span>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {onlineBookings.slice(0, 5).map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/rentals/${r.id}`}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
+                        <span className="text-muted-foreground">{r.vehicle?.plate}</span>
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {r.client?.full_name} · {formatDate(r.pickup_at)} → {formatDate(r.return_at)}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{formatDate(r.created_at)}</span>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("Upcoming")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {upcoming.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("Nothing scheduled. Your fleet is free.")}</p>
+              ) : (
+                upcoming.map((u, i) => (
                   <Link
                     key={i}
-                    href={`/rentals?paid_from=${m.from}&paid_to=${m.to}`}
-                    className="group flex flex-1 flex-col items-center gap-1.5"
+                    href={`/rentals/${u.r.id}`}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
                   >
-                    <span className="text-[10px] font-medium text-muted-foreground">
-                      {m.value > 0 ? formatMoney(m.value, currency) : ""}
-                    </span>
-                    <div className="flex w-full flex-1 items-end">
-                      <div
-                        className={`w-full rounded-t-md transition group-hover:opacity-80 ${isCurrent ? "bg-primary" : "bg-primary/25"}`}
-                        style={{ height: `${Math.max(h, 2)}%` }}
-                      />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {u.r.vehicle ? `${u.r.vehicle.make} ${u.r.vehicle.model}` : t("Vehicle")}{" "}
+                        <span className="text-muted-foreground">{u.r.vehicle?.plate}</span>
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{u.r.client?.full_name}</p>
                     </div>
-                    <span className="text-[11px] text-muted-foreground">{m.label}</span>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs font-semibold">{t(u.type)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(u.at)}</p>
+                    </div>
                   </Link>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-        <div className="grid gap-6">
-          <KpiCard
-            label={t("Fleet in use now")}
-            value={`${utilization}%`}
-            sub={t("{out} of {total} cars out", { out: outNow.size, total: vehicles.length })}
-            tone="primary"
-            href="/cars?status=RENTED"
-          />
-          <KpiCard
-            label={t("To collect")}
-            value={formatMoney(toCollect, currency)}
-            sub={t("Unpaid on open rentals")}
-            tone={toCollect > 0 ? "rose" : "muted"}
-            href="/rentals?unpaid=1"
-          />
+          {stillOut.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <KeyRound className="h-4 w-4 text-indigo-600" /> {t("Cars still out")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {stillOut.map((r) => {
+                  const out = rentalDays(r.pickup_at, now);
+                  return (
+                    <Link
+                      key={r.id}
+                      href={`/rentals/${r.id}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
+                          <span className="text-muted-foreground">{r.vehicle?.plate}</span>
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">{r.client?.full_name} · {t("open-ended")}</p>
+                      </div>
+                      <span className="shrink-0 text-xs font-semibold">
+                        {t(out === 1 ? "{n} day out" : "{n} days out", { n: out })}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </div>
-
-      {onlineBookings.length > 0 && (
-        <Card id="online">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-amber-600" /> {t("Online bookings")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {onlineBookings.slice(0, 6).map((r) => (
-              <Link
-                key={r.id}
-                href={`/rentals/${r.id}`}
-                className="flex items-center justify-between gap-3 rounded-md border border-border p-3 hover:bg-muted"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
-                    <span className="text-muted-foreground">{r.vehicle?.plate}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {r.client?.full_name} · {formatDate(r.pickup_at)} → {formatDate(r.return_at)}
-                  </p>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{t("booked {date}", { date: formatDate(r.created_at) })}</span>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {stillOut.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-indigo-600" /> {t("Cars still out")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {stillOut.map((r) => {
-              const out = rentalDays(r.pickup_at, now);
-              return (
-                <Link
-                  key={r.id}
-                  href={`/rentals/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-md border border-border p-3 hover:bg-muted"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}` : t("Vehicle")}{" "}
-                      <span className="text-muted-foreground">{r.vehicle?.plate}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{r.client?.full_name} · {t("open-ended")}</p>
-                  </div>
-                  <span className="shrink-0 text-xs font-medium">
-                    {t(out === 1 ? "{n} day out" : "{n} days out", { n: out })}
-                  </span>
-                </Link>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("Today")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <TodayBlock title={t("Pickups")} icon={<ArrowRight className="h-4 w-4 text-blue-600" />} items={pickupsToday} field="pickup_at" empty={t("No pickups today.")} tr={t} />
-            <TodayBlock title={t("Returns")} icon={<ArrowDownLeft className="h-4 w-4 text-emerald-600" />} items={returnsToday} field="return_at" empty={t("No returns today.")} tr={t} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("Upcoming")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {upcoming.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("Nothing scheduled. Your fleet is free.")}</p>
-            ) : (
-              upcoming.map((u, i) => (
-                <Link
-                  key={i}
-                  href={`/rentals/${u.r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-md border border-border p-3 hover:bg-muted"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {u.r.vehicle ? `${u.r.vehicle.make} ${u.r.vehicle.model}` : t("Vehicle")}{" "}
-                      <span className="text-muted-foreground">{u.r.vehicle?.plate}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{u.r.client?.full_name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-medium">{t(u.type)}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(u.at)}</p>
-                  </div>
-                </Link>
-              ))
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 }
 
-const TONE_CHIPS: Record<string, string> = {
-  emerald: "bg-emerald-50 text-emerald-600",
-  blue: "bg-blue-50 text-blue-600",
-  amber: "bg-amber-50 text-amber-600",
-  orange: "bg-orange-50 text-orange-600",
-  default: "bg-primary/10 text-primary",
-};
-
-function Stat({
+function KpiTile({
   href,
-  label,
-  value,
-  tone,
-  icon: Icon,
-}: {
-  href: string;
-  label: string;
-  value: number;
-  tone?: string;
-  icon: LucideIcon;
-}) {
-  const chip = TONE_CHIPS[tone ?? "default"];
-  return (
-    <Link href={href} className="group">
-      <Card className="h-full p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
-        <div className="flex items-center gap-3">
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${chip}`}>
-            <Icon className="h-5 w-5" />
-          </span>
-          <p className="text-2xl font-bold leading-none tracking-tight">{value}</p>
-        </div>
-        <p className="mt-3 text-xs font-medium text-muted-foreground">{label}</p>
-      </Card>
-    </Link>
-  );
-}
-
-function RevCard({
-  label,
-  value,
-  icon: Icon,
-  emphasize,
-  delta,
-  t,
-  href,
-}: {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-  emphasize?: boolean;
-  delta?: number | null;
-  t?: TFunc;
-  href?: string;
-}) {
-  const hasDelta = delta != null && t;
-  const up = (delta ?? 0) >= 0;
-  const card = (
-    <Card className={`p-5 ${emphasize ? "border-primary/30 bg-primary/5" : ""} ${href ? "transition hover:shadow-md" : ""}`}>
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <span
-          className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-            emphasize ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-          }`}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-      <div className="mt-2 flex items-center gap-2">
-        <p className={`text-2xl font-bold tracking-tight ${emphasize ? "text-primary" : ""}`}>{value}</p>
-        {hasDelta && (
-          <span
-            className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
-              up ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-            }`}
-          >
-            {up ? "+" : ""}
-            {delta}%
-          </span>
-        )}
-      </div>
-      {hasDelta && <p className="mt-1 text-[11px] text-muted-foreground">{t!("vs last month")}</p>}
-    </Card>
-  );
-  return href ? (
-    <Link href={href} className="block">
-      {card}
-    </Link>
-  ) : (
-    card
-  );
-}
-
-function KpiCard({
   label,
   value,
   sub,
-  tone,
-  href,
+  icon: Icon,
+  iconTone,
+  valueTone,
 }: {
+  href: string;
   label: string;
   value: string;
   sub: string;
-  tone: "primary" | "rose" | "muted";
-  href?: string;
+  icon: LucideIcon;
+  iconTone?: string;
+  valueTone?: string;
 }) {
-  const valueTone = tone === "primary" ? "text-primary" : tone === "rose" ? "text-rose-600" : "";
-  const card = (
-    <Card className={`p-5 ${tone === "primary" ? "border-primary/30 bg-primary/5" : ""} ${href ? "transition hover:shadow-md" : ""}`}>
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${valueTone}`}>{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
-    </Card>
-  );
-  return href ? (
-    <Link href={href} className="block">
-      {card}
+  return (
+    <Link href={href} className="group block">
+      <Card className="h-full p-5 transition group-hover:shadow-md">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+          <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconTone ?? "bg-primary/10 text-primary"}`}>
+            <Icon className="h-4 w-4" />
+          </span>
+        </div>
+        <p className={`mt-2 text-[28px] font-extrabold leading-none tracking-tight ${valueTone ?? ""}`}>{value}</p>
+        <p className="mt-2 text-[11.5px] text-muted-foreground">{sub}</p>
+      </Card>
     </Link>
-  ) : (
-    card
   );
 }
 
