@@ -79,6 +79,11 @@ export const SQ: Record<string, string> = {
   "To collect": "Për t'u arkëtuar",
   "Unpaid on open rentals": "E papaguar në rezervimet e hapura",
   "vs last month": "krahasuar me muajin e kaluar",
+  "Revenue this month": "Të ardhurat këtë muaj",
+  "cars out now": "makina jashtë tani",
+  "{n} unpaid": "{n} pa paguar",
+  "by collection date": "sipas datës së arkëtimit",
+  "{n} new": "{n} reja",
 
   // calendar
   "Day": "Dita",
