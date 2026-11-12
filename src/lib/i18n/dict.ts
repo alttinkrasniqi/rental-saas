@@ -85,6 +85,21 @@ export const SQ: Record<string, string> = {
   "by collection date": "sipas datës së arkëtimit",
   "{n} new": "{n} reja",
 
+  // car condition (pickup / return)
+  "Car condition": "Gjendja e kerrit",
+  "Record fuel, kilometres and damage photos at pickup and return.": "Regjistro karburantin, kilometrat dhe fotot e dëmtimeve te marrja dhe kthimi.",
+  "At pickup": "Te marrja",
+  "At return": "Te kthimi",
+  "Odometer (km)": "Kilometrazhi (km)",
+  "e.g. 84500": "p.sh. 84500",
+  "Damage / notes": "Dëmtime / shënime",
+  "e.g. scratch on the rear bumper": "p.sh. gërvishtje te parakolpi i pasëm",
+  "{n} photos": "{n} foto",
+  "driven": "të përshkuara",
+  "Returned with less fuel": "U kthye me më pak karburant",
+  "Save": "Ruaj",
+  "Saved": "U ruajt",
+
   // calendar
   "Day": "Dita",
   "Overdue": "Me vonesë",
