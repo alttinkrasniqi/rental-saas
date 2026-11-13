@@ -23,6 +23,11 @@ function moneyToCents(v: FormDataEntryValue | null): number {
   return Number.isNaN(n) ? 0 : numberToCents(n);
 }
 
+function dateOrNull(v: FormDataEntryValue | null): string | null {
+  const s = String(v ?? "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
 function parseVehicle(formData: FormData) {
   return {
     make: String(formData.get("make") || "").trim(),
@@ -37,6 +42,10 @@ function parseVehicle(formData: FormData) {
     doors: intOrNull(formData.get("doors")),
     daily_price_cents: moneyToCents(formData.get("daily_price")),
     status: (String(formData.get("status") || "AVAILABLE") as VehicleStatus),
+    insurance_expiry: dateOrNull(formData.get("insurance_expiry")),
+    registration_expiry: dateOrNull(formData.get("registration_expiry")),
+    inspection_expiry: dateOrNull(formData.get("inspection_expiry")),
+    service_due: dateOrNull(formData.get("service_due")),
     notes: String(formData.get("notes") || "").trim() || null,
   };
 }
