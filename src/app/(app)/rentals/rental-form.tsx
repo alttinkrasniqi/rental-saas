@@ -23,6 +23,39 @@ interface CarOption {
   model: string;
   plate: string;
   daily_price_cents: number;
+  weekly_price_cents?: number | null;
+  monthly_price_cents?: number | null;
+}
+
+// Cheapest mix of month (30d) / week (7d) / day blocks that covers `days`.
+// A block may over-cover (6 days can take a weekly rate if that's cheaper).
+// Weekly/monthly of 0 or null means "not offered" for that tier.
+function bestPrice(
+  days: number,
+  dailyCents: number,
+  weeklyCents?: number | null,
+  monthlyCents?: number | null
+): { cents: number; months: number; weeks: number; days: number } {
+  if (days <= 0) return { cents: 0, months: 0, weeks: 0, days: 0 };
+  const W = weeklyCents && weeklyCents > 0 ? weeklyCents : null;
+  const M = monthlyCents && monthlyCents > 0 ? monthlyCents : null;
+  const cost = new Array(days + 1).fill(Infinity);
+  const how = new Array<{ from: number; add: "d" | "w" | "m" } | null>(days + 1).fill(null);
+  cost[0] = 0;
+  for (let n = 1; n <= days; n++) {
+    if (cost[n - 1] + dailyCents < cost[n]) { cost[n] = cost[n - 1] + dailyCents; how[n] = { from: n - 1, add: "d" }; }
+    if (W) { const p = Math.max(0, n - 7); if (cost[p] + W < cost[n]) { cost[n] = cost[p] + W; how[n] = { from: p, add: "w" }; } }
+    if (M) { const p = Math.max(0, n - 30); if (cost[p] + M < cost[n]) { cost[n] = cost[p] + M; how[n] = { from: p, add: "m" }; } }
+  }
+  let n = days, months = 0, weeks = 0, d = 0;
+  while (n > 0 && how[n]) {
+    const h = how[n]!;
+    if (h.add === "m") months++;
+    else if (h.add === "w") weeks++;
+    else d++;
+    n = h.from;
+  }
+  return { cents: cost[days], months, weeks, days: d };
 }
 interface ClientOption {
   id: string;
@@ -106,7 +139,20 @@ export function RentalForm({
   }
 
   const rateNum = Number(dailyRate.replace(",", ".")) || 0;
-  const computedTotal = days > 0 ? days * rateNum : 0;
+  const priceInfo = useMemo(() => {
+    if (openEnded || days <= 0 || rateNum <= 0) return null;
+    const car = cars.find((c) => c.id === carId);
+    return bestPrice(days, Math.round(rateNum * 100), car?.weekly_price_cents ?? 0, car?.monthly_price_cents ?? 0);
+  }, [days, rateNum, carId, openEnded, cars]);
+  const computedTotal = priceInfo ? priceInfo.cents / 100 : days > 0 ? days * rateNum : 0;
+  const tieredUsed = !!priceInfo && (priceInfo.months > 0 || priceInfo.weeks > 0);
+  const breakdown = priceInfo
+    ? [
+        priceInfo.months ? t(priceInfo.months === 1 ? "{n} month" : "{n} months", { n: priceInfo.months }) : null,
+        priceInfo.weeks ? t(priceInfo.weeks === 1 ? "{n} week" : "{n} weeks", { n: priceInfo.weeks }) : null,
+        priceInfo.days ? t(priceInfo.days === 1 ? "{n} day" : "{n} days", { n: priceInfo.days }) : null,
+      ].filter(Boolean).join(" + ")
+    : "";
   const effectiveTotal = totalTouched ? Number(total.replace(",", ".")) || 0 : computedTotal;
   const paidNum = Number(paid.replace(",", ".")) || 0;
   const remaining = Math.max(0, effectiveTotal - paidNum);
@@ -233,7 +279,11 @@ export function RentalForm({
                         <p className="truncate text-sm font-medium">
                           {c.make} {c.model} <span className="text-muted-foreground">{c.plate}</span>
                         </p>
-                        <p className="text-xs text-muted-foreground">{formatMoney(c.daily_price_cents, currency)}/day</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatMoney(c.daily_price_cents, currency)}{t("/day")}
+                          {c.weekly_price_cents ? ` · ${formatMoney(c.weekly_price_cents, currency)}${t("/week")}` : ""}
+                          {c.monthly_price_cents ? ` · ${formatMoney(c.monthly_price_cents, currency)}${t("/month")}` : ""}
+                        </p>
                       </div>
                       {booked ? (
                         <span className="shrink-0 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">
@@ -285,7 +335,11 @@ export function RentalForm({
                   }}
                   placeholder="auto"
                 />
-                <p className="text-xs text-muted-foreground">{t("Leave as-is for {n} × daily rate, or type a custom total.", { n: days || 0 })}</p>
+                {tieredUsed && !totalTouched ? (
+                  <p className="text-xs font-medium text-emerald-700">{t("Best rate: {b}", { b: breakdown })}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{t("Leave as-is for {n} × daily rate, or type a custom total.", { n: days || 0 })}</p>
+                )}
               </div>
             )}
             <div className="space-y-1.5">
@@ -347,6 +401,9 @@ export function RentalForm({
                 <SummaryRow label={t("Total")} value={t("Adds up daily")} strong />
               ) : (
                 <SummaryRow label={t("Total")} value={formatMoney(effectiveTotal * 100, currency)} strong />
+              )}
+              {tieredUsed && !totalTouched && breakdown && (
+                <p className="-mt-2 text-xs text-emerald-700">{t("Best rate")} · {breakdown}</p>
               )}
               <SummaryRow label={t("Paid:label")} value={formatMoney(paidNum * 100, currency)} />
               {!openEnded && <SummaryRow label={t("Remaining")} value={formatMoney(remaining * 100, currency)} strong />}
