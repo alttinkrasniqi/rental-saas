@@ -47,6 +47,8 @@ export interface Vehicle {
   seats: number | null;
   doors: number | null;
   daily_price_cents: number;
+  weekly_price_cents: number | null;
+  monthly_price_cents: number | null;
   status: VehicleStatus;
   description: string | null;
   photos: string[];
