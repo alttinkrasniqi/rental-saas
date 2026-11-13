@@ -13,7 +13,7 @@ export default async function NewRentalPage({
   const business = await getBusiness();
   const supabase = createClient();
 
-  const [{ data: cars }, { data: clients }, { data: bookings }] = await Promise.all([
+  const [{ data: cars }, { data: clients }, { data: bookings }, { data: rules }] = await Promise.all([
     supabase
       .from("vehicles")
       .select("id, make, model, plate, daily_price_cents, weekly_price_cents, monthly_price_cents")
@@ -27,6 +27,7 @@ export default async function NewRentalPage({
       .from("rentals")
       .select("vehicle_id, pickup_at, return_at, client:clients(full_name)")
       .in("status", ["ACTIVE", "RESERVED"]),
+    supabase.from("price_rules").select("id, vehicle_id, label, start_date, end_date, adjust_type, adjust_value"),
   ]);
 
   const bookingsMapped = (bookings ?? []).map((b: any) => ({
@@ -41,6 +42,7 @@ export default async function NewRentalPage({
       <PageHeader title={t("New rental")} subtitle={t("Pick the dates, then choose a free car")} />
       <RentalForm
         cars={cars ?? []}
+        rules={rules ?? []}
         clients={clients ?? []}
         bookings={bookingsMapped}
         currency={business?.currency ?? "EUR"}
