@@ -16,6 +16,7 @@ import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { createRental, type RentalFormState } from "./actions";
 import { useT } from "@/lib/i18n/provider";
+import { bestPrice, applicablePriceRule, effectiveRates, type PriceRule } from "@/lib/pricing";
 
 interface CarOption {
   id: string;
@@ -27,36 +28,6 @@ interface CarOption {
   monthly_price_cents?: number | null;
 }
 
-// Cheapest mix of month (30d) / week (7d) / day blocks that covers `days`.
-// A block may over-cover (6 days can take a weekly rate if that's cheaper).
-// Weekly/monthly of 0 or null means "not offered" for that tier.
-function bestPrice(
-  days: number,
-  dailyCents: number,
-  weeklyCents?: number | null,
-  monthlyCents?: number | null
-): { cents: number; months: number; weeks: number; days: number } {
-  if (days <= 0) return { cents: 0, months: 0, weeks: 0, days: 0 };
-  const W = weeklyCents && weeklyCents > 0 ? weeklyCents : null;
-  const M = monthlyCents && monthlyCents > 0 ? monthlyCents : null;
-  const cost = new Array(days + 1).fill(Infinity);
-  const how = new Array<{ from: number; add: "d" | "w" | "m" } | null>(days + 1).fill(null);
-  cost[0] = 0;
-  for (let n = 1; n <= days; n++) {
-    if (cost[n - 1] + dailyCents < cost[n]) { cost[n] = cost[n - 1] + dailyCents; how[n] = { from: n - 1, add: "d" }; }
-    if (W) { const p = Math.max(0, n - 7); if (cost[p] + W < cost[n]) { cost[n] = cost[p] + W; how[n] = { from: p, add: "w" }; } }
-    if (M) { const p = Math.max(0, n - 30); if (cost[p] + M < cost[n]) { cost[n] = cost[p] + M; how[n] = { from: p, add: "m" }; } }
-  }
-  let n = days, months = 0, weeks = 0, d = 0;
-  while (n > 0 && how[n]) {
-    const h = how[n]!;
-    if (h.add === "m") months++;
-    else if (h.add === "w") weeks++;
-    else d++;
-    n = h.from;
-  }
-  return { cents: cost[days], months, weeks, days: d };
-}
 interface ClientOption {
   id: string;
   full_name: string;
@@ -70,6 +41,7 @@ interface Booking {
 
 export function RentalForm({
   cars,
+  rules,
   clients,
   bookings,
   currency,
@@ -79,6 +51,7 @@ export function RentalForm({
   presetReturnDate,
 }: {
   cars: CarOption[];
+  rules: PriceRule[];
   clients: ClientOption[];
   bookings: Booking[];
   currency: string;
@@ -101,6 +74,7 @@ export function RentalForm({
   );
   const [total, setTotal] = useState("");
   const [totalTouched, setTotalTouched] = useState(false);
+  const [rateTouched, setRateTouched] = useState(false);
   const [paid, setPaid] = useState("");
 
   const days = useMemo(() => {
@@ -132,18 +106,43 @@ export function RentalForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupDate, returnDate, openEnded]);
 
+  // Auto-fill the daily rate with the car's effective rate for the pickup date
+  // (base rate adjusted by any scheduled price rule), until the owner edits it.
+  useEffect(() => {
+    if (!carId || rateTouched) return;
+    const car = cars.find((c) => c.id === carId);
+    if (!car) return;
+    const rule = pickupDate ? applicablePriceRule(rules, carId, pickupDate) : null;
+    const eff = effectiveRates(
+      { daily: car.daily_price_cents, weekly: car.weekly_price_cents ?? null, monthly: car.monthly_price_cents ?? null },
+      rule
+    );
+    setDailyRate((eff.daily / 100).toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carId, pickupDate]);
+
   function selectCar(id: string) {
     setCarId(id);
-    const car = cars.find((c) => c.id === id);
-    if (car && !dailyRate) setDailyRate((car.daily_price_cents / 100).toString());
   }
 
   const rateNum = Number(dailyRate.replace(",", ".")) || 0;
+  const activeRule = carId && pickupDate ? applicablePriceRule(rules, carId, pickupDate) : null;
+  const ruleText = activeRule
+    ? activeRule.adjust_type === "percent"
+      ? `${activeRule.adjust_value > 0 ? "+" : ""}${activeRule.adjust_value}%`
+      : `${formatMoney(activeRule.adjust_value, currency)}${t("/day")}`
+    : "";
   const priceInfo = useMemo(() => {
     if (openEnded || days <= 0 || rateNum <= 0) return null;
     const car = cars.find((c) => c.id === carId);
-    return bestPrice(days, Math.round(rateNum * 100), car?.weekly_price_cents ?? 0, car?.monthly_price_cents ?? 0);
-  }, [days, rateNum, carId, openEnded, cars]);
+    const eff = car
+      ? effectiveRates(
+          { daily: car.daily_price_cents, weekly: car.weekly_price_cents ?? null, monthly: car.monthly_price_cents ?? null },
+          carId && pickupDate ? applicablePriceRule(rules, carId, pickupDate) : null
+        )
+      : { daily: 0, weekly: null, monthly: null };
+    return bestPrice(days, Math.round(rateNum * 100), eff.weekly ?? 0, eff.monthly ?? 0);
+  }, [days, rateNum, carId, pickupDate, openEnded, cars, rules]);
   const computedTotal = priceInfo ? priceInfo.cents / 100 : days > 0 ? days * rateNum : 0;
   const tieredUsed = !!priceInfo && (priceInfo.months > 0 || priceInfo.weeks > 0);
   const breakdown = priceInfo
@@ -316,10 +315,19 @@ export function RentalForm({
                 step="0.01"
                 name="daily_rate"
                 value={dailyRate}
-                onChange={(e) => setDailyRate(e.target.value)}
+                onChange={(e) => {
+                  setDailyRate(e.target.value);
+                  setRateTouched(true);
+                }}
                 placeholder="60"
                 required
               />
+              {activeRule && !rateTouched && (
+                <p className="text-xs font-medium text-amber-700">
+                  {t("Price rule applied")}: {ruleText}
+                  {activeRule.label ? ` · ${activeRule.label}` : ""}
+                </p>
+              )}
             </div>
             {!openEnded && (
               <div className="space-y-1.5">
