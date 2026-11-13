@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusiness } from "@/lib/business";
 import { numberToCents, rentalDays } from "@/lib/format";
+import { evalPromo } from "@/lib/promo";
 import type { RentalStatus } from "@/lib/types";
 
 export type RentalFormState = { error?: string };
@@ -140,6 +141,26 @@ export async function createRental(
     : totalOverride
     ? moneyToCents(formData.get("total"))
     : days * dailyRateCents;
+
+  // Discount code — validated here (authoritative); the form only previews it.
+  let promoCode: string | null = null;
+  let discountCents = 0;
+  let promoRow: any = null;
+  const promoRaw = String(formData.get("promo_code") || "").trim().toUpperCase();
+  if (!openEnded && promoRaw && totalCents > 0) {
+    const { data: promo } = await supabase.from("promo_codes").select("*").eq("code", promoRaw).maybeSingle();
+    if (promo) {
+      const today = new Date().toISOString().slice(0, 10);
+      const ev = evalPromo(promo as any, totalCents, today);
+      if (ev.ok && ev.discountCents > 0) {
+        discountCents = ev.discountCents;
+        promoCode = promoRaw;
+        promoRow = promo;
+      }
+    }
+  }
+  const finalTotalCents = Math.max(0, totalCents - discountCents);
+
   const depositCents = moneyToCents(formData.get("deposit"));
   const paidCents = moneyToCents(formData.get("paid"));
   const method = String(formData.get("payment_method") || "").trim() || null;
@@ -159,7 +180,9 @@ export async function createRental(
       pickup_at: pickup.toISOString(),
       return_at: ret.toISOString(),
       daily_rate_cents: dailyRateCents,
-      total_cents: totalCents,
+      total_cents: finalTotalCents,
+      discount_cents: discountCents,
+      promo_code: promoCode,
       deposit_cents: depositCents,
       paid_cents: paidCents,
       payment_method: method,
@@ -169,6 +192,15 @@ export async function createRental(
     .single();
 
   if (error || !inserted) return { error: error?.message ?? "Could not create the rental." };
+
+  // Count the redemption (best-effort).
+  if (promoCode && promoRow) {
+    await supabase
+      .from("promo_codes")
+      .update({ used_count: (promoRow.used_count ?? 0) + 1 })
+      .eq("id", promoRow.id)
+      .eq("business_id", business.id);
+  }
 
   if (paidCents > 0) {
     await supabase.from("payments").insert({

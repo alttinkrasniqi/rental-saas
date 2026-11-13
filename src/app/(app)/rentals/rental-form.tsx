@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { createRental, type RentalFormState } from "./actions";
 import { useT } from "@/lib/i18n/provider";
 import { bestPrice, applicablePriceRule, effectiveRates, type PriceRule } from "@/lib/pricing";
+import { checkPromoCode } from "@/app/(app)/marketing/promo-actions";
 
 interface CarOption {
   id: string;
@@ -76,6 +77,10 @@ export function RentalForm({
   const [totalTouched, setTotalTouched] = useState(false);
   const [rateTouched, setRateTouched] = useState(false);
   const [paid, setPaid] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [applied, setApplied] = useState<{ code: string; discount_type: "percent" | "fixed"; discount_value: number; min_total_cents: number | null } | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoErr, setPromoErr] = useState<string | null>(null);
 
   const days = useMemo(() => {
     if (openEnded || !pickupDate || !returnDate) return 0;
@@ -153,8 +158,35 @@ export function RentalForm({
       ].filter(Boolean).join(" + ")
     : "";
   const effectiveTotal = totalTouched ? Number(total.replace(",", ".")) || 0 : computedTotal;
+  const totalCentsNow = Math.round(effectiveTotal * 100);
+  const belowMin = !!applied && applied.min_total_cents != null && totalCentsNow < applied.min_total_cents;
+  const discountCents =
+    applied && !openEnded && !belowMin
+      ? Math.max(0, Math.min(applied.discount_type === "percent" ? Math.round((totalCentsNow * applied.discount_value) / 100) : applied.discount_value, totalCentsNow))
+      : 0;
+  const finalTotal = Math.max(0, effectiveTotal - discountCents / 100);
   const paidNum = Number(paid.replace(",", ".")) || 0;
-  const remaining = Math.max(0, effectiveTotal - paidNum);
+  const remaining = Math.max(0, finalTotal - paidNum);
+
+  async function applyPromo() {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoBusy(true);
+    setPromoErr(null);
+    const r = await checkPromoCode(code, Math.round(effectiveTotal * 100));
+    setPromoBusy(false);
+    if (r.ok) {
+      setApplied({ code: r.code!, discount_type: r.discount_type!, discount_value: r.discount_value!, min_total_cents: r.min_total_cents ?? null });
+    } else {
+      setApplied(null);
+      setPromoErr(r.error || t("Code not found."));
+    }
+  }
+  function removePromo() {
+    setApplied(null);
+    setPromoInput("");
+    setPromoErr(null);
+  }
 
   const selectedCar = cars.find((c) => c.id === carId);
   const selectedClient = clients.find((c) => c.id === clientId);
@@ -375,6 +407,46 @@ export function RentalForm({
                 ))}
               </Select>
             </div>
+
+            {!openEnded && (
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{t("Discount code")}</Label>
+                {applied ? (
+                  <div className="flex items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
+                    <span className="text-sm font-medium text-emerald-800">
+                      <span className="font-mono font-bold">{applied.code}</span>{" "}
+                      {belowMin ? (
+                        <span className="text-amber-700">· {t("below minimum")}</span>
+                      ) : (
+                        <span>· −{formatMoney(discountCents, currency)}</span>
+                      )}
+                    </span>
+                    <button type="button" onClick={removePromo} className="text-xs font-semibold text-muted-foreground hover:text-foreground">
+                      {t("Remove")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      value={promoInput}
+                      onChange={(e) => { setPromoInput(e.target.value); setPromoErr(null); }}
+                      placeholder="VERA25"
+                      className="uppercase"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyPromo}
+                      disabled={promoBusy || !promoInput.trim()}
+                      className="inline-flex h-10 shrink-0 items-center rounded-md border border-input bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                    >
+                      {promoBusy ? "…" : t("Apply")}
+                    </button>
+                  </div>
+                )}
+                {promoErr && <p className="text-xs text-rose-600">{t(promoErr)}</p>}
+              </div>
+            )}
+            <input type="hidden" name="promo_code" value={applied && !belowMin ? applied.code : ""} />
           </CardContent>
         </Card>
 
@@ -407,6 +479,12 @@ export function RentalForm({
               <SummaryRow label={t("Rate")} value={rateNum ? `${formatMoney(rateNum * 100, currency)}${t("/day")}` : "—"} />
               {openEnded ? (
                 <SummaryRow label={t("Total")} value={t("Adds up daily")} strong />
+              ) : discountCents > 0 ? (
+                <>
+                  <SummaryRow label={t("Subtotal")} value={formatMoney(effectiveTotal * 100, currency)} />
+                  <SummaryRow label={`${t("Discount")} · ${applied?.code}`} value={`−${formatMoney(discountCents, currency)}`} />
+                  <SummaryRow label={t("Total")} value={formatMoney(finalTotal * 100, currency)} strong />
+                </>
               ) : (
                 <SummaryRow label={t("Total")} value={formatMoney(effectiveTotal * 100, currency)} strong />
               )}
