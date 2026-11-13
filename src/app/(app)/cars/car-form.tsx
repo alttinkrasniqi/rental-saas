@@ -106,6 +106,27 @@ export function CarForm({
 
       <Card>
         <CardContent className="pt-5">
+          <h3 className="mb-1 text-sm font-semibold">{t("Maintenance & dates")}</h3>
+          <p className="mb-4 text-xs text-muted-foreground">{t("Set expiry/service dates — the dashboard reminds you before they run out.")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t("Insurance expiry")}>
+              <Input name="insurance_expiry" type="date" defaultValue={vehicle?.insurance_expiry ?? ""} />
+            </Field>
+            <Field label={t("Registration expiry")}>
+              <Input name="registration_expiry" type="date" defaultValue={vehicle?.registration_expiry ?? ""} />
+            </Field>
+            <Field label={t("Technical inspection expiry")}>
+              <Input name="inspection_expiry" type="date" defaultValue={vehicle?.inspection_expiry ?? ""} />
+            </Field>
+            <Field label={t("Next service")}>
+              <Input name="service_due" type="date" defaultValue={vehicle?.service_due ?? ""} />
+            </Field>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold">{t("Photos")}</h3>
             {vehicle && <span className="text-xs text-muted-foreground">{t("Photos save instantly, separately from the form.")}</span>}
