@@ -50,6 +50,12 @@ export function CarForm({
           <Field label={t("Daily price (€)")} required>
             <Input name="daily_price" type="number" step="0.01" defaultValue={priceValue} placeholder="60" required />
           </Field>
+          <Field label={t("Weekly price (€)")}>
+            <Input name="weekly_price" type="number" step="0.01" defaultValue={vehicle?.weekly_price_cents ? (vehicle.weekly_price_cents / 100).toString() : ""} placeholder={t("optional")} />
+          </Field>
+          <Field label={t("Monthly price (€)")}>
+            <Input name="monthly_price" type="number" step="0.01" defaultValue={vehicle?.monthly_price_cents ? (vehicle.monthly_price_cents / 100).toString() : ""} placeholder={t("optional")} />
+          </Field>
           <Field label={t("Status")}>
             <Select name="status" defaultValue={vehicle?.status ?? "AVAILABLE"}>
               {VEHICLE_STATUSES.map((s) => (
