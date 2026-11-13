@@ -51,6 +51,10 @@ export interface Vehicle {
   description: string | null;
   photos: string[];
   cover_position: string | null;
+  insurance_expiry: string | null;
+  registration_expiry: string | null;
+  inspection_expiry: string | null;
+  service_due: string | null;
   notes: string | null;
   archived: boolean;
   created_at: string;
