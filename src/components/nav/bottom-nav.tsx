@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { MOBILE_NAV_ITEMS } from "@/lib/nav";
 import { useT } from "@/lib/i18n/provider";
 
-export function BottomNav() {
+export function BottomNav({ badges }: { badges?: Record<string, number> }) {
   const pathname = usePathname();
   const t = useT();
 
@@ -35,7 +35,14 @@ export function BottomNav() {
                 active ? "text-primary" : "text-muted-foreground"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <span className="relative">
+                <Icon className="h-5 w-5" />
+                {badges?.[item.href] ? (
+                  <span className="absolute -right-2.5 -top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                    {badges[item.href]}
+                  </span>
+                ) : null}
+              </span>
               {t(item.label)}
             </Link>
           );

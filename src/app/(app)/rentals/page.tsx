@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { ClipboardList } from "lucide-react";
 import { RentalsList } from "./rentals-list";
+import { RentalRequests } from "./rental-requests";
 import { toDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import type { RentalStatus } from "@/lib/types";
@@ -26,10 +27,28 @@ export default async function RentalsPage({
 
   const { data } = await supabase
     .from("rentals")
-    .select("*, vehicle:vehicles(make, model, plate), client:clients(full_name, phone)")
+    .select("*, vehicle:vehicles(make, model, plate), client:clients(full_name, phone, email)")
     .order("pickup_at", { ascending: false });
 
   let rentals = (data ?? []) as any[];
+
+  // Pending online booking requests live at the top (approve/decline) and are
+  // kept out of the main list until approved.
+  const pendingRequests = rentals
+    .filter((r) => r.source === "online" && r.approved === false && r.status !== "CANCELLED")
+    .map((r: any) => ({
+      id: r.id,
+      carName: [r.vehicle?.make, r.vehicle?.model].filter(Boolean).join(" ") || t("Car"),
+      plate: r.vehicle?.plate || "",
+      customer: r.client?.full_name || "—",
+      phone: r.client?.phone || "",
+      email: r.client?.email || "",
+      from: r.pickup_at,
+      to: r.return_at,
+      createdAt: r.created_at,
+    }))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  rentals = rentals.filter((r) => !(r.source === "online" && r.approved === false));
 
   // ---- Drill-down filters (from dashboard cards) ----
   let banner: string | null = null;
@@ -95,6 +114,8 @@ export default async function RentalsPage({
         subtitle={t("{n} total", { n: rentals.length })}
         action={{ href: "/rentals/new", label: t("New rental") }}
       />
+
+      <RentalRequests items={pendingRequests} />
 
       {banner && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm">

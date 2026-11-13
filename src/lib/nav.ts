@@ -7,7 +7,7 @@ import {
   Settings,
   Globe,
   ClipboardList,
-  Tags,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,12 +22,11 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/rentals", label: "Rentals", icon: ClipboardList },
   { href: "/cars", label: "Cars", icon: Car },
-  { href: "/pricing", label: "Pricing", icon: Tags },
   { href: "/clients", label: "Clients", icon: Users },
+  { href: "/marketing", label: "Marketing", icon: Megaphone },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/website", label: "Website", icon: Globe },
-    { href: "/requests", label: "Requests", icon: ClipboardList },
 ];
 
 // The five most important sections get bottom-nav slots on mobile.

@@ -170,6 +170,17 @@ export const SQ: Record<string, string> = {
   "Enter a fixed daily price.": "Shkruaj një çmim fiks ditor.",
   "That car was not found.": "Makina nuk u gjet.",
 
+  // marketing + online requests in rentals
+  "Marketing": "Marketing",
+  "Pricing rules, discount codes and promotions — in one place.": "Rregullat e çmimeve, kodet e zbritjes dhe promocionet — në një vend.",
+  "Price rules": "Rregulla çmimi",
+  "Discount codes": "Kode zbritjeje",
+  "Promotions": "Promocione",
+  "Coming soon": "Së shpejti",
+  "Discount codes, flash sales and promotions for loyal customers land here next.": "Kodet e zbritjes, flash sale dhe promocionet për klientë besnikë vijnë këtu së shpejti.",
+  "Online requests": "Kërkesa online",
+  "Bookings from your website waiting for approval. The car is held until you decide.": "Rezervime nga faqja jote që presin aprovim. Makina mbahet derisa të vendosësh.",
+
   // calendar
   "Day": "Dita",
   "Overdue": "Me vonesë",

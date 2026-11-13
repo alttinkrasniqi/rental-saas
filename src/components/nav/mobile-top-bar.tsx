@@ -12,7 +12,7 @@ import { Logo } from "@/components/logo";
 import { useT } from "@/lib/i18n/provider";
 import { LanguageSwitch } from "@/components/language-switch";
 
-export function MobileTopBar({ businessName }: { businessName: string }) {
+export function MobileTopBar({ businessName, badges }: { businessName: string; badges?: Record<string, number> }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const t = useT();
@@ -78,6 +78,11 @@ export function MobileTopBar({ businessName }: { businessName: string }) {
                   >
                     <Icon className="h-4 w-4" />
                     {t(item.label)}
+                    {badges?.[item.href] ? (
+                      <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                        {badges[item.href]}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
