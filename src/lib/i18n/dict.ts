@@ -128,6 +128,19 @@ export const SQ: Record<string, string> = {
   "in {n} day": "për {n} ditë",
   "in {n} days": "për {n} ditë",
 
+  // pricing engine (tier rates)
+  "Weekly price (€)": "Çmimi javor (€)",
+  "Monthly price (€)": "Çmimi mujor (€)",
+  "optional": "opsionale",
+  "Best rate: {b}": "Tarifa më e mirë: {b}",
+  "Best rate": "Tarifa më e mirë",
+  "{n} week": "{n} javë",
+  "{n} weeks": "{n} javë",
+  "{n} month": "{n} muaj",
+  "{n} months": "{n} muaj",
+  "/week": "/javë",
+  "/month": "/muaj",
+
   // calendar
   "Day": "Dita",
   "Overdue": "Me vonesë",
