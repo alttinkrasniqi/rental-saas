@@ -16,7 +16,7 @@ export default async function NewRentalPage({
   const [{ data: cars }, { data: clients }, { data: bookings }] = await Promise.all([
     supabase
       .from("vehicles")
-      .select("id, make, model, plate, daily_price_cents")
+      .select("id, make, model, plate, daily_price_cents, weekly_price_cents, monthly_price_cents")
       .eq("archived", false)
       .order("make", { ascending: true }),
     supabase.from("clients").select("id, full_name").eq("deleted", false).order("full_name", { ascending: true }),
