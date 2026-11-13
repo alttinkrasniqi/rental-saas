@@ -11,7 +11,7 @@ import {
 } from "date-fns";
 import {
   ArrowRight, ArrowDownLeft, AlertTriangle, KeyRound, Globe, BellRing, RotateCcw, CalendarPlus,
-  Plus, Car, ClipboardList, Wallet, Gauge,
+  Plus, Car, ClipboardList, Wallet, Gauge, Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -144,6 +144,30 @@ export default async function DashboardPage() {
   ]
     .sort((a, b) => toDate(a.at).getTime() - toDate(b.at).getTime())
     .slice(0, 8);
+
+  // Maintenance reminders: compliance/service dates within 30 days or past.
+  const DUE_SOON_DAYS = 30;
+  const today0 = startOfDay(now);
+  const MAINT_ITEMS: { key: string; label: string }[] = [
+    { key: "insurance_expiry", label: t("Insurance") },
+    { key: "registration_expiry", label: t("Registration") },
+    { key: "inspection_expiry", label: t("Technical inspection") },
+    { key: "service_due", label: t("Service") },
+  ];
+  const reminders = vehicles
+    .flatMap((v: any) =>
+      MAINT_ITEMS.map((it) => {
+        const ds = v[it.key] as string | null;
+        if (!ds) return null;
+        const days = Math.round((startOfDay(toDate(ds)).getTime() - today0.getTime()) / 86400000);
+        if (days > DUE_SOON_DAYS) return null;
+        return { vehicleId: v.id, name: `${v.make} ${v.model}`, plate: v.plate, item: it.label, date: ds, days, overdue: days < 0 };
+      })
+    )
+    .filter(Boolean)
+    .sort((a: any, b: any) => a.days - b.days) as {
+    vehicleId: string; name: string; plate: string; item: string; date: string; days: number; overdue: boolean;
+  }[];
 
   return (
     <div className="space-y-6">
@@ -287,6 +311,45 @@ export default async function DashboardPage() {
               <CardContent className="space-y-2">
                 {attention.map(({ r, kind }) => (
                   <AttentionRow key={r.id} r={r} kind={kind} now={now} t={t} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {reminders.length > 0 && (
+            <Card className="border-amber-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-700">
+                  <Wrench className="h-4 w-4" />
+                  {t("Maintenance due")}
+                  <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">{reminders.length}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {reminders.slice(0, 8).map((rm, i) => (
+                  <Link
+                    key={i}
+                    href={`/cars/${rm.vehicleId}/edit`}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {rm.name} <span className="text-muted-foreground">{rm.plate}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">{rm.item} · {formatDate(rm.date)}</p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        rm.overdue ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {rm.overdue
+                        ? t(rm.days === -1 ? "{n} day overdue" : "{n} days overdue", { n: -rm.days })
+                        : rm.days === 0
+                        ? t("Today")
+                        : t(rm.days === 1 ? "in {n} day" : "in {n} days", { n: rm.days })}
+                    </span>
+                  </Link>
                 ))}
               </CardContent>
             </Card>
