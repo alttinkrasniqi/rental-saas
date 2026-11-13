@@ -52,6 +52,20 @@ async function findOverlaps(
   return (data ?? []) as any[];
 }
 
+// Maintenance blocks that overlap a requested booking window (inclusive dates).
+async function maintenanceOverlaps(vehicleId: string, pickupISO: string, returnISO: string) {
+  const supabase = createClient();
+  const startDate = pickupISO.slice(0, 10);
+  const endDate = returnISO.slice(0, 10);
+  const { data } = await supabase
+    .from("maintenance_blocks")
+    .select("id")
+    .eq("vehicle_id", vehicleId)
+    .lte("start_date", endDate)
+    .gte("end_date", startDate);
+  return (data ?? []) as any[];
+}
+
 export async function createRental(
   _prev: RentalFormState,
   formData: FormData
@@ -110,6 +124,11 @@ export async function createRental(
         error: `This car is already booked for those dates${who}. Pick different dates or another car.`,
       };
     }
+  }
+
+  const maintBlocks = await maintenanceOverlaps(vehicleId, pickup.toISOString(), ret.toISOString());
+  if (maintBlocks.length > 0) {
+    return { error: "This car is blocked for maintenance on those days. Pick different dates or another car." };
   }
 
   const days = rentalDays(pickup, ret);
@@ -284,6 +303,11 @@ export async function extendRental(
   const overlaps = await findOverlaps(vehicleId, rental.pickup_at, ret.toISOString(), rentalId);
   if (overlaps.length > 0) {
     return { error: "The car is booked again before that date. Choose an earlier return." };
+  }
+
+  const maintBlocks = await maintenanceOverlaps(vehicleId, rental.pickup_at, ret.toISOString());
+  if (maintBlocks.length > 0) {
+    return { error: "This car is blocked for maintenance on those days. Pick different dates or another car." };
   }
 
   const days = rentalDays(pickup, ret);
