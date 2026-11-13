@@ -47,7 +47,7 @@ export default async function CalendarPage({
   const days = eachDayOfInterval({ start: windowStart, end: windowEnd });
 
   const supabase = createClient();
-  const [{ data: vData }, { data: rData }] = await Promise.all([
+  const [{ data: vData }, { data: rData }, { data: bData }] = await Promise.all([
     supabase.from("vehicles").select("*").eq("archived", false).order("make", { ascending: true }),
     // Open rentals only. We DROP a return_at filter here so that ongoing
     // open-ended rentals (whose return_at is still a placeholder) are included;
@@ -57,10 +57,17 @@ export default async function CalendarPage({
       .select("id, vehicle_id, status, open_ended, pickup_at, return_at, client:clients(full_name)")
       .in("status", ["ACTIVE", "RESERVED"])
       .lt("pickup_at", endOfDay(windowEnd).toISOString()),
+    // Maintenance blocks that touch this window.
+    supabase
+      .from("maintenance_blocks")
+      .select("id, vehicle_id, start_date, end_date, reason")
+      .lte("start_date", format(windowEnd, "yyyy-MM-dd"))
+      .gte("end_date", format(windowStart, "yyyy-MM-dd")),
   ]);
 
   const vehicles = (vData ?? []) as Vehicle[];
   const rentals = (rData ?? []) as any[];
+  const blocks = (bData ?? []) as any[];
 
   // Effective end of a rental: an ongoing open-ended ACTIVE rental is "out"
   // through now (its stored return_at is just a placeholder = pickup).
@@ -174,17 +181,23 @@ export default async function CalendarPage({
   // ---- Week / Month matrix ----
   const rows: CalRow[] = vehicles.map((v: any) => {
     const maint = v.status === "MAINTENANCE" || v.status === "UNAVAILABLE";
+    const vBlocks = blocks.filter((b) => b.vehicle_id === v.id);
     const cells: CalCell[] = days.map((d) => {
       if (maint) return { t: "blocked" };
       const r = rentals.find((x) => x.vehicle_id === v.id && covers(x, d));
-      if (!r) return { t: "free" };
-      const open = r.open_ended && effStatus(r) === "ACTIVE";
-      const label = `${r.client?.full_name ?? t("Booked")}${open ? ` (${t("open")})` : ""}`;
-      const endLabel = open ? t("open") : formatDate(r.return_at);
-      const title = `${r.client?.full_name ?? t("Booked")} · ${formatDate(r.pickup_at)} → ${endLabel}${isOverdue(r) ? ` · ${t("Overdue")}` : ""}`;
-      const isStart = isSameDay(toDate(r.pickup_at), d);
-      const isEnd = !covers(r, addDays(d, 1)) || isSameDay(d, windowEnd);
-      return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title, active: effStatus(r) === "ACTIVE" };
+      if (r) {
+        const open = r.open_ended && effStatus(r) === "ACTIVE";
+        const label = `${r.client?.full_name ?? t("Booked")}${open ? ` (${t("open")})` : ""}`;
+        const endLabel = open ? t("open") : formatDate(r.return_at);
+        const title = `${r.client?.full_name ?? t("Booked")} · ${formatDate(r.pickup_at)} → ${endLabel}${isOverdue(r) ? ` · ${t("Overdue")}` : ""}`;
+        const isStart = isSameDay(toDate(r.pickup_at), d);
+        const isEnd = !covers(r, addDays(d, 1)) || isSameDay(d, windowEnd);
+        return { t: "booked", id: r.id, cls: cellCls(r), isStart, isEnd, label, title, active: effStatus(r) === "ACTIVE" };
+      }
+      const dayKey = fmt(d);
+      const blk = vBlocks.find((b) => b.start_date <= dayKey && b.end_date >= dayKey);
+      if (blk) return { t: "blocked", blockId: blk.id, label: blk.reason || undefined };
+      return { t: "free" };
     });
     return { vehicleId: v.id, name: `${v.make} ${v.model}`, plate: v.plate, maintenance: maint, cells };
   });
@@ -215,10 +228,24 @@ export default async function CalendarPage({
           history: t("Rental history"),
           newRental: t("New rental"),
           edit: t("Edit car"),
+          block: t("Block for maintenance"),
           viewRental: t("View rental"),
           markReturned: t("Mark returned"),
           contract: t("Kontrata"),
           invoice: t("Fatura"),
+        }}
+        blockText={{
+          title: t("Block for maintenance"),
+          subtitle: t("Make this car unavailable for a date range (service, repair, insurance…)."),
+          start: t("From"),
+          end: t("To"),
+          reason: t("Reason (optional)"),
+          reasonPh: t("e.g. service, tyres, insurance"),
+          save: t("Block"),
+          cancel: t("Cancel"),
+          remove: t("Remove block"),
+          saving: t("Working…"),
+          removeTitle: t("Maintenance block"),
         }}
       />
       {legend}
