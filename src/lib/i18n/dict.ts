@@ -111,6 +111,23 @@ export const SQ: Record<string, string> = {
   "Car blocked for maintenance": "Makina u bllokua për mirëmbajtje",
   "Block removed": "Bllokimi u hoq",
 
+  // maintenance reminders (vehicle dates)
+  "Maintenance & dates": "Mirëmbajtje & afate",
+  "Set expiry/service dates — the dashboard reminds you before they run out.": "Vendos afatet e skadimit/servisit — paneli të kujton para se të mbarojnë.",
+  "Insurance expiry": "Skadimi i siguracionit",
+  "Registration expiry": "Skadimi i regjistrimit",
+  "Technical inspection expiry": "Skadimi i kontrollit teknik",
+  "Next service": "Servisi i radhës",
+  "Insurance": "Siguracioni",
+  "Registration": "Regjistrimi",
+  "Technical inspection": "Kontrolli teknik",
+  "Service": "Servisi",
+  "Maintenance due": "Mirëmbajtje që afrohet",
+  "{n} day overdue": "{n} ditë vonesë",
+  "{n} days overdue": "{n} ditë vonesë",
+  "in {n} day": "për {n} ditë",
+  "in {n} days": "për {n} ditë",
+
   // calendar
   "Day": "Dita",
   "Overdue": "Me vonesë",
