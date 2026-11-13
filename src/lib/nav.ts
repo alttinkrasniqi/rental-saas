@@ -7,6 +7,7 @@ import {
   Settings,
   Globe,
   ClipboardList,
+  Tags,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/rentals", label: "Rentals", icon: ClipboardList },
   { href: "/cars", label: "Cars", icon: Car },
+  { href: "/pricing", label: "Pricing", icon: Tags },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
