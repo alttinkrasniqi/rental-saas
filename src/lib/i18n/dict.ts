@@ -100,6 +100,17 @@ export const SQ: Record<string, string> = {
   "Save": "Ruaj",
   "Saved": "U ruajt",
 
+  // maintenance blocks
+  "Block for maintenance": "Blloko për mirëmbajtje",
+  "Make this car unavailable for a date range (service, repair, insurance…).": "Bëje këtë makinë të padisponueshme për një interval datash (servis, riparim, siguracion…).",
+  "Reason (optional)": "Arsyeja (opsionale)",
+  "e.g. service, tyres, insurance": "p.sh. servis, goma, siguracion",
+  "Block": "Blloko",
+  "Remove block": "Hiq bllokimin",
+  "Maintenance block": "Bllok mirëmbajtjeje",
+  "Car blocked for maintenance": "Makina u bllokua për mirëmbajtje",
+  "Block removed": "Bllokimi u hoq",
+
   // calendar
   "Day": "Dita",
   "Overdue": "Me vonesë",
