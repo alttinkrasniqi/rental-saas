@@ -3,14 +3,15 @@
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, MoreVertical, Eye, CalendarPlus, Pencil, RotateCcw, FileText, Receipt, History } from "lucide-react";
+import { Plus, MoreVertical, Eye, CalendarPlus, Pencil, RotateCcw, FileText, Receipt, History, Wrench, Trash2, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { markReturned } from "../rentals/actions";
+import { createMaintenanceBlock, deleteMaintenanceBlock } from "./block-actions";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n/provider";
 
 export type CalCell =
-  | { t: "blocked" }
+  | { t: "blocked"; blockId?: string; label?: string }
   | { t: "free" }
   | { t: "booked"; id: string; cls: string; isStart: boolean; isEnd: boolean; label: string; title: string; active: boolean };
 
@@ -24,12 +25,27 @@ export type CalRow = {
 
 export type CalDay = { key: string; dow: string; dom: string; today: boolean; weekend: boolean };
 
+type BlockText = {
+  title: string;
+  subtitle: string;
+  start: string;
+  end: string;
+  reason: string;
+  reasonPh: string;
+  save: string;
+  cancel: string;
+  remove: string;
+  saving: string;
+  removeTitle: string;
+};
+
 export function CalendarMatrix({
   rows: allRows,
   days,
   maintenanceLabel,
   filterText,
   menuText,
+  blockText,
 }: {
   rows: CalRow[];
   days: CalDay[];
@@ -40,11 +56,13 @@ export function CalendarMatrix({
     history: string;
     newRental: string;
     edit: string;
+    block: string;
     viewRental: string;
     markReturned: string;
     contract: string;
     invoice: string;
   };
+  blockText: BlockText;
 }) {
   const router = useRouter();
   const t = useT();
@@ -53,7 +71,15 @@ export function CalendarMatrix({
   const [show, setShow] = useState<"all" | "booked" | "free">("all");
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
   const [rmenu, setRmenu] = useState<{ id: string; vehicleId: string; active: boolean; top: number; left: number } | null>(null);
+  const [bmenu, setBmenu] = useState<{ blockId: string; label?: string; top: number; left: number } | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // Maintenance-block modal
+  const [blockFor, setBlockFor] = useState<{ vehicleId: string; name: string } | null>(null);
+  const [bStart, setBStart] = useState("");
+  const [bEnd, setBEnd] = useState("");
+  const [bReason, setBReason] = useState("");
+  const [bErr, setBErr] = useState<string | null>(null);
 
   const doReturn = (rentalId: string, vehicleId: string) => {
     const fd = new FormData();
@@ -63,6 +89,50 @@ export function CalendarMatrix({
     startTransition(async () => {
       await markReturned(fd);
       toast.success(t("Marked as returned"));
+      router.refresh();
+    });
+  };
+
+  const openBlock = (vehicleId: string) => {
+    const name = allRows.find((r) => r.vehicleId === vehicleId)?.name ?? "";
+    setMenu(null);
+    setBStart("");
+    setBEnd("");
+    setBReason("");
+    setBErr(null);
+    setBlockFor({ vehicleId, name });
+  };
+
+  const saveBlock = () => {
+    if (!blockFor || !bStart) {
+      setBErr(blockText.start);
+      return;
+    }
+    const fd = new FormData();
+    fd.set("vehicle_id", blockFor.vehicleId);
+    fd.set("start_date", bStart);
+    fd.set("end_date", bEnd || bStart);
+    fd.set("reason", bReason);
+    setBErr(null);
+    startTransition(async () => {
+      const r = await createMaintenanceBlock(fd);
+      if (r?.error) {
+        setBErr(r.error);
+        return;
+      }
+      setBlockFor(null);
+      toast.success(t("Car blocked for maintenance"));
+      router.refresh();
+    });
+  };
+
+  const removeBlock = (blockId: string) => {
+    const fd = new FormData();
+    fd.set("id", blockId);
+    setBmenu(null);
+    startTransition(async () => {
+      await deleteMaintenanceBlock(fd);
+      toast.success(t("Block removed"));
       router.refresh();
     });
   };
@@ -209,6 +279,7 @@ export function CalendarMatrix({
                           onClick={(e) => {
                             const rc = e.currentTarget.getBoundingClientRect();
                             setMenu(null);
+                            setBmenu(null);
                             setRmenu((cur) =>
                               cur?.id === rid
                                 ? null
@@ -229,12 +300,32 @@ export function CalendarMatrix({
                   }
 
                   if (cell.t === "blocked") {
+                    const removable = !!cell.blockId;
+                    const stripe = { backgroundImage: "repeating-linear-gradient(45deg,#fed7aa,#fed7aa 6px,#fdba74 6px,#fdba74 12px)" };
                     return (
                       <td key={ci} className={cn("border-b border-l border-border/40 px-1 py-1.5", tdTint)}>
-                        <div
-                          className="h-8 rounded-md"
-                          style={{ backgroundImage: "repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 6px,#e2e8f0 6px,#e2e8f0 12px)" }}
-                        />
+                        {removable ? (
+                          <button
+                            type="button"
+                            title={cell.label || blockText.removeTitle}
+                            onClick={(e) => {
+                              const rc = e.currentTarget.getBoundingClientRect();
+                              setMenu(null);
+                              setRmenu(null);
+                              setBmenu((cur) =>
+                                cur?.blockId === cell.blockId
+                                  ? null
+                                  : { blockId: cell.blockId!, label: cell.label, top: rc.bottom + 4, left: Math.min(rc.left, window.innerWidth - 220) }
+                              );
+                            }}
+                            className="flex h-8 w-full items-center justify-center rounded-md shadow-sm transition-opacity hover:opacity-80"
+                            style={stripe}
+                          >
+                            <Wrench className="h-3.5 w-3.5 text-orange-700/70" />
+                          </button>
+                        ) : (
+                          <div className="h-8 rounded-md" style={{ backgroundImage: "repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 6px,#e2e8f0 6px,#e2e8f0 12px)" }} />
+                        )}
                       </td>
                     );
                   }
@@ -279,6 +370,13 @@ export function CalendarMatrix({
             <Link href={`/cars/${menu.id}/edit`} onClick={() => setMenu(null)} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted">
               <Pencil className="h-4 w-4 text-muted-foreground" /> {menuText.edit}
             </Link>
+            <button
+              type="button"
+              onClick={() => openBlock(menu.id)}
+              className="flex w-full items-center gap-2.5 border-t border-border px-3 py-2 text-left text-sm hover:bg-muted"
+            >
+              <Wrench className="h-4 w-4 text-muted-foreground" /> {menuText.block}
+            </button>
           </div>
         </>
       )}
@@ -311,6 +409,105 @@ export function CalendarMatrix({
             </Link>
           </div>
         </>
+      )}
+
+      {bmenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setBmenu(null)} />
+          <div
+            className="fixed z-50 w-56 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl"
+            style={{ top: bmenu.top, left: bmenu.left }}
+          >
+            {bmenu.label && (
+              <p className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+                {blockText.removeTitle}: <span className="font-medium text-foreground">{bmenu.label}</span>
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => removeBlock(bmenu.blockId)}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-rose-600 hover:bg-muted disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" /> {blockText.remove}
+            </button>
+          </div>
+        </>
+      )}
+
+      {blockFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setBlockFor(null)}>
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-orange-700">
+                  <Wrench className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-semibold leading-tight">{blockText.title}</h3>
+                  <p className="text-xs text-muted-foreground">{blockFor.name}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setBlockFor(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="mb-3 text-xs text-muted-foreground">{blockText.subtitle}</p>
+
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">{blockText.start}</label>
+                <input
+                  type="date"
+                  value={bStart}
+                  onChange={(e) => setBStart(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-card px-2.5 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">{blockText.end}</label>
+                <input
+                  type="date"
+                  value={bEnd}
+                  min={bStart || undefined}
+                  onChange={(e) => setBEnd(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-card px-2.5 text-sm outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">{blockText.reason}</label>
+            <input
+              type="text"
+              value={bReason}
+              onChange={(e) => setBReason(e.target.value)}
+              placeholder={blockText.reasonPh}
+              className="mb-3 h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus:border-primary"
+            />
+
+            {bErr && <p className="mb-3 rounded-md bg-rose-50 px-3 py-2 text-xs text-rose-700">{bErr}</p>}
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setBlockFor(null)}
+                className="h-9 rounded-md border border-input bg-card px-3.5 text-sm font-medium hover:bg-muted"
+              >
+                {blockText.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={saveBlock}
+                disabled={pending}
+                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-70"
+              >
+                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wrench className="h-4 w-4" />}
+                {pending ? blockText.saving : blockText.save}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
