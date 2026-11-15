@@ -219,6 +219,10 @@ export function RentalForm({
                   <Label>{t("Phone")}</Label>
                   <Input name="new_client_phone" placeholder="+383 4X XXX XXX" />
                 </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>{t("Email (for the confirmation)")}</Label>
+                  <Input type="email" name="new_client_email" placeholder="klienti@example.com" />
+                </div>
               </div>
             )}
           </CardContent>

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusiness } from "@/lib/business";
+import { notifyBookingConfirmed } from "@/lib/notify";
+import { formatMoney } from "@/lib/format";
 
 // SECURITY: these back the Approve / Decline buttons. They run ONLY for the
 // signed-in business owner and use the RLS-scoped client, so the database
@@ -31,6 +33,33 @@ export async function approveRequest(id: string): Promise<{ ok: boolean; error?:
       .eq("business_id", business.id)
       .eq("source", "online");
     if (error) return { ok: false, error: error.message };
+
+    // Best-effort confirmation email to the client.
+    try {
+      const { data: r } = await supabase
+        .from("rentals")
+        .select("pickup_at, return_at, total_cents, open_ended, vehicle:vehicles(make, model, plate), client:clients(email)")
+        .eq("id", id)
+        .single();
+      const row = r as any;
+      const email = row?.client?.email;
+      if (email) {
+        const v = row.vehicle;
+        await notifyBookingConfirmed({
+          to: email,
+          replyTo: business.email || undefined,
+          businessName: business.name,
+          businessPhone: business.phone,
+          carName: v ? `${v.make} ${v.model}` : undefined,
+          plate: v?.plate,
+          from: row.pickup_at,
+          to_date: row.return_at,
+          totalText: row.open_ended ? null : row.total_cents ? formatMoney(row.total_cents, business.currency || "EUR") : null,
+          openEnded: !!row.open_ended,
+        });
+      }
+    } catch {}
+
     refresh();
     return { ok: true };
   } catch (e: any) {

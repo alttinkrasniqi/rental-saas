@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusiness } from "@/lib/business";
-import { numberToCents, rentalDays } from "@/lib/format";
+import { numberToCents, rentalDays, formatMoney } from "@/lib/format";
 import { evalPromo } from "@/lib/promo";
+import { notifyBookingConfirmed } from "@/lib/notify";
 import type { RentalStatus } from "@/lib/types";
 
 export type RentalFormState = { error?: string };
@@ -84,10 +85,11 @@ export async function createRental(
   if (clientId === "__new__") {
     const name = String(formData.get("new_client_name") || "").trim();
     const phone = String(formData.get("new_client_phone") || "").trim() || null;
+    const email = String(formData.get("new_client_email") || "").trim() || null;
     if (!name) return { error: "Enter the new client's name." };
     const { data: newClient, error: clientErr } = await supabase
       .from("clients")
-      .insert({ business_id: business.id, full_name: name, phone })
+      .insert({ business_id: business.id, full_name: name, phone, email })
       .select("id")
       .single();
     if (clientErr || !newClient) return { error: "Could not create the new client." };
@@ -215,6 +217,28 @@ export async function createRental(
     .from("vehicles")
     .update({ status: status === "ACTIVE" ? "RENTED" : "RESERVED", updated_at: now.toISOString() })
     .eq("id", vehicleId);
+
+  // Best-effort confirmation email to the client.
+  try {
+    const [{ data: cli }, { data: veh }] = await Promise.all([
+      supabase.from("clients").select("full_name, email").eq("id", resolvedClientId).single(),
+      supabase.from("vehicles").select("make, model, plate").eq("id", vehicleId).single(),
+    ]);
+    if (cli?.email) {
+      await notifyBookingConfirmed({
+        to: cli.email,
+        replyTo: business.email || undefined,
+        businessName: business.name,
+        businessPhone: business.phone,
+        carName: veh ? `${veh.make} ${veh.model}` : undefined,
+        plate: veh?.plate,
+        from: pickup.toISOString(),
+        to_date: ret.toISOString(),
+        totalText: openEnded ? null : formatMoney(finalTotalCents, business.currency || "EUR"),
+        openEnded,
+      });
+    }
+  } catch {}
 
   revalidatePath("/rentals");
   revalidatePath("/calendar");
