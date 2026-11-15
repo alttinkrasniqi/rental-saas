@@ -39,16 +39,16 @@ export function StatTile({
 export function BarChart({ data }: { data: { label: string; value: number; caption?: string }[] }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
-    <div className="flex h-44 items-end gap-1.5">
+    <div className="flex h-24 items-end gap-1.5">
       {data.map((d, i) => (
-        <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-2" title={d.caption ?? String(d.value)}>
+        <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5" title={d.caption ?? String(d.value)}>
           <div className="flex w-full flex-1 items-end">
             <div
-              className="w-full rounded-t-md bg-gradient-to-t from-primary/80 to-primary transition-all hover:opacity-90"
+              className="w-full rounded-t bg-gradient-to-t from-primary/80 to-primary transition-all hover:opacity-90"
               style={{ height: `${Math.max(2, (d.value / max) * 100)}%` }}
             />
           </div>
-          <span className="w-full truncate text-center text-[10.5px] text-muted-foreground">{d.label}</span>
+          <span className="w-full truncate text-center text-[10px] text-muted-foreground">{d.label}</span>
         </div>
       ))}
     </div>

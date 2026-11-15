@@ -101,12 +101,12 @@ export default async function RevenueReportPage({
       </div>
 
       <Card className="rounded-2xl">
-        <div className="border-b border-border/60 p-5">
-          <h3 className="text-base font-semibold tracking-tight">{t("Collected over time")}</h3>
+        <div className="border-b border-border/60 px-5 py-3.5">
+          <h3 className="text-sm font-semibold tracking-tight">{t("Collected over time")}</h3>
         </div>
-        <CardContent className="p-5">
+        <CardContent className="p-4">
           {collected === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t("No revenue in this period.")}</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">{t("No revenue in this period.")}</p>
           ) : (
             <BarChart data={buckets} />
           )}

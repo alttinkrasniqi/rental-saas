@@ -12,11 +12,11 @@ export default function ReportsLayout({ children }: { children: React.ReactNode 
   return (
     <div>
       <PageHeader title={t("Reports")} subtitle={t("Business analytics")} />
-      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[210px_1fr]">
         <Suspense fallback={null}>
           <ReportsNav />
         </Suspense>
-        <div className="space-y-5">
+        <div className="space-y-4">
           <Suspense fallback={null}>
             <DateFilter />
           </Suspense>

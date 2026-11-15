@@ -111,26 +111,30 @@ export default async function BookingsReportPage({
         </Link>
       </div>
 
-      <Card className="rounded-2xl">
-        <div className="border-b border-border/60 p-5">
-          <h3 className="text-base font-semibold tracking-tight">{t("Bookings over time")}</h3>
-        </div>
-        <CardContent className="p-5">
-          {total === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t("No bookings in this period.")}</p>
-          ) : (
-            <BarChart data={buckets} />
-          )}
-        </CardContent>
-      </Card>
-
       {total > 0 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="rounded-2xl">
+            <div className="border-b border-border/60 px-5 py-3.5">
+              <h3 className="text-sm font-semibold tracking-tight">{t("Bookings over time")}</h3>
+            </div>
+            <CardContent className="p-4">
+              <BarChart data={buckets} />
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl">
+            <div className="border-b border-border/60 px-5 py-3.5">
+              <h3 className="text-sm font-semibold tracking-tight">{t("Busiest weekdays")}</h3>
+            </div>
+            <CardContent className="p-4">
+              <BarChart data={wdCounts} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      {total === 0 && (
         <Card className="rounded-2xl">
-          <div className="border-b border-border/60 p-5">
-            <h3 className="text-base font-semibold tracking-tight">{t("Busiest weekdays")}</h3>
-          </div>
           <CardContent className="p-5">
-            <BarChart data={wdCounts} />
+            <p className="py-6 text-center text-sm text-muted-foreground">{t("No bookings in this period.")}</p>
           </CardContent>
         </Card>
       )}
