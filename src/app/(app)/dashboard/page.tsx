@@ -12,6 +12,7 @@ import {
 import {
   ArrowRight, ArrowDownLeft, AlertTriangle, KeyRound, Globe, BellRing, RotateCcw, CalendarPlus,
   Plus, Car, ClipboardList, Wallet, Gauge, Wrench,
+  CalendarCheck, UserPlus, CarFront, ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -169,6 +170,29 @@ export default async function DashboardPage() {
     vehicleId: string; name: string; plate: string; item: string; date: string; days: number; overdue: boolean;
   }[];
 
+  // --- KPI sparkline series (6-month trends) + month-over-month deltas ---
+  const { data: clientRows } = await supabase.from("clients").select("created_at");
+  const clientList = (clientRows ?? []) as { created_at: string | null }[];
+  const monthWindows = Array.from({ length: 6 }, (_, i) => {
+    const d = subMonths(now, 5 - i);
+    return { s: startOfMonth(d), e: endOfMonth(d) };
+  });
+  const inW = (iso: string | null, w: { s: Date; e: Date }) =>
+    !!iso && isWithinInterval(toDate(iso), { start: w.s, end: w.e });
+  const revSeries = monthWindows.map((w) => sumRange(w.s, w.e));
+  const bookingsSeries = monthWindows.map((w) => rentals.filter((r) => inW(r.pickup_at, w)).length);
+  const clientsSeries = monthWindows.map((w) => clientList.filter((c) => inW(c.created_at, w)).length);
+  const carsSeries = monthWindows.map(
+    (w) => rentals.filter((r) => toDate(r.pickup_at) <= w.e && (r.open_ended || toDate(r.return_at) >= w.s)).length
+  );
+  const pctDelta = (cur: number, prev: number): number | null =>
+    prev > 0 ? Math.round(((cur - prev) / prev) * 100) : cur > 0 ? 100 : null;
+  const bookingsMonth = bookingsSeries[5];
+  const clientsMonth = clientsSeries[5];
+  const bookingsDelta = pctDelta(bookingsSeries[5], bookingsSeries[4]);
+  const clientsDelta = pctDelta(clientsSeries[5], clientsSeries[4]);
+  const carsDelta = pctDelta(carsSeries[5], carsSeries[4]);
+
   return (
     <div className="space-y-6">
       <WelcomeModal seen={!!(business as any)?.welcome_seen} startHref={firstStepHref} />
@@ -218,49 +242,26 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* Executive KPI strip */}
+      {/* Executive KPI strip — concept-style cards with sparklines */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* Revenue — hero */}
         <Link href="/rentals?paid=this_month" className="group block">
-          <Card className="h-full border-transparent bg-primary p-5 text-primary-foreground transition group-hover:shadow-md">
+          <Card className="relative h-full overflow-hidden rounded-2xl border-transparent bg-primary p-5 text-primary-foreground shadow-sm transition group-hover:shadow-md">
             <div className="flex items-start justify-between gap-2">
-              <span className="text-[13px] font-medium text-primary-foreground/85">{t("Revenue this month")}</span>
-              {monthDelta != null && (
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">
-                  {monthDelta >= 0 ? "▲" : "▼"} {Math.abs(monthDelta)}%
-                </span>
-              )}
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
+                <Wallet className="h-4 w-4" />
+              </span>
+              {monthDelta != null && <TrendBadge delta={monthDelta} onDark />}
             </div>
-            <p className="mt-2 text-[28px] font-extrabold leading-none tracking-tight">{formatMoney(revMonth, currency)}</p>
-            <p className="mt-2 text-[11.5px] text-primary-foreground/80">
-              {t("vs last month")} · {formatMoney(revLastMonth, currency)}
-            </p>
+            <p className="mt-3 text-[13px] font-medium text-primary-foreground/85">{t("Revenue this month")}</p>
+            <p className="mt-1 text-[26px] font-extrabold leading-none tracking-tight">{formatMoney(revMonth, currency)}</p>
+            <Sparkline data={revSeries} variant="light" className="mt-3 h-9 w-full" />
           </Card>
         </Link>
 
-        <KpiTile
-          href="/rentals?status=ACTIVE"
-          label={t("Active rentals")}
-          value={String(activeCount)}
-          sub={t("cars out now")}
-          icon={ClipboardList}
-        />
-        <KpiTile
-          href="/cars?status=RENTED"
-          label={t("Fleet in use now")}
-          value={`${utilization}%`}
-          sub={t("{out} of {total} cars out", { out: outNow.size, total: vehicles.length })}
-          icon={Gauge}
-          valueTone="text-primary"
-        />
-        <KpiTile
-          href="/rentals?unpaid=1"
-          label={t("To collect")}
-          value={formatMoney(toCollect, currency)}
-          sub={unpaidCount > 0 ? t("{n} unpaid", { n: unpaidCount }) : t("Unpaid on open rentals")}
-          icon={Wallet}
-          iconTone={toCollect > 0 ? "bg-rose-50 text-rose-600" : undefined}
-          valueTone={toCollect > 0 ? "text-rose-600" : undefined}
-        />
+        <KpiCard href="/rentals" icon={CalendarCheck} tone="bg-blue-100 text-blue-600" label={t("Bookings")} value={String(bookingsMonth)} delta={bookingsDelta} series={bookingsSeries} />
+        <KpiCard href="/clients" icon={UserPlus} tone="bg-violet-100 text-violet-600" label={t("New clients")} value={String(clientsMonth)} delta={clientsDelta} series={clientsSeries} />
+        <KpiCard href="/cars?status=RENTED" icon={CarFront} tone="bg-amber-100 text-amber-600" label={t("Cars in use")} value={`${outNow.size} / ${vehicles.length}`} delta={carsDelta} series={carsSeries} />
       </div>
 
       {/* Fleet status bar */}
@@ -504,6 +505,88 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// A tiny inline-SVG sparkline for the KPI cards. "light" = white on the cherry
+// hero card; "brand" = cherry on a white card.
+function Sparkline({ data, variant = "brand", className }: { data: number[]; variant?: "brand" | "light"; className?: string }) {
+  const w = 120, h = 36;
+  const n = Math.max(1, data.length);
+  const max = Math.max(1, ...data);
+  const min = Math.min(0, ...data);
+  const span = Math.max(1, max - min);
+  const pts = data.map((v, i) => {
+    const x = n === 1 ? w : (i / (n - 1)) * w;
+    const y = h - ((v - min) / span) * (h - 6) - 3;
+    return [x, y] as const;
+  });
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const area = `${line} L${w.toFixed(1)} ${h} L0 ${h} Z`;
+  const stroke = variant === "light" ? "rgba(255,255,255,0.95)" : "hsl(356 62% 48%)";
+  const gid = `spark-${variant}`;
+  const c0 = variant === "light" ? "rgba(255,255,255,0.35)" : "hsla(356,62%,48%,0.28)";
+  const c1 = variant === "light" ? "rgba(255,255,255,0)" : "hsla(356,62%,48%,0)";
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={c0} />
+          <stop offset="100%" stopColor={c1} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <path d={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+function TrendBadge({ delta, onDark }: { delta: number; onDark?: boolean }) {
+  const up = delta >= 0;
+  const Arrow = up ? ArrowUpRight : ArrowDownRight;
+  const cls = onDark
+    ? "bg-white/20 text-white"
+    : up
+      ? "bg-emerald-50 text-emerald-600"
+      : "bg-rose-50 text-rose-600";
+  return (
+    <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${cls}`}>
+      <Arrow className="h-3 w-3" /> {Math.abs(delta)}%
+    </span>
+  );
+}
+
+function KpiCard({
+  href,
+  icon: Icon,
+  tone,
+  label,
+  value,
+  delta,
+  series,
+}: {
+  href: string;
+  icon: LucideIcon;
+  tone: string;
+  label: string;
+  value: string;
+  delta: number | null;
+  series: number[];
+}) {
+  return (
+    <Link href={href} className="group block">
+      <Card className="relative h-full overflow-hidden rounded-2xl p-5 shadow-sm transition group-hover:shadow-md">
+        <div className="flex items-start justify-between gap-2">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
+            <Icon className="h-4 w-4" />
+          </span>
+          {delta != null && <TrendBadge delta={delta} />}
+        </div>
+        <p className="mt-3 text-[13px] font-medium text-muted-foreground">{label}</p>
+        <p className="mt-1 text-[24px] font-extrabold leading-none tracking-tight text-foreground">{value}</p>
+        <Sparkline data={series} variant="brand" className="mt-3 h-9 w-full" />
+      </Card>
+    </Link>
   );
 }
 

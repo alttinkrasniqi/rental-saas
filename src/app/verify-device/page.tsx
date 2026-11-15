@@ -68,7 +68,7 @@ export default function VerifyDevicePage() {
           />
         </div>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5B524E", marginBottom: 14, cursor: "pointer" }}>
-          <input type="checkbox" name="remember" defaultChecked style={{ width: 16, height: 16, accentColor: "#A11E22" }} />
+          <input type="checkbox" name="remember" defaultChecked style={{ width: 16, height: 16, accentColor: "#B12A32" }} />
           Beso këtë pajisje për 30 ditë
         </label>
         {info && <p style={{ marginBottom: 12, fontSize: 13.5, color: "#1F6B63" }}>{info}</p>}
@@ -79,7 +79,7 @@ export default function VerifyDevicePage() {
         </button>
         <p className="foot">
           Nuk e gjete kodin?{" "}
-          <button type="button" onClick={onResend} disabled={pending} style={{ background: "none", border: 0, color: "#851519", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
+          <button type="button" onClick={onResend} disabled={pending} style={{ background: "none", border: 0, color: "#7A1E24", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
             Dërgo përsëri
           </button>
         </p>

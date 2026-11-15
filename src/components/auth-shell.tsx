@@ -9,7 +9,7 @@ import { Logo } from "@/components/logo";
 
 const CSS = `
 .mr-auth{
-  --bg:#FAF7F5;--surface:#FFFFFF;--tint:#F3EEEB;--primary:#A11E22;--primary-ink:#851519;
+  --bg:#FAF7F5;--surface:#FFFFFF;--tint:#F3EEEB;--primary:#B12A32;--primary-ink:#7A1E24;
   --ink:#2A2320;--body:#5B524E;--muted:#8C827D;--line:#ECE4E0;--ease:cubic-bezier(.22,.61,.36,1);
   font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;color:var(--body);background:var(--bg);

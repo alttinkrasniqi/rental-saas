@@ -80,6 +80,9 @@ export const SQ: Record<string, string> = {
   "Unpaid on open rentals": "E papaguar në rezervimet e hapura",
   "vs last month": "krahasuar me muajin e kaluar",
   "Revenue this month": "Të ardhurat këtë muaj",
+  "Bookings": "Rezervime",
+  "New clients": "Klientë të rinj",
+  "Cars in use": "Makina në përdorim",
   "cars out now": "makina jashtë tani",
   "{n} unpaid": "{n} pa paguar",
   "by collection date": "sipas datës së arkëtimit",
@@ -608,6 +611,10 @@ export const SQ: Record<string, string> = {
 
   // settings
   "Your business profile": "Profili i biznesit tënd",
+  "Business profile": "Profili i biznesit",
+  "Name, contact and currency used across the app.": "Emri, kontakti dhe monedha që përdoren në aplikacion.",
+  "Security": "Siguria",
+  "Account & security": "Llogaria & siguria",
   "Your public booking page": "Faqja jote publike e rezervimeve",
   "Share this link with customers so they can reserve online.":
     "Ndaje këtë link me klientët që të rezervojnë online.",

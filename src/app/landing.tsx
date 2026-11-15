@@ -9,7 +9,7 @@ import { LOGO_DATA_URI } from "@/lib/logo";
 
 const CSS = `
 .mr-landing{
-  --bg:#FAF7F5;--surface:#FFFFFF;--tint:#F3EEEB;--primary:#A11E22;--primary-ink:#851519;
+  --bg:#FAF7F5;--surface:#FFFFFF;--tint:#F3EEEB;--primary:#B12A32;--primary-ink:#7A1E24;
   --primary-soft:#D99A9C;--mist:#F0DCDA;--sky:#EEE7E2;--ink:#2A2320;--body:#5B524E;--muted:#8C827D;
   --line:#ECE4E0;--radius:26px;--radius-sm:16px;--shadow:0 18px 50px -20px rgba(133,21,25,.28);
   --shadow-soft:0 10px 30px -16px rgba(133,21,25,.22);--maxw:1140px;--ease:cubic-bezier(.22,.61,.36,1);

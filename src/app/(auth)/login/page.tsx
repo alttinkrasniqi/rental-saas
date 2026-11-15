@@ -24,7 +24,7 @@ export default function LoginPage() {
           <label htmlFor="password">Fjalëkalimi</label>
           <input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
           <div style={{ textAlign: "right", marginTop: 6 }}>
-            <Link href="/forgot-password" style={{ fontSize: 13, color: "#851519", fontWeight: 600 }}>
+            <Link href="/forgot-password" style={{ fontSize: 13, color: "#7A1E24", fontWeight: 600 }}>
               Harrove fjalëkalimin?
             </Link>
           </div>

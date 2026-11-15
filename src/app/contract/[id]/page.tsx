@@ -12,9 +12,9 @@ const CSS = `
   font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .ct-bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding:12px 18px;background:#fff;border-bottom:1px solid #e3e0dd}
-.ct-print-btn{background:#A11E22;color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;font-size:14px;
+.ct-print-btn{background:#B12A32;color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;font-size:14px;
   cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
-.ct-print-btn:hover{background:#851519}
+.ct-print-btn:hover{background:#7A1E24}
 .ct-back{color:#555;font-size:14px;text-decoration:none}
 .ct-back:hover{color:#1c1c1c}
 .sheet{background:#fff;max-width:820px;margin:24px auto;padding:46px 50px;

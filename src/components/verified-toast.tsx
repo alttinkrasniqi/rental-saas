@@ -103,7 +103,7 @@ export function VerifiedToast() {
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[#5B524E]">{variant.body}</p>
         <button
           onClick={dismiss}
-          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#A11E22] text-sm font-bold text-white transition hover:bg-[#851519]"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#B12A32] text-sm font-bold text-white transition hover:bg-[#7A1E24]"
         >
           {variant.button}
         </button>

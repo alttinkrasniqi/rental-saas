@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
           </button>
           <p className="foot">
             Nuk e gjete kodin?{" "}
-            <button type="button" onClick={onResend} disabled={pending} style={{ background: "none", border: 0, color: "#851519", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
+            <button type="button" onClick={onResend} disabled={pending} style={{ background: "none", border: 0, color: "#7A1E24", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
               Dërgo përsëri
             </button>
             <br />

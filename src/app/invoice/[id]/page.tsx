@@ -16,7 +16,7 @@ const CSS = `
 .inv-bar-right{display:flex;gap:8px;align-items:center}
 .inv-print-btn,.inv-issue-btn{color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;font-size:14px;
   cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
-.inv-print-btn{background:#A11E22}.inv-print-btn:hover{background:#851519}
+.inv-print-btn{background:#B12A32}.inv-print-btn:hover{background:#7A1E24}
 .inv-issue-btn{background:#1c1c1c}.inv-issue-btn:hover{background:#000}.inv-issue-btn:disabled{opacity:.6;cursor:default}
 .inv-back{color:#555;font-size:14px;text-decoration:none}.inv-back:hover{color:#1c1c1c}
 .sheet{background:#fff;max-width:820px;margin:24px auto;padding:46px 50px;
