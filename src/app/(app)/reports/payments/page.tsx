@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { isWithinInterval, differenceInCalendarDays } from "date-fns";
 import { AlertTriangle, FileWarning, Users, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ function initials(name: string): string {
 export default async function PaymentsReportPage({
   searchParams,
 }: {
-  searchParams: { range?: string; from?: string; to?: string };
+  searchParams: { range?: string; from?: string; to?: string; f?: string };
 }) {
   const t = getT();
   const business = await getBusiness();
@@ -96,13 +97,36 @@ export default async function PaymentsReportPage({
     "bg-violet-100 text-violet-700", "bg-rose-100 text-rose-700", "bg-emerald-100 text-emerald-700",
   ];
 
+  // Card/legend-driven filter for the debtor list (by aging bucket).
+  const bucketKeys = AGING.map((a) => a.key as string);
+  const f = bucketKeys.includes(searchParams.f ?? "") ? (searchParams.f as string) : "all";
+  const hrefFor = (filter?: string) => {
+    const p = new URLSearchParams();
+    if (searchParams.range) p.set("range", searchParams.range);
+    if (searchParams.from) p.set("from", searchParams.from);
+    if (searchParams.to) p.set("to", searchParams.to);
+    if (filter && filter !== "all") p.set("f", filter);
+    const qs = p.toString();
+    return `/reports/payments${qs ? `?${qs}` : ""}#detail`;
+  };
+  const shown = f === "all" ? debtors : debtors.filter((d) => agBucket(d) === f);
+  const activeAging = AGING.find((a) => a.key === f);
+
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile icon={AlertTriangle} tone={totalOutstanding > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600"} label={t("Total outstanding")} value={formatMoney(totalOutstanding, currency)} valueCls={totalOutstanding > 0 ? "text-rose-600" : undefined} />
-        <StatTile icon={FileWarning} tone="bg-amber-100 text-amber-600" label={t("Unpaid rentals")} value={String(debtors.length)} />
-        <StatTile icon={Users} tone="bg-violet-100 text-violet-600" label={t("Clients with debt")} value={String(clientsWithDebt)} />
-        <StatTile icon={Wallet} tone="bg-emerald-100 text-emerald-600" label={t("Collected (period)")} value={formatMoney(collected, currency)} />
+        <Link href={hrefFor("all")} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={AlertTriangle} tone={totalOutstanding > 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600"} label={t("Total outstanding")} value={formatMoney(totalOutstanding, currency)} valueCls={totalOutstanding > 0 ? "text-rose-600" : undefined} />
+        </Link>
+        <Link href={hrefFor("all")} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={FileWarning} tone="bg-amber-100 text-amber-600" label={t("Unpaid rentals")} value={String(debtors.length)} />
+        </Link>
+        <Link href={hrefFor("all")} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Users} tone="bg-violet-100 text-violet-600" label={t("Clients with debt")} value={String(clientsWithDebt)} />
+        </Link>
+        <Link href="/reports/revenue" className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Wallet} tone="bg-emerald-100 text-emerald-600" label={t("Collected (period)")} value={formatMoney(collected, currency)} />
+        </Link>
       </div>
 
       {totalOutstanding > 0 && (
@@ -120,33 +144,40 @@ export default async function PaymentsReportPage({
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
               {AGING.filter((a) => agingSum[a.key] > 0).map((a) => (
-                <span key={a.key} className="flex items-center gap-2">
+                <Link key={a.key} href={hrefFor(a.key)} className={cn("flex items-center gap-2 rounded-lg px-1.5 py-0.5 transition-colors hover:bg-muted", f === a.key && "bg-muted ring-1 ring-primary/40")}>
                   <span className={cn("h-2.5 w-2.5 rounded-sm", a.color)} />
                   {a.label} <b className="font-bold">{formatMoney(agingSum[a.key], currency)}</b>
-                </span>
+                </Link>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Card className="rounded-2xl">
-        <div className="flex items-center justify-between border-b border-border/60 p-5">
+      <Card id="detail" className="scroll-mt-4 rounded-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 p-5">
           <h3 className="text-base font-semibold tracking-tight">{t("Who owes you")}</h3>
-          {debtors.length > 0 && (
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{debtors.length}</span>
-          )}
+          <div className="flex items-center gap-2">
+            {f !== "all" && activeAging && (
+              <Link href={hrefFor("all")} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/15">
+                {activeAging.label} ✕
+              </Link>
+            )}
+            {shown.length > 0 && (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{shown.length}</span>
+            )}
+          </div>
         </div>
         <CardContent className="p-0">
-          {debtors.length === 0 ? (
+          {shown.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600"><Wallet className="h-6 w-6" /></span>
               <p className="text-sm font-semibold">{t("No outstanding payments.")}</p>
               <p className="text-sm text-muted-foreground">{t("Everyone has paid up for this period. 🎉")}</p>
             </div>
           ) : (
-            debtors.slice(0, 15).map((d, i) => (
-              <div key={d.id} className="flex items-center gap-3 border-t border-border/60 p-3.5 first:border-t-0">
+            shown.slice(0, 30).map((d, i) => (
+              <Link key={d.id} href={`/rentals/${d.id}`} className="flex items-center gap-3 border-t border-border/60 p-3.5 transition-colors first:border-t-0 hover:bg-muted/40">
                 <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTones[i % avatarTones.length])}>
                   {initials(d.client)}
                 </span>
@@ -158,7 +189,7 @@ export default async function PaymentsReportPage({
                   <p className="text-sm font-bold text-rose-600">{formatMoney(d.amount, currency)}</p>
                   <p className={cn("text-[11px]", !d.ongoing && d.overdue > 0 ? "font-semibold text-rose-500" : "text-muted-foreground")}>{statusText(d)}</p>
                 </div>
-              </div>
+              </Link>
             ))
           )}
         </CardContent>

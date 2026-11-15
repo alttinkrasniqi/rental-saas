@@ -1,15 +1,21 @@
+import Link from "next/link";
 import { isWithinInterval, differenceInCalendarDays } from "date-fns";
 import { UserPlus, Users, Repeat, Wallet, MoonStar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatMoney, toDate } from "@/lib/format";
+import { formatMoney, toDate, formatDate } from "@/lib/format";
 import { resolveRange, type RangePreset } from "@/lib/date-range";
 import { cn } from "@/lib/utils";
 import { getT } from "@/lib/i18n/server";
 import { StatTile } from "../report-ui";
 
 export const dynamic = "force-dynamic";
+
+const AV = [
+  "bg-primary/10 text-primary", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700", "bg-violet-100 text-violet-700", "bg-rose-100 text-rose-700",
+];
 
 function initials(name: string): string {
   const p = name.trim().split(/\s+/).filter(Boolean);
@@ -21,7 +27,7 @@ function initials(name: string): string {
 export default async function ClientsReportPage({
   searchParams,
 }: {
-  searchParams: { range?: string; from?: string; to?: string };
+  searchParams: { range?: string; from?: string; to?: string; f?: string };
 }) {
   const t = getT();
   const business = await getBusiness();
@@ -42,7 +48,6 @@ export default async function ClientsReportPage({
   const rentals = (rData ?? []) as any[];
   const payments = ((payData ?? []) as any[]).filter((p) => isWithinInterval(toDate(p.paid_at), itv));
 
-  // Rentals-per-client (all time) → returning vs one-time.
   const rentalsByClient = new Map<string, number>();
   const lastPickupByClient = new Map<string, string>();
   for (const r of rentals) {
@@ -52,14 +57,13 @@ export default async function ClientsReportPage({
     if (!prev || r.pickup_at > prev) lastPickupByClient.set(r.client_id, r.pickup_at);
   }
 
-  const newClients = clients.filter((c) => c.created_at && isWithinInterval(toDate(c.created_at), itv)).length;
   const activeIds = new Set(rentals.filter((r) => isWithinInterval(toDate(r.pickup_at), itv)).map((r) => r.client_id));
+  const newClients = clients.filter((c) => c.created_at && isWithinInterval(toDate(c.created_at), itv)).length;
   const activeClients = activeIds.size;
   const withAnyRental = [...rentalsByClient.keys()].length;
   const returning = [...rentalsByClient.values()].filter((n) => n >= 2).length;
   const returningRate = withAnyRental > 0 ? Math.round((returning / withAnyRental) * 100) : 0;
 
-  // Spend in period, per client (cash-basis).
   const spendByClient = new Map<string, number>();
   for (const p of payments) {
     const cid = p.rental?.client_id;
@@ -69,72 +73,124 @@ export default async function ClientsReportPage({
   const totalSpend = [...spendByClient.values()].reduce((s, v) => s + v, 0);
   const avgSpend = activeClients > 0 ? Math.round(totalSpend / activeClients) : 0;
 
-  const nameById = new Map(clients.map((c) => [c.id, c.full_name]));
-  const topClients = [...spendByClient.entries()]
-    .map(([id, spent]) => ({ id, name: nameById.get(id) ?? t("Booked"), spent, count: 0 }))
-    .sort((a, b) => b.spent - a.spent)
-    .slice(0, 8);
-  for (const tc of topClients) tc.count = payments.filter((p) => p.rental?.client_id === tc.id).length;
-
-  // Inactive: a real client (has rented before) with no rental in 90+ days.
-  const inactive = [...rentalsByClient.keys()].filter((id) => {
+  const inactiveCount = [...rentalsByClient.keys()].filter((id) => {
     const lp = lastPickupByClient.get(id);
     return lp && differenceInCalendarDays(now, toDate(lp)) > 90;
   }).length;
 
-  const avatarTones = [
-    "bg-primary/10 text-primary", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700",
-    "bg-amber-100 text-amber-700", "bg-violet-100 text-violet-700", "bg-rose-100 text-rose-700",
-  ];
+  // --- Enriched client rows for the detailed listing + card filters ---
+  const enriched = clients.map((c) => {
+    const last = lastPickupByClient.get(c.id) ?? null;
+    return {
+      id: c.id,
+      name: c.full_name as string,
+      count: rentalsByClient.get(c.id) ?? 0,
+      spent: spendByClient.get(c.id) ?? 0,
+      last,
+      isNew: !!(c.created_at && isWithinInterval(toDate(c.created_at), itv)),
+      isActive: activeIds.has(c.id),
+      isInactive: !!(last && differenceInCalendarDays(now, toDate(last)) > 90),
+    };
+  });
+
+  const f = ["new", "inactive"].includes(searchParams.f ?? "") ? (searchParams.f as "new" | "inactive") : "all";
+  const hrefFor = (filter?: string) => {
+    const p = new URLSearchParams();
+    if (searchParams.range) p.set("range", searchParams.range);
+    if (searchParams.from) p.set("from", searchParams.from);
+    if (searchParams.to) p.set("to", searchParams.to);
+    if (filter && filter !== "all") p.set("f", filter);
+    const qs = p.toString();
+    return `/reports/clients${qs ? `?${qs}` : ""}#detail`;
+  };
+
+  let detail = enriched;
+  if (f === "new") detail = enriched.filter((c) => c.isNew).sort((a, b) => b.spent - a.spent);
+  else if (f === "inactive") detail = enriched.filter((c) => c.isInactive).sort((a, b) => (a.last ?? "").localeCompare(b.last ?? ""));
+  else detail = enriched.filter((c) => c.isActive).sort((a, b) => b.spent - a.spent);
+
+  const filterLabel = f === "new" ? t("New clients") : f === "inactive" ? t("Inactive") : t("Active clients");
+  const COLS = "1.8fr 0.7fr 1fr 1fr";
 
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile icon={UserPlus} tone="bg-primary/10 text-primary" label={t("New clients")} value={String(newClients)} />
-        <StatTile icon={Users} tone="bg-blue-100 text-blue-600" label={t("Active clients")} value={String(activeClients)} />
-        <StatTile icon={Repeat} tone="bg-emerald-100 text-emerald-600" label={t("Returning rate")} value={`${returningRate}%`} />
-        <StatTile icon={Wallet} tone="bg-violet-100 text-violet-600" label={t("Avg spend / client")} value={formatMoney(avgSpend, currency)} />
+        <Link href={hrefFor("new")} className={cn("block rounded-2xl transition hover:shadow-md", f === "new" && "ring-2 ring-primary/40")}>
+          <StatTile icon={UserPlus} tone="bg-primary/10 text-primary" label={t("New clients")} value={String(newClients)} />
+        </Link>
+        <Link href={hrefFor("all")} className={cn("block rounded-2xl transition hover:shadow-md", f === "all" && "ring-2 ring-primary/40")}>
+          <StatTile icon={Users} tone="bg-blue-100 text-blue-600" label={t("Active clients")} value={String(activeClients)} />
+        </Link>
+        <Link href={hrefFor("all")} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Repeat} tone="bg-emerald-100 text-emerald-600" label={t("Returning rate")} value={`${returningRate}%`} />
+        </Link>
+        <Link href={hrefFor("all")} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Wallet} tone="bg-violet-100 text-violet-600" label={t("Avg spend / client")} value={formatMoney(avgSpend, currency)} />
+        </Link>
       </div>
 
-      <Card className="rounded-2xl">
-        <div className="flex items-center justify-between border-b border-border/60 p-5">
-          <h3 className="text-base font-semibold tracking-tight">{t("Top clients")}</h3>
-          {topClients.length > 0 && (
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{topClients.length}</span>
-          )}
+      {inactiveCount > 0 && (
+        <Link href={hrefFor("inactive")} className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-blue-900 transition hover:bg-blue-100/70">
+          <MoonStar className="mt-0.5 h-5 w-5 shrink-0" />
+          <p className="text-sm">
+            {t("{n} clients haven't rented in 90+ days — a good list to win back.", { n: inactiveCount })}
+          </p>
+        </Link>
+      )}
+
+      {/* Detailed listing */}
+      <Card id="detail" className="scroll-mt-4 rounded-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 p-5">
+          <h3 className="text-base font-semibold tracking-tight">{t("Client details")}</h3>
+          <div className="flex items-center gap-2">
+            {f !== "all" && (
+              <Link href={hrefFor("all")} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/15">
+                {filterLabel} ✕
+              </Link>
+            )}
+            {detail.length > 0 && (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{detail.length}</span>
+            )}
+          </div>
         </div>
         <CardContent className="p-0">
-          {topClients.length === 0 ? (
+          {detail.length === 0 ? (
             <p className="p-5 text-sm text-muted-foreground">{t("No clients in this period.")}</p>
           ) : (
-            topClients.map((c, i) => (
-              <div key={c.id} className="flex items-center gap-3 border-t border-border/60 p-3.5 first:border-t-0">
-                <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold", avatarTones[i % avatarTones.length])}>
-                  {initials(c.name)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t(c.count === 1 ? "{n} payment" : "{n} payments", { n: c.count })}
-                  </p>
+            <div className="overflow-x-auto">
+              <div className="min-w-[520px]">
+                <div
+                  className="grid gap-3 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                  style={{ gridTemplateColumns: COLS }}
+                >
+                  <span>{t("Client")}</span>
+                  <span>{t("Rentals")}</span>
+                  <span>{t("Spent")}</span>
+                  <span>{t("Last rental")}</span>
                 </div>
-                <span className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1 text-sm font-bold text-emerald-700">
-                  {formatMoney(c.spent, currency)}
-                </span>
+                {detail.map((c, i) => (
+                  <Link
+                    key={c.id}
+                    href={`/clients/${c.id}`}
+                    className="grid items-center gap-3 border-t border-border/60 px-4 py-3 text-sm transition-colors hover:bg-muted/40"
+                    style={{ gridTemplateColumns: COLS }}
+                  >
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold", AV[i % AV.length])}>
+                        {initials(c.name)}
+                      </span>
+                      <span className="truncate font-semibold">{c.name}</span>
+                    </span>
+                    <span className="text-muted-foreground">{c.count}</span>
+                    <span className="font-bold text-emerald-600">{formatMoney(c.spent, currency)}</span>
+                    <span className="text-xs text-muted-foreground">{c.last ? formatDate(c.last) : "—"}</span>
+                  </Link>
+                ))}
               </div>
-            ))
+            </div>
           )}
         </CardContent>
       </Card>
-
-      {inactive > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-blue-900">
-          <MoonStar className="mt-0.5 h-5 w-5 shrink-0" />
-          <p className="text-sm">
-            {t("{n} clients haven't rented in 90+ days — a good list to win back.", { n: inactive })}
-          </p>
-        </div>
-      )}
     </>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { isWithinInterval, differenceInCalendarDays } from "date-fns";
 import { Gauge, CarFront, Wallet, Trophy, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -79,13 +80,21 @@ export default async function CarsReportPage({
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile icon={Gauge} tone="bg-blue-100 text-blue-600" label={t("Average utilization")} value={`${avgUtil}%`} />
-        <StatTile icon={CarFront} tone="bg-violet-100 text-violet-600" label={t("Rented days (period)")} value={String(totalRentedDays)} />
-        <StatTile icon={Wallet} tone="bg-emerald-100 text-emerald-600" label={t("Revenue / car")} value={formatMoney(revPerCar, currency)} />
-        <StatTile icon={Trophy} tone="bg-amber-100 text-amber-600" label={t("Top car")} value={topCar?.name ?? "—"} small />
+        <Link href="#detail" className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Gauge} tone="bg-blue-100 text-blue-600" label={t("Average utilization")} value={`${avgUtil}%`} />
+        </Link>
+        <Link href="#detail" className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={CarFront} tone="bg-violet-100 text-violet-600" label={t("Rented days (period)")} value={String(totalRentedDays)} />
+        </Link>
+        <Link href="#detail" className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Wallet} tone="bg-emerald-100 text-emerald-600" label={t("Revenue / car")} value={formatMoney(revPerCar, currency)} />
+        </Link>
+        <Link href={topCar ? `/cars/${topCar.id}` : "#detail"} className="block rounded-2xl transition hover:shadow-md">
+          <StatTile icon={Trophy} tone="bg-amber-100 text-amber-600" label={t("Top car")} value={topCar?.name ?? "—"} small />
+        </Link>
       </div>
 
-      <Card className="h-fit rounded-2xl">
+      <Card id="detail" className="h-fit scroll-mt-4 rounded-2xl">
         <div className="flex items-center justify-between border-b border-border/60 p-5">
           <h3 className="text-base font-semibold tracking-tight">{t("Performance per car")}</h3>
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
@@ -110,9 +119,10 @@ export default async function CarsReportPage({
               {rows.map((r, i) => {
                 const bar = r.utilization >= 60 ? "bg-emerald-500" : r.utilization >= 40 ? "bg-amber-500" : "bg-rose-500";
                 return (
-                  <div
+                  <Link
                     key={r.id}
-                    className="grid items-center gap-3 border-t border-border/60 px-4 py-3"
+                    href={`/cars/${r.id}`}
+                    className="grid items-center gap-3 border-t border-border/60 px-4 py-3 transition-colors hover:bg-muted/40"
                     style={{ gridTemplateColumns: "1.6fr 0.8fr 1.3fr 1fr 0.7fr" }}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
@@ -135,7 +145,7 @@ export default async function CarsReportPage({
                     </div>
                     <div className="text-sm font-bold">{formatMoney(r.revenue, currency)}</div>
                     <div className="text-right text-sm text-muted-foreground">{formatMoney(r.perDay, currency)}</div>
-                  </div>
+                  </Link>
                 );
               })}
             </>
