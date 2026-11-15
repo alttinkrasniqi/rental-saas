@@ -87,7 +87,7 @@ export function ClientsList({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2">
+        <div className="inline-flex gap-1 rounded-xl border border-border/60 bg-muted/60 p-1">
           <Tab active={tab === "active"} onClick={() => push({ tab: null, page: null })}>{t("Active:tab")}</Tab>
           <Tab active={tab === "deleted"} onClick={() => push({ tab: "deleted", page: null })}>
             {t("Deleted")}{deletedCount > 0 ? ` (${deletedCount})` : ""}
@@ -96,7 +96,7 @@ export function ClientsList({
         <select
           value={sort}
           onChange={(e) => push({ sort: e.target.value === "name" ? null : e.target.value, page: null })}
-          className="h-9 rounded-md border border-input bg-card px-2 text-sm outline-none focus:border-primary"
+          className="h-10 rounded-lg border border-input bg-card px-3 text-sm outline-none focus:border-primary"
         >
           <option value="name">{t("Name")}</option>
           <option value="rentals">{t("Most rentals")}</option>
@@ -111,7 +111,7 @@ export function ClientsList({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search name, phone or email")}
-          className="h-10 w-full rounded-md border border-input bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
+          className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
         />
       </div>
 
@@ -120,25 +120,26 @@ export function ClientsList({
           {tab === "deleted" ? t("No deleted clients.") : t("No clients match your search.")}
         </p>
       ) : (
-        <Card className="divide-y divide-border">
+        <Card className="divide-y divide-border/60 rounded-2xl">
           {clients.map((c) => (
-            <button key={c.id} type="button" onClick={() => openClient(c)} className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted/60">
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatar name={c.full_name} deleted={c.deleted} />
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-medium">
-                    <span className="truncate">{c.full_name}</span>
-                    {c.outNow && <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{t("Out now")}</span>}
-                    {c.deleted && <span className="shrink-0 text-xs font-normal text-rose-600">{t("(Deleted)")}</span>}
-                  </p>
-                  <p className="flex items-center gap-1 truncate text-sm text-muted-foreground">
-                    {c.phone ? <><Phone className="h-3 w-3 shrink-0" /> {c.phone}</> : c.email ? <><Mail className="h-3 w-3 shrink-0" /> {c.email}</> : "—"}
-                  </p>
-                </div>
+            <button key={c.id} type="button" onClick={() => openClient(c)} className="group flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/40">
+              <Avatar name={c.full_name} deleted={c.deleted} />
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 font-semibold">
+                  <span className="truncate">{c.full_name}</span>
+                  {c.outNow && <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">{t("Out now")}</span>}
+                  {c.deleted && <span className="shrink-0 text-xs font-normal text-rose-600">{t("(Deleted)")}</span>}
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-muted-foreground">
+                  {c.phone ? <><Phone className="h-3.5 w-3.5 shrink-0" /> {c.phone}</> : c.email ? <><Mail className="h-3.5 w-3.5 shrink-0" /> {c.email}</> : "—"}
+                </p>
               </div>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors group-hover:bg-muted group-hover:text-foreground">
-                <MoreVertical className="h-4 w-4" />
-              </span>
+              <div className="hidden items-center gap-7 sm:flex">
+                <Stat label={t("Rentals")} value={String(c.count ?? 0)} />
+                <Stat label={t("Spent")} value={formatMoney(c.spent ?? 0, currency)} valueCls="text-emerald-600" />
+                <Stat label={t("Owed")} value={formatMoney(c.outstanding ?? 0, currency)} valueCls={(c.outstanding ?? 0) > 0 ? "text-rose-600" : "text-muted-foreground"} />
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
             </button>
           ))}
         </Card>
@@ -288,11 +289,20 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
       type="button"
       onClick={onClick}
       className={cn(
-        "h-9 rounded-md border px-3 text-sm font-medium transition-colors",
-        active ? "border-primary bg-primary/10 text-primary" : "border-input bg-white text-muted-foreground hover:bg-muted"
+        "rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-colors",
+        active ? "bg-card text-foreground shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:text-foreground"
       )}
     >
       {children}
     </button>
+  );
+}
+
+function Stat({ label, value, valueCls }: { label: string; value: string; valueCls?: string }) {
+  return (
+    <div className="text-right">
+      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <p className={cn("text-sm font-bold", valueCls)}>{value}</p>
+    </div>
   );
 }
