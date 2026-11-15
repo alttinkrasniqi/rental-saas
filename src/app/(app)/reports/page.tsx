@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { isWithinInterval } from "date-fns";
 import {
@@ -9,7 +8,6 @@ import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent } from "@/components/ui/card";
-import { DateFilter } from "@/components/date-filter";
 import { resolveRange, type RangePreset } from "@/lib/date-range";
 import { formatMoney, rentalDays, toDate, remainingCents, effectiveStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -96,18 +94,7 @@ export default async function ReportsPage({
   const rankTones = ["bg-primary text-white", "bg-slate-800 text-white", "bg-amber-500 text-white"];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("Reports")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("How your business performed · {range}", { range: range.label })}
-        </p>
-      </div>
-
-      <Suspense fallback={null}>
-        <DateFilter />
-      </Suspense>
-
+    <div className="space-y-5">
       {/* Headline KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Revenue — hero */}
