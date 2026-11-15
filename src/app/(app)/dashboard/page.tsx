@@ -264,6 +264,26 @@ export default async function DashboardPage() {
         <KpiCard href="/cars?status=RENTED" icon={CarFront} tone="bg-amber-100 text-amber-600" label={t("Cars in use")} value={`${outNow.size} / ${vehicles.length}`} delta={carsDelta} series={carsSeries} />
       </div>
 
+      {/* Secondary KPIs: active hires + outstanding payments */}
+      <div className="grid grid-cols-2 gap-3">
+        <KpiTile
+          href="/rentals?status=ACTIVE"
+          label={t("Active rentals")}
+          value={String(activeCount)}
+          sub={t("cars out now")}
+          icon={ClipboardList}
+        />
+        <KpiTile
+          href="/rentals?unpaid=1"
+          label={t("To collect")}
+          value={formatMoney(toCollect, currency)}
+          sub={unpaidCount > 0 ? t("{n} unpaid", { n: unpaidCount }) : t("Unpaid on open rentals")}
+          icon={Wallet}
+          iconTone={toCollect > 0 ? "bg-rose-50 text-rose-600" : undefined}
+          valueTone={toCollect > 0 ? "text-rose-600" : undefined}
+        />
+      </div>
+
       {/* Fleet status bar */}
       <Card className="p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">
@@ -609,14 +629,14 @@ function KpiTile({
 }) {
   return (
     <Link href={href} className="group block">
-      <Card className="h-full p-5 transition group-hover:shadow-md">
+      <Card className="h-full rounded-2xl p-5 shadow-sm transition group-hover:shadow-md">
         <div className="flex items-start justify-between gap-2">
-          <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-          <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconTone ?? "bg-primary/10 text-primary"}`}>
+          <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconTone ?? "bg-primary/10 text-primary"}`}>
             <Icon className="h-4 w-4" />
           </span>
         </div>
-        <p className={`mt-2 text-[28px] font-extrabold leading-none tracking-tight ${valueTone ?? ""}`}>{value}</p>
+        <p className="mt-3 text-[13px] font-medium text-muted-foreground">{label}</p>
+        <p className={`mt-1 text-[24px] font-extrabold leading-none tracking-tight ${valueTone ?? ""}`}>{value}</p>
         <p className="mt-2 text-[11.5px] text-muted-foreground">{sub}</p>
       </Card>
     </Link>
