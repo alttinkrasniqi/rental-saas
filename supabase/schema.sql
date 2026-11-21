@@ -123,6 +123,21 @@ create table if not exists public.deposit_transactions (
   created_at   timestamptz not null default now()
 );
 
+-- Delivery log for outgoing emails (2.H.5): one row per send with its outcome.
+create table if not exists public.email_log (
+  id          uuid primary key default gen_random_uuid(),
+  business_id uuid references public.businesses (id) on delete set null,
+  user_id     uuid,
+  kind        text not null,
+  recipient   text,
+  subject     text,
+  status      text not null,            -- 'sent' | 'failed' | 'skipped'
+  provider_id text,
+  error       text,
+  attempts    int  not null default 1,
+  created_at  timestamptz not null default now()
+);
+
 -- Per-business website-builder content (one row per business).
 create table if not exists public.site_settings (
   business_id uuid primary key references public.businesses (id) on delete cascade,
@@ -148,6 +163,7 @@ alter table public.clients       enable row level security;
 alter table public.rentals       enable row level security;
 alter table public.payments      enable row level security;
 alter table public.deposit_transactions enable row level security;
+alter table public.email_log     enable row level security;
 alter table public.site_settings enable row level security;
 
 drop policy if exists "own businesses" on public.businesses;
@@ -183,6 +199,11 @@ create policy "own deposit_transactions" on public.deposit_transactions
   for all
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
+drop policy if exists "own email_log" on public.email_log;
+create policy "own email_log" on public.email_log
+  for select
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()));
 
 drop policy if exists "own site_settings" on public.site_settings;
 create policy "own site_settings" on public.site_settings

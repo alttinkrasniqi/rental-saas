@@ -129,6 +129,7 @@ export async function createOnlineReservation(
     to_date: ret.toISOString(),
     customer: name,
     phone,
+    businessId: biz.id,
   });
 
   revalidatePath("/dashboard");

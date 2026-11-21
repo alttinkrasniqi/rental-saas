@@ -244,6 +244,7 @@ export async function createRental(
         to_date: ret.toISOString(),
         totalText: openEnded ? null : formatMoney(finalTotalCents, business.currency || "EUR"),
         openEnded,
+        businessId: business.id,
       });
     }
   } catch {}

@@ -55,7 +55,7 @@ export async function GET(req: Request) {
         "pickup_reminded_at, return_reminded_at, overdue_reminded_at, " +
         "vehicle:vehicles(make, model, plate), " +
         "client:clients(email), " +
-        "business:businesses(name, phone, email)"
+        "business:businesses(id, name, phone, email)"
     )
     .in("status", ["RESERVED", "ACTIVE"]);
 
@@ -92,6 +92,7 @@ export async function GET(req: Request) {
       plate: v?.plate ?? null,
       from: r.pickup_at,
       to_date: r.return_at,
+      businessId: biz?.id ?? null,
     };
 
     // 1) Pickup reminder — the day before pickup.

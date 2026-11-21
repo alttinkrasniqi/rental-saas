@@ -56,6 +56,7 @@ export async function approveRequest(id: string): Promise<{ ok: boolean; error?:
           to_date: row.return_at,
           totalText: row.open_ended ? null : row.total_cents ? formatMoney(row.total_cents, business.currency || "EUR") : null,
           openEnded: !!row.open_ended,
+          businessId: business.id,
         });
       }
     } catch {}
