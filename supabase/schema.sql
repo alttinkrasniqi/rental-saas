@@ -123,6 +123,23 @@ create table if not exists public.deposit_transactions (
   created_at   timestamptz not null default now()
 );
 
+-- Traffic fines / tickets (2.V.12): recorded against a car + violation date,
+-- auto-linked to the rental/client who had the car then.
+create table if not exists public.traffic_fines (
+  id           uuid primary key default gen_random_uuid(),
+  business_id  uuid not null references public.businesses (id) on delete cascade,
+  vehicle_id   uuid references public.vehicles (id) on delete set null,
+  rental_id    uuid references public.rentals (id)  on delete set null,
+  client_id    uuid references public.clients (id)  on delete set null,
+  fine_date    date not null,
+  amount_cents int  not null default 0,
+  reference    text,
+  location     text,
+  notes        text,
+  status       text not null default 'new',   -- 'new' | 'billed' | 'paid' | 'waived'
+  created_at   timestamptz not null default now()
+);
+
 -- Delivery log for outgoing emails (2.H.5): one row per send with its outcome.
 create table if not exists public.email_log (
   id          uuid primary key default gen_random_uuid(),
@@ -163,6 +180,7 @@ alter table public.clients       enable row level security;
 alter table public.rentals       enable row level security;
 alter table public.payments      enable row level security;
 alter table public.deposit_transactions enable row level security;
+alter table public.traffic_fines enable row level security;
 alter table public.email_log     enable row level security;
 alter table public.site_settings enable row level security;
 
@@ -196,6 +214,12 @@ create policy "own payments" on public.payments
 
 drop policy if exists "own deposit_transactions" on public.deposit_transactions;
 create policy "own deposit_transactions" on public.deposit_transactions
+  for all
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()))
+  with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
+drop policy if exists "own traffic_fines" on public.traffic_fines;
+create policy "own traffic_fines" on public.traffic_fines
   for all
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));

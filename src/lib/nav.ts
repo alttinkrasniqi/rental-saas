@@ -8,6 +8,7 @@ import {
   Globe,
   ClipboardList,
   Megaphone,
+  Gavel,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/rentals", label: "Rentals", icon: ClipboardList },
   { href: "/cars", label: "Cars", icon: Car },
   { href: "/clients", label: "Clients", icon: Users },
+  { href: "/fines", label: "Fines", icon: Gavel },
   { href: "/marketing", label: "Marketing", icon: Megaphone },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
