@@ -8,7 +8,6 @@ import {
   Globe,
   ClipboardList,
   Megaphone,
-  Sunrise,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,7 +18,6 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/today", label: "Today", icon: Sunrise },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/rentals", label: "Rentals", icon: ClipboardList },
