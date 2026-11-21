@@ -779,4 +779,15 @@ export const SQ: Record<string, string> = {
   "Optional tools you can switch on if your business uses them.": "Mjete opsionale që mund t'i ndezësh nëse biznesi yt i përdor.",
   "Track security deposits": "Gjurmo depozitat (kolateral)",
   "Off by default. Turn on only if you take a deposit as collateral — adds a deposit field to bookings and lets you return or deduct it. Most rentals in the region don't use this.": "E fikur si parazgjedhje. Ndeze vetëm nëse merr depozitë si kolateral — shton një fushë depozite te rezervimet dhe të lejon ta kthesh ose ta zbresësh. Shumica e rent-a-car-ave në rajon s'e përdorin.",
+  // 2.V.11 — Today (operations center)
+  "Pickups today": "Marrjet e sotme",
+  "Returns due today": "Kthimet e sotme",
+  "New requests": "Kërkesa të reja",
+  "Awaiting payment": "Në pritje pagese",
+  "Review": "Shiko",
+  "Online request": "Kërkesë online",
+  "Car removed": "Makina u hoq",
+  "All clear for today": "Gjithçka në rregull për sot",
+  "No pickups, returns, overdue cars or pending requests right now.": "Pa marrje, kthime, vonesa apo kërkesa në pritje për momentin.",
+  "expired": "skaduar",
 };
