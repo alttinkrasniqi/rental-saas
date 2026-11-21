@@ -884,4 +884,9 @@ export const SQ: Record<string, string> = {
   "Showing first {n}.": "Po shfaqen {n} të parat.",
   // nav group
   "Finances": "Financat",
+  // 2.V.16 — documents
+  "Contract": "Kontrata",
+  "Invoice": "Fatura",
+  "Cross-border authorization": "Autorizim ndërkufitar",
+  "Handover protocol": "Protokoll marrjeje",
 };

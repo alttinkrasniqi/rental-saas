@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ArrowLeft, Car as CarIcon, User } from "lucide-react";
+import { ArrowLeft, Car as CarIcon, User, FileText, Receipt as ReceiptIcon, Plane, ClipboardCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -203,6 +203,21 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
         </CardContent>
       </Card>
 
+      {/* Documents — generate & print branded PDFs for this rental. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Documents")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <DocLink href={`/contract/${r.id}`} icon={FileText} label={t("Contract")} />
+            <DocLink href={`/invoice/${r.id}`} icon={ReceiptIcon} label={t("Invoice")} />
+            <DocLink href={`/authorization/${r.id}`} icon={Plane} label={t("Cross-border authorization")} />
+            <DocLink href={`/protocol/${r.id}`} icon={ClipboardCheck} label={t("Handover protocol")} />
+          </div>
+        </CardContent>
+      </Card>
+
       <RentalActions
         rentalId={r.id}
         vehicleId={r.vehicle?.id ?? ""}
@@ -305,6 +320,22 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
         </ConfirmButton>
       </div>
     </div>
+  );
+}
+
+function DocLink({ href, icon: Icon, label }: { href: string; icon: typeof FileText; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-col items-center gap-2 rounded-xl border border-border p-4 text-center transition hover:border-primary/40 hover:bg-muted/50"
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="text-xs font-semibold leading-tight">{label}</span>
+    </a>
   );
 }
 
