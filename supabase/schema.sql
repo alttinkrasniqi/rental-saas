@@ -123,6 +123,20 @@ create table if not exists public.deposit_transactions (
   created_at   timestamptz not null default now()
 );
 
+-- Business expenses (2.V.14): money out, optionally tied to a car (feeds P&L).
+create table if not exists public.expenses (
+  id           uuid primary key default gen_random_uuid(),
+  business_id  uuid not null references public.businesses (id) on delete cascade,
+  vehicle_id   uuid references public.vehicles (id) on delete set null,
+  category     text not null default 'other',
+  amount_cents int  not null default 0,
+  expense_date date not null,
+  method       text,
+  vendor       text,
+  notes        text,
+  created_at   timestamptz not null default now()
+);
+
 -- Traffic fines / tickets (2.V.12): recorded against a car + violation date,
 -- auto-linked to the rental/client who had the car then.
 create table if not exists public.traffic_fines (
@@ -181,6 +195,7 @@ alter table public.rentals       enable row level security;
 alter table public.payments      enable row level security;
 alter table public.deposit_transactions enable row level security;
 alter table public.traffic_fines enable row level security;
+alter table public.expenses      enable row level security;
 alter table public.email_log     enable row level security;
 alter table public.site_settings enable row level security;
 
@@ -214,6 +229,12 @@ create policy "own payments" on public.payments
 
 drop policy if exists "own deposit_transactions" on public.deposit_transactions;
 create policy "own deposit_transactions" on public.deposit_transactions
+  for all
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()))
+  with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
+drop policy if exists "own expenses" on public.expenses;
+create policy "own expenses" on public.expenses
   for all
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
