@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { numberToCents, rentalDays } from "@/lib/format";
+import { isOverlapViolation } from "@/lib/db-errors";
 import { PageHeader } from "@/components/page-header";
 import { EditRentalForm, type EditState } from "../edit-rental-form";
 import { getT } from "@/lib/i18n/server";
@@ -96,7 +97,12 @@ async function updateRentalAction(_prev: EditState, formData: FormData): Promise
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  if (error) return { error: error.message };
+  if (error) {
+    if (isOverlapViolation(error)) {
+      return { error: "That car is already booked for those dates. Pick different dates or another car." };
+    }
+    return { error: error.message };
+  }
 
   // Keep vehicle statuses sensible when the booking is live and the car changed.
   if (cur && (cur.status === "ACTIVE" || cur.status === "RESERVED")) {

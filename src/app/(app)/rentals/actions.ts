@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireBusiness } from "@/lib/business";
 import { numberToCents, rentalDays, formatMoney } from "@/lib/format";
 import { evalPromo } from "@/lib/promo";
+import { isOverlapViolation } from "@/lib/db-errors";
 import { notifyBookingConfirmed } from "@/lib/notify";
 import type { RentalStatus } from "@/lib/types";
 
@@ -193,7 +194,14 @@ export async function createRental(
     .select("id")
     .single();
 
-  if (error || !inserted) return { error: error?.message ?? "Could not create the rental." };
+  if (error || !inserted) {
+    // The DB's no-overlap guard caught a double-booking that raced past the
+    // check above — show the same friendly message, not a raw SQL error.
+    if (isOverlapViolation(error)) {
+      return { error: "This car is already booked for those dates. Pick different dates or another car." };
+    }
+    return { error: error?.message ?? "Could not create the rental." };
+  }
 
   // Count the redemption (best-effort).
   if (promoCode && promoRow) {
@@ -459,10 +467,16 @@ export async function extendRental(
   const days = rentalDays(pickup, ret);
   const totalCents = days * (rental.daily_rate_cents ?? 0);
 
-  await supabase
+  const { error: extErr } = await supabase
     .from("rentals")
     .update({ return_at: ret.toISOString(), total_cents: totalCents, open_ended: false, updated_at: new Date().toISOString() })
     .eq("id", rentalId);
+  if (extErr) {
+    if (isOverlapViolation(extErr)) {
+      return { error: "The car is booked again before that date. Choose an earlier return." };
+    }
+    return { error: extErr.message };
+  }
 
   revalidatePath(`/rentals/${rentalId}`);
   revalidatePath("/calendar");

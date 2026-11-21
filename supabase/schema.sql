@@ -206,15 +206,20 @@ create policy "public read site" on storage.objects
 -- Writes happen only via the service-role key (server actions), so no
 -- additional insert/update/delete policy is needed for end users.
 
--- ---------- OPTIONAL: hard database guard against double-booking ----------
--- Enable this once the app handles the resulting unique-violation gracefully.
--- It makes two overlapping OPEN rentals for the same car impossible at the DB level.
---
--- alter table public.rentals add constraint rentals_no_overlap
---   exclude using gist (
---     vehicle_id with =,
---     tstzrange(pickup_at, return_at) with &&
---   ) where (status in ('ACTIVE','RESERVED'));
+-- ---------- Hard database guard against double-booking (2.H.1) ----------
+-- Two overlapping OPEN rentals for the same car are impossible at the DB level.
+-- The app catches the resulting exclusion violation and shows a friendly message
+-- (see src/lib/db-errors.ts). Needs the btree_gist extension created above.
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'rentals_no_overlap') then
+    alter table public.rentals add constraint rentals_no_overlap
+      exclude using gist (
+        vehicle_id with =,
+        tstzrange(pickup_at, return_at) with &&
+      ) where (status in ('ACTIVE','RESERVED'));
+  end if;
+end$$;
 
 -- ---------- Trusted devices (new-device email verification) ----------
 -- Records browsers a user has verified by email. The signed cookie is the
