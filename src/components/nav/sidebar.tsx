@@ -1,17 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { LogOut, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "@/lib/nav";
 import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { NavLinks } from "@/components/nav/nav-links";
 import { useT } from "@/lib/i18n/provider";
 
 export function Sidebar({ businessName, badges }: { businessName: string; badges?: Record<string, number> }) {
-  const pathname = usePathname();
   const t = useT();
 
   return (
@@ -31,29 +28,8 @@ export function Sidebar({ businessName, badges }: { businessName: string; badges
         </Link>
       </div>
 
-      <nav className="mt-4 flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {t(item.label)}
-              {badges?.[item.href] ? (
-                <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
-                  {badges[item.href]}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+      <nav className="mt-4 flex-1 overflow-y-auto px-3">
+        <NavLinks badges={badges} dense />
       </nav>
 
       <div className="border-t border-border p-3">

@@ -870,4 +870,18 @@ export const SQ: Record<string, string> = {
   "By category": "Sipas kategorisë",
   "No expenses in this period.": "Pa shpenzime në këtë periudhë.",
   "Delete this expense?": "Ta fshij këtë shpenzim?",
+  // 2.V.15 — invoice register
+  "Invoices": "Faturat",
+  "Every invoice and proforma in one register.": "Çdo faturë dhe proformë në një regjistër.",
+  "Issued": "Të lëshuara",
+  "Collected": "Të arkëtuara",
+  "Proforma": "Proforma",
+  "Nothing here yet.": "Ende s'ka asgjë këtu.",
+  "Partial": "Pjesërisht",
+  "Issued {d}": "Lëshuar më {d}",
+  "owes {v}": "mbetet {v}",
+  "Issue": "Lësho",
+  "Showing first {n}.": "Po shfaqen {n} të parat.",
+  // nav group
+  "Finances": "Financat",
 };

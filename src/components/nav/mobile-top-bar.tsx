@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Menu, X, LogOut, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "@/lib/nav";
 import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { NavLinks } from "@/components/nav/nav-links";
 import { useT } from "@/lib/i18n/provider";
 import { LanguageSwitch } from "@/components/language-switch";
 
 export function MobileTopBar({ businessName, badges }: { businessName: string; badges?: Record<string, number> }) {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const t = useT();
 
@@ -60,32 +57,8 @@ export function MobileTopBar({ businessName, badges }: { businessName: string; b
               </Link>
             </div>
 
-            <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-              {NAV_ITEMS.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(item.href + "/");
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {t(item.label)}
-                    {badges?.[item.href] ? (
-                      <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
-                        {badges[item.href]}
-                      </span>
-                    ) : null}
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 overflow-y-auto px-3 pb-4">
+              <NavLinks badges={badges} onNavigate={() => setOpen(false)} />
             </nav>
 
             <div className="border-t border-border p-3">
