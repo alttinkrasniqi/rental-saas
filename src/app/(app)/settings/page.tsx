@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+import { Globe, Languages, Download, ExternalLink } from "lucide-react";
 import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "./settings-form";
@@ -8,6 +10,47 @@ import { getTrustedDevices, getMfaStatus } from "./actions";
 import { publicBookingUrl } from "@/lib/brand";
 import { getT } from "@/lib/i18n/server";
 import { LanguageSwitch } from "@/components/language-switch";
+
+const TONES: Record<string, string> = {
+  primary: "bg-primary/10 text-primary",
+  blue: "bg-blue-100 text-blue-600",
+  violet: "bg-violet-100 text-violet-600",
+  amber: "bg-amber-100 text-amber-600",
+  emerald: "bg-emerald-100 text-emerald-600",
+  slate: "bg-slate-100 text-slate-600",
+};
+
+function SettingsCard({
+  icon: Icon,
+  tone,
+  title,
+  subtitle,
+  right,
+  children,
+}: {
+  icon: LucideIcon;
+  tone: keyof typeof TONES;
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-start gap-3 p-5">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${TONES[tone]}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        {right}
+      </div>
+      {children && <div className="border-t border-border/60 p-5">{children}</div>}
+    </div>
+  );
+}
 
 export default async function SettingsPage() {
   const t = getT();
@@ -21,52 +64,73 @@ export default async function SettingsPage() {
   return (
     <div>
       <PageHeader title={t("Settings")} subtitle={t("Your business profile")} />
-      {publicUrl && (
-        <div className="mb-6 rounded-lg border border-border bg-muted/40 p-4 text-sm">
-          <p className="font-medium">{t("Your public booking page")}</p>
-          <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block break-all text-blue-600 hover:underline">
-            {publicUrl}
-          </a>
-          <p className="mt-1 text-xs text-muted-foreground">{t("Share this link with customers so they can reserve online.")}</p>
-        </div>
-      )}
-      <SettingsForm business={business} />
 
-      <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
-        <p className="text-sm font-medium">{t("Language")}</p>
-        <p className="mb-3 mt-0.5 text-xs text-muted-foreground">{t("Choose the language of the app.")}</p>
-        <LanguageSwitch />
-      </div>
-
-      <TwoFactorSection enabled={mfa.enabled} />
-
-      <DevicesSection devices={devices} />
-
-      <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
-        <p className="text-sm font-medium">{t("Export your data")}</p>
-        <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
-          {t("Download a full backup, or individual tables as CSV for your accountant.")}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <a
-            href="/export"
-            className="rounded-md bg-[#A11E22] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#851519]"
+      <div className="space-y-5">
+        {publicUrl && (
+          <SettingsCard
+            icon={Globe}
+            tone="blue"
+            title={t("Your public booking page")}
+            subtitle={t("Share this link with customers so they can reserve online.")}
           >
-            {t("Full backup (JSON)")}
-          </a>
-          <a href="/export?format=csv&table=rentals" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
-            {t("Rentals (CSV)")}
-          </a>
-          <a href="/export?format=csv&table=clients" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
-            {t("Clients (CSV)")}
-          </a>
-          <a href="/export?format=csv&table=vehicles" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
-            {t("Cars (CSV)")}
-          </a>
-          <a href="/export?format=csv&table=payments" className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-background">
-            {t("Payments (CSV)")}
-          </a>
-        </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 font-mono text-[13px] text-foreground">
+                {publicUrl}
+              </code>
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              >
+                <ExternalLink className="h-4 w-4" /> {t("Open")}
+              </a>
+            </div>
+          </SettingsCard>
+        )}
+
+        <SettingsForm business={business} />
+
+        <TwoFactorSection enabled={mfa.enabled} />
+
+        <DevicesSection devices={devices} />
+
+        <SettingsCard
+          icon={Languages}
+          tone="amber"
+          title={t("Language")}
+          subtitle={t("Choose the language of the app.")}
+        >
+          <LanguageSwitch />
+        </SettingsCard>
+
+        <SettingsCard
+          icon={Download}
+          tone="slate"
+          title={t("Export your data")}
+          subtitle={t("Download a full backup, or individual tables as CSV for your accountant.")}
+        >
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="/export"
+              className="rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+            >
+              {t("Full backup (JSON)")}
+            </a>
+            <a href="/export?format=csv&table=rentals" className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted">
+              {t("Rentals (CSV)")}
+            </a>
+            <a href="/export?format=csv&table=clients" className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted">
+              {t("Clients (CSV)")}
+            </a>
+            <a href="/export?format=csv&table=vehicles" className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted">
+              {t("Cars (CSV)")}
+            </a>
+            <a href="/export?format=csv&table=payments" className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted">
+              {t("Payments (CSV)")}
+            </a>
+          </div>
+        </SettingsCard>
       </div>
     </div>
   );

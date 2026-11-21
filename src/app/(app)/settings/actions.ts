@@ -184,6 +184,7 @@ export async function updateBusiness(
       bank_name: String(formData.get("bank_name") || "").trim() || null,
       bank_iban: String(formData.get("bank_iban") || "").trim() || null,
       vat_rate: Math.max(0, Math.min(100, parseInt(String(formData.get("vat_rate") || "0"), 10) || 0)),
+      deposits_enabled: formData.get("deposits_enabled") === "on",
     })
     .eq("id", business.id);
 

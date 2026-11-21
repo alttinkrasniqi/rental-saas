@@ -271,6 +271,7 @@ export async function recordPayment(formData: FormData) {
     business_id: business.id,
     rental_id: rentalId,
     amount_cents: amount,
+    kind: "payment",
     method,
     paid_at: paidAtIso,
   });
@@ -283,6 +284,95 @@ export async function recordPayment(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/reports");
   redirect(`/rentals/${rentalId}?toast=payment`);
+}
+
+// Record money given back to the client (or a manual correction). Append-only:
+// instead of editing a past payment, we add a NEW negative line item, so the
+// history stays intact and the day's revenue drops by the amount refunded.
+// `kind` is 'refund' (money back) or 'adjustment' (a signed correction).
+export async function recordRefund(formData: FormData) {
+  const business = await requireBusiness();
+  const supabase = createClient();
+  const rentalId = String(formData.get("rental_id") || "");
+  const amount = moneyToCents(formData.get("amount"));
+  const method = String(formData.get("method") || "").trim() || null;
+  const note = String(formData.get("note") || "").trim() || null;
+  const kind = String(formData.get("kind") || "refund") === "adjustment" ? "adjustment" : "refund";
+  if (!rentalId || amount <= 0) return;
+
+  const paidOn = String(formData.get("paid_on") || "").trim();
+  const paidAtIso = paidOn ? new Date(`${paidOn}T12:00:00`).toISOString() : new Date().toISOString();
+
+  const { data: rental } = await supabase
+    .from("rentals")
+    .select("paid_cents")
+    .eq("id", rentalId)
+    .single();
+  if (!rental) return;
+
+  // Negative line: money leaving the rental balance.
+  await supabase.from("payments").insert({
+    business_id: business.id,
+    rental_id: rentalId,
+    amount_cents: -amount,
+    kind,
+    method,
+    note,
+    paid_at: paidAtIso,
+  });
+  await supabase
+    .from("rentals")
+    .update({ paid_cents: (rental.paid_cents ?? 0) - amount, updated_at: new Date().toISOString() })
+    .eq("id", rentalId);
+
+  revalidatePath(`/rentals/${rentalId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/reports");
+  redirect(`/rentals/${rentalId}?toast=refund`);
+}
+
+// Move money OUT of the held deposit: either returned to the client or kept to
+// cover damage/fuel/late. Recorded in deposit_transactions (separate from the
+// rental balance and from revenue). Never overwrites — each movement is a row.
+export async function moveDeposit(formData: FormData) {
+  const business = await requireBusiness();
+  const supabase = createClient();
+  const rentalId = String(formData.get("rental_id") || "");
+  const amount = moneyToCents(formData.get("amount"));
+  const kind = String(formData.get("kind") || "") === "deduction" ? "deduction" : "return";
+  const reason = String(formData.get("reason") || "").trim() || null;
+  if (!rentalId || amount <= 0) return;
+
+  // Guard: never let more leave the pot than is actually held.
+  const { data: rental } = await supabase
+    .from("rentals")
+    .select("deposit_cents")
+    .eq("id", rentalId)
+    .single();
+  if (!rental) return;
+
+  const { data: txRows } = await supabase
+    .from("deposit_transactions")
+    .select("amount_cents")
+    .eq("rental_id", rentalId);
+  const alreadyOut = (txRows ?? []).reduce((s: number, x: any) => s + (x.amount_cents ?? 0), 0);
+  const outstanding = Math.max(0, (rental.deposit_cents ?? 0) - alreadyOut);
+  const capped = Math.min(amount, outstanding);
+  if (capped <= 0) {
+    redirect(`/rentals/${rentalId}?toast=deposit`);
+  }
+
+  await supabase.from("deposit_transactions").insert({
+    business_id: business.id,
+    rental_id: rentalId,
+    kind,
+    amount_cents: capped,
+    reason,
+  });
+
+  revalidatePath(`/rentals/${rentalId}`);
+  revalidatePath("/dashboard");
+  redirect(`/rentals/${rentalId}?toast=deposit`);
 }
 
 export async function markReturned(formData: FormData) {

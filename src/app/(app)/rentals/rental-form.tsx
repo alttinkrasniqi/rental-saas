@@ -46,6 +46,7 @@ export function RentalForm({
   clients,
   bookings,
   currency,
+  depositsEnabled,
   preselectClientId,
   preselectVehicleId,
   presetPickupDate,
@@ -56,6 +57,7 @@ export function RentalForm({
   clients: ClientOption[];
   bookings: Booking[];
   currency: string;
+  depositsEnabled?: boolean;
   preselectClientId?: string;
   preselectVehicleId?: string;
   presetPickupDate?: string;
@@ -386,10 +388,12 @@ export function RentalForm({
                 )}
               </div>
             )}
-            <div className="space-y-1.5">
-              <Label>{t("Deposit ({currency})", { currency })}</Label>
-              <Input type="number" step="0.01" name="deposit" placeholder="0" />
-            </div>
+            {depositsEnabled && (
+              <div className="space-y-1.5">
+                <Label>{t("Deposit ({currency})", { currency })}</Label>
+                <Input type="number" step="0.01" name="deposit" placeholder="0" />
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>{t("Amount paid now ({currency})", { currency })}</Label>
               <Input

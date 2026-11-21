@@ -46,6 +46,7 @@ export default async function NewRentalPage({
         clients={clients ?? []}
         bookings={bookingsMapped}
         currency={business?.currency ?? "EUR"}
+        depositsEnabled={!!business?.deposits_enabled}
         preselectClientId={searchParams.client}
         preselectVehicleId={searchParams.vehicle}
         presetPickupDate={searchParams.date}

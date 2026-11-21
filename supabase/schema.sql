@@ -21,6 +21,7 @@ create table if not exists public.businesses (
   currency    text not null default 'EUR',
   timezone    text not null default 'Europe/Tirane',
   welcome_seen boolean not null default false,  -- first-login welcome tour shown?
+  deposits_enabled boolean not null default false,  -- opt-in deposit tracking (off: not used in Balkan market)
   created_at  timestamptz not null default now()
 );
 
@@ -103,9 +104,23 @@ create table if not exists public.payments (
   business_id  uuid not null references public.businesses (id) on delete cascade,
   rental_id    uuid not null references public.rentals (id) on delete cascade,
   amount_cents int not null,
+  kind         text not null default 'payment',  -- 'payment' | 'refund' | 'adjustment'
   method       text,
   paid_at      timestamptz not null default now(),
   note         text
+);
+
+-- Deposit movements: what later leaves the held deposit (returned to the client
+-- or kept to cover damage/fuel/late). Deposit held lives on rentals.deposit_cents;
+-- outstanding = deposit_cents − sum(amount_cents here). Kept out of revenue.
+create table if not exists public.deposit_transactions (
+  id           uuid primary key default gen_random_uuid(),
+  business_id  uuid not null references public.businesses (id) on delete cascade,
+  rental_id    uuid not null references public.rentals (id) on delete cascade,
+  kind         text not null,                    -- 'return' | 'deduction'
+  amount_cents int  not null,                    -- positive magnitude leaving the pot
+  reason       text,
+  created_at   timestamptz not null default now()
 );
 
 -- Per-business website-builder content (one row per business).
@@ -121,6 +136,7 @@ create index if not exists idx_clients_business  on public.clients (business_id)
 create index if not exists idx_rentals_business  on public.rentals (business_id);
 create index if not exists idx_rentals_vehicle   on public.rentals (vehicle_id, pickup_at, return_at);
 create index if not exists idx_payments_rental   on public.payments (rental_id);
+create index if not exists idx_deposit_tx_rental on public.deposit_transactions (rental_id);
 create index if not exists idx_businesses_slug   on public.businesses (slug);
 
 -- ---------- Row Level Security ----------
@@ -131,6 +147,7 @@ alter table public.vehicles      enable row level security;
 alter table public.clients       enable row level security;
 alter table public.rentals       enable row level security;
 alter table public.payments      enable row level security;
+alter table public.deposit_transactions enable row level security;
 alter table public.site_settings enable row level security;
 
 drop policy if exists "own businesses" on public.businesses;
@@ -157,6 +174,12 @@ create policy "own rentals" on public.rentals
 
 drop policy if exists "own payments" on public.payments;
 create policy "own payments" on public.payments
+  for all
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()))
+  with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
+drop policy if exists "own deposit_transactions" on public.deposit_transactions;
+create policy "own deposit_transactions" on public.deposit_transactions
   for all
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));

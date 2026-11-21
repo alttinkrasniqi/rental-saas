@@ -143,6 +143,7 @@ export default async function EditRentalPage({ params }: { params: { id: string 
         cars={cars ?? []}
         clients={clients ?? []}
         currency={business?.currency ?? "EUR"}
+        depositsEnabled={!!business?.deposits_enabled}
       />
     </div>
   );

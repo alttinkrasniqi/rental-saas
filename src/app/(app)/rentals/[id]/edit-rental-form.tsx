@@ -45,12 +45,14 @@ export function EditRentalForm({
   cars,
   clients,
   currency,
+  depositsEnabled,
 }: {
   action: (prev: EditState, formData: FormData) => Promise<EditState>;
   rental: any;
   cars: CarOption[];
   clients: ClientOption[];
   currency: string;
+  depositsEnabled?: boolean;
 }) {
   const t = useT();
   const [state, formAction] = useFormState(action, {} as EditState);
@@ -175,10 +177,12 @@ export function EditRentalForm({
               </p>
             </div>
           )}
-          <div className="space-y-1.5">
-            <Label>{t("Deposit ({currency})", { currency })}</Label>
-            <Input type="number" step="0.01" name="deposit" defaultValue={rental.deposit_cents ? (rental.deposit_cents / 100).toString() : ""} placeholder="0" />
-          </div>
+          {(depositsEnabled || rental.deposit_cents > 0) && (
+            <div className="space-y-1.5">
+              <Label>{t("Deposit ({currency})", { currency })}</Label>
+              <Input type="number" step="0.01" name="deposit" defaultValue={rental.deposit_cents ? (rental.deposit_cents / 100).toString() : ""} placeholder="0" />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>{t("Payment method")}</Label>
             <Select name="payment_method" defaultValue={rental.payment_method ?? "CASH"}>

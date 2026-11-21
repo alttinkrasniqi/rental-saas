@@ -13,6 +13,8 @@ const MESSAGES: Record<string, string> = {
   restored: "Restored",
   archived: "Archived",
   payment: "Payment recorded",
+  refund: "Saved to the history",
+  deposit: "Deposit updated",
   returned: "Marked as returned",
 };
 

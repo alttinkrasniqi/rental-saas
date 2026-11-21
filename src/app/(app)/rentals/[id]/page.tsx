@@ -64,6 +64,17 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
     .order("paid_at", { ascending: false });
   const payments = (pData ?? []) as any[];
 
+  const { data: dData } = await supabase
+    .from("deposit_transactions")
+    .select("*")
+    .eq("rental_id", r.id)
+    .order("created_at", { ascending: false });
+  const depositTx = (dData ?? []) as any[];
+  const depositHeld = r.deposit_cents ?? 0;
+  const depositReturned = depositTx.filter((d) => d.kind === "return").reduce((s, d) => s + (d.amount_cents ?? 0), 0);
+  const depositDeducted = depositTx.filter((d) => d.kind === "deduction").reduce((s, d) => s + (d.amount_cents ?? 0), 0);
+  const depositOutstanding = Math.max(0, depositHeld - depositReturned - depositDeducted);
+
   const { data: condData } = await supabase
     .from("rental_conditions")
     .select("phase, fuel, odometer, notes, photos")
@@ -176,8 +187,18 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
             <Money label={t("Paid:label")} value={formatMoney(r.paid_cents, currency)} />
             <Money label={t("Remaining")} value={formatMoney(remaining, currency)} highlight={remaining > 0} />
           </div>
-          {r.deposit_cents > 0 && (
-            <p className="mt-4 text-sm text-muted-foreground">{t("Deposit held: {v}", { v: formatMoney(r.deposit_cents, currency) })}</p>
+          {depositHeld > 0 && (
+            <div className="mt-4 rounded-lg border border-border/70 bg-muted/40 p-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Money label={t("Deposit held")} value={formatMoney(depositHeld, currency)} />
+                {depositReturned > 0 && <Money label={t("Returned")} value={formatMoney(depositReturned, currency)} />}
+                {depositDeducted > 0 && <Money label={t("Kept")} value={formatMoney(depositDeducted, currency)} />}
+                <Money label={t("Still holding")} value={formatMoney(depositOutstanding, currency)} />
+              </div>
+              {depositOutstanding > 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">{t("Return it to the client, or keep part of it for damage/fuel/late — from Manage rental below.")}</p>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -188,28 +209,67 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
         status={effStatus}
         clientPhone={r.client?.phone ?? null}
         remaining={remaining / 100}
+        paid={(r.paid_cents ?? 0) / 100}
+        depositOutstanding={depositOutstanding / 100}
         currency={currency}
       />
 
       {/* Car condition at pickup / return */}
       <RentalCondition rentalId={r.id} pickup={findCond("pickup")} ret={findCond("return")} />
 
-      {/* Payments history */}
+      {/* Payments ledger (append-only: payments, refunds, corrections) */}
       {payments.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>{t("Payments")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
-                <div>
-                  <p className="font-medium">{formatMoney(p.amount_cents, currency)}</p>
-                  <p className="text-xs text-muted-foreground">{t(methodLabel(p.method))}</p>
+            {payments.map((p) => {
+              const neg = (p.amount_cents ?? 0) < 0;
+              const kindLabel =
+                p.kind === "refund" ? t("Refund") : p.kind === "adjustment" ? t("Correction") : t("Payment");
+              return (
+                <div key={p.id} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
+                  <div>
+                    <p className={`font-semibold ${neg ? "text-rose-600" : ""}`}>{formatMoney(p.amount_cents, currency)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className={`font-medium ${neg ? "text-rose-600" : "text-foreground/70"}`}>{kindLabel}</span>
+                      {" · "}{t(methodLabel(p.method))}
+                      {p.note ? ` · ${p.note}` : ""}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{formatDateTime(p.paid_at)}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{formatDateTime(p.paid_at)}</span>
-              </div>
-            ))}
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Deposit movements (returns / deductions) */}
+      {depositTx.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("Deposit movements")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {depositTx.map((d) => {
+              const isReturn = d.kind === "return";
+              return (
+                <div key={d.id} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
+                  <div>
+                    <p className="font-semibold">{formatMoney(d.amount_cents, currency)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className={`font-medium ${isReturn ? "text-emerald-600" : "text-amber-600"}`}>
+                        {isReturn ? t("Returned to client") : t("Kept (deduction)")}
+                      </span>
+                      {d.reason ? ` · ${d.reason}` : ""}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{formatDateTime(d.created_at)}</span>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}

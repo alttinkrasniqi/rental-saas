@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Store, ReceiptText, Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -16,8 +16,17 @@ export function SettingsForm({ business }: { business: Business }) {
 
   return (
     <form action={formAction} className="space-y-5">
-      <Card>
-        <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
+      <div className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex items-start gap-3 p-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Store className="h-5 w-5" />
+          </span>
+          <div>
+            <h3 className="text-base font-semibold tracking-tight">{t("Business profile")}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("Name, contact and currency used across the app.")}</p>
+          </div>
+        </div>
+        <div className="grid gap-4 border-t border-border/60 p-5 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label>{t("Business name")}</Label>
             <Input name="name" defaultValue={business.name} required />
@@ -52,15 +61,20 @@ export function SettingsForm({ business }: { business: Business }) {
               <option value="UTC">UTC</option>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label>{t("Fiscal details (for invoices)")}</Label>
-            <p className="text-xs text-muted-foreground">{t("Shown on invoices you issue to clients.")}</p>
+      <div className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex items-start gap-3 p-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+            <ReceiptText className="h-5 w-5" />
+          </span>
+          <div>
+            <h3 className="text-base font-semibold tracking-tight">{t("Fiscal details (for invoices)")}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("Shown on invoices you issue to clients.")}</p>
           </div>
+        </div>
+        <div className="grid gap-4 border-t border-border/60 p-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>{t("Business number (NUI)")}</Label>
             <Input name="business_no" defaultValue={business.business_no ?? ""} />
@@ -85,16 +99,46 @@ export function SettingsForm({ business }: { business: Business }) {
             <Label>{t("IBAN")}</Label>
             <Input name="bank_iban" defaultValue={business.bank_iban ?? ""} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {state.error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>
-      )}
-      {state.ok && (
-        <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{t("Saved.")}</p>
-      )}
-      <SubmitButton>{t("Save changes")}</SubmitButton>
+      <div className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex items-start gap-3 p-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+            <Wallet className="h-5 w-5" />
+          </span>
+          <div>
+            <h3 className="text-base font-semibold tracking-tight">{t("Operations")}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("Optional tools you can switch on if your business uses them.")}</p>
+          </div>
+        </div>
+        <div className="border-t border-border/60 p-5">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              name="deposits_enabled"
+              defaultChecked={!!business.deposits_enabled}
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-input accent-primary"
+            />
+            <span>
+              <span className="block text-sm font-medium">{t("Track security deposits")}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {t("Off by default. Turn on only if you take a deposit as collateral — adds a deposit field to bookings and lets you return or deduct it. Most rentals in the region don't use this.")}
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <SubmitButton>{t("Save changes")}</SubmitButton>
+        {state.error && (
+          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{state.error}</p>
+        )}
+        {state.ok && (
+          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">{t("Saved.")}</p>
+        )}
+      </div>
     </form>
   );
 }
