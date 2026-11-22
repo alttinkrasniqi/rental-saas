@@ -84,7 +84,7 @@ export function HandoverWizard(props: {
           t={t} rentalId={rentalId} isReturn={false} vehicleId={vehicleId}
           note={t("This marks the car handed over to the client.")}
           finishLabel={t("Finish pickup")}
-          docs={["contract", "protocol", "authorization"]}
+          docs={["contract", "authorization"]}
         />
       )}
 
@@ -98,7 +98,7 @@ export function HandoverWizard(props: {
           t={t} rentalId={rentalId} isReturn={true} vehicleId={vehicleId}
           note={t("This closes the rental and frees the car.")}
           finishLabel={t("Finish return")}
-          docs={["protocol", "invoice"]}
+          docs={["invoice"]}
         />
       )}
 
@@ -223,7 +223,6 @@ function CompareSettleStep(props: any) {
 function FinishStep({ t, rentalId, isReturn, vehicleId, note, finishLabel, docs }: any) {
   const docMap: Record<string, { href: string; label: string }> = {
     contract: { href: `/contract/${rentalId}`, label: t("Contract") },
-    protocol: { href: `/protocol/${rentalId}`, label: t("Handover protocol") },
     authorization: { href: `/authorization/${rentalId}`, label: t("Cross-border authorization") },
     invoice: { href: `/invoice/${rentalId}`, label: t("Invoice") },
   };

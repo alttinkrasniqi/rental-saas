@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ArrowLeft, Car as CarIcon, User, FileText, Receipt as ReceiptIcon, Plane, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Car as CarIcon, User, FileText, Receipt as ReceiptIcon, Plane } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -209,11 +209,10 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
           <CardTitle>{t("Documents")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <DocLink href={`/contract/${r.id}`} icon={FileText} label={t("Contract")} />
             <DocLink href={`/invoice/${r.id}`} icon={ReceiptIcon} label={t("Invoice")} />
             <DocLink href={`/authorization/${r.id}`} icon={Plane} label={t("Cross-border authorization")} />
-            <DocLink href={`/protocol/${r.id}`} icon={ClipboardCheck} label={t("Handover protocol")} />
           </div>
         </CardContent>
       </Card>
