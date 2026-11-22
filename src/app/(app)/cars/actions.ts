@@ -41,6 +41,7 @@ function parseVehicle(formData: FormData) {
     model: String(formData.get("model") || "").trim(),
     year: intOrNull(formData.get("year")),
     plate: String(formData.get("plate") || "").trim().toUpperCase(),
+    vin: String(formData.get("vin") || "").trim().toUpperCase() || null,
     color: String(formData.get("color") || "").trim() || null,
     fuel_type: String(formData.get("fuel_type") || "").trim() || null,
     transmission: String(formData.get("transmission") || "").trim() || null,

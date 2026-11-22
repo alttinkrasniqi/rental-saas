@@ -53,6 +53,8 @@ export interface Vehicle {
   status: VehicleStatus;
   description: string | null;
   photos: string[];
+  documents?: { path: string; label: string }[];
+  vin?: string | null;
   cover_position: string | null;
   insurance_expiry: string | null;
   registration_expiry: string | null;

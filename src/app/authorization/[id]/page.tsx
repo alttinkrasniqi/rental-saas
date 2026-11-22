@@ -73,9 +73,9 @@ export default async function AuthorizationPage({
   const v = r.vehicle || {};
   const c = r.client || {};
 
-  // Editable bits (via the options bar). Sensible defaults from the rental.
-  const dest = asArray(searchParams.dest);
-  const selected = dest.length ? dest : ["AL"]; // default Albania — the common crossing
+  // Editable bits (via the options bar). The owner picks the countries — none
+  // is preselected, so the letter is never printed with the wrong destination.
+  const selected = asArray(searchParams.dest);
   const destNamesSq = COUNTRIES.filter((x) => selected.includes(x.code)).map((x) => x.sq).join(", ") || "—";
   const destNamesEn = COUNTRIES.filter((x) => selected.includes(x.code)).map((x) => x.en).join(", ") || "—";
 
@@ -83,7 +83,7 @@ export default async function AuthorizationPage({
   const validTo = searchParams.to || defaultTo;
   const validFrom = String(r.pickup_at ?? "").slice(0, 10);
   const docNo = searchParams.doc ?? c.id_number ?? "";
-  const chassis = searchParams.chassis ?? "";
+  const chassis = searchParams.chassis ?? v.vin ?? "";
   const today = new Date();
 
   const bizLine = [business?.address, business?.business_no && `NUI: ${business.business_no}`, business?.phone && `Tel: ${business.phone}`]

@@ -921,4 +921,9 @@ export const SQ: Record<string, string> = {
   "Settle up": "Zgjidhja financiare",
   "Collect the balance and handle the deposit on the rental page before closing.": "Arkëto pjesën e mbetur dhe trajto depozitën te faqja e rezervimit para se ta mbyllësh.",
   "Open rental": "Hap rezervimin",
+  // 2.V.17 — vehicle documents + VIN
+  "Chassis (VIN)": "Shasia (VIN)",
+  "Car documents": "Dokumentet e kerrit",
+  "Purchase": "Blerja",
+  "Photograph the registration, insurance and inspection.": "Fotografo regjistrimin, siguracionin dhe kontrollin teknik.",
 };

@@ -55,6 +55,8 @@ create table if not exists public.vehicles (
   status            text not null default 'AVAILABLE',
   description       text,                        -- public-facing blurb
   photos            jsonb not null default '[]', -- array of public image URLs
+  documents         jsonb not null default '[]', -- private doc paths (2.V.17)
+  vin               text,                        -- chassis / VIN number
   notes             text,
   archived          boolean not null default false,
   created_at        timestamptz not null default now(),

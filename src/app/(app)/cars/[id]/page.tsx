@@ -13,6 +13,9 @@ import { formatMoney, formatDate, rentalDays } from "@/lib/format";
 import { carsOutNow, carsReservedSoon, liveVehicleStatus } from "@/lib/availability";
 import type { Vehicle } from "@/lib/types";
 import { getT } from "@/lib/i18n/server";
+import { VehicleDocuments } from "@/components/vehicle-documents";
+import { signVehicleDocs } from "@/lib/vehicle-docs";
+import { cn } from "@/lib/utils";
 
 // Permanently delete a car. Because rentals reference the car, we remove the
 // car's rentals (and their payments) first, then the car itself.
@@ -54,7 +57,15 @@ export default async function CarDetailPage({ params }: { params: { id: string }
 
   const { data: vData } = await supabase.from("vehicles").select("*").eq("id", params.id).maybeSingle();
   if (!vData) notFound();
-  const vehicle = vData as Vehicle;
+  const vehicle = vData as any;
+  const signedDocs = await signVehicleDocs(Array.isArray(vehicle.documents) ? vehicle.documents : []);
+
+  const expiries = [
+    { label: t("Insurance"), date: vehicle.insurance_expiry as string | null },
+    { label: t("Registration"), date: vehicle.registration_expiry as string | null },
+    { label: t("Technical inspection"), date: vehicle.inspection_expiry as string | null },
+    { label: t("Next service"), date: vehicle.service_due as string | null },
+  ].filter((e) => e.date);
 
   const { data: rData } = await supabase
     .from("rentals")
@@ -84,6 +95,7 @@ export default async function CarDetailPage({ params }: { params: { id: string }
     [t("Seats"), vehicle.seats],
     [t("Doors"), vehicle.doors],
     [t("Mileage"), vehicle.mileage != null ? `${vehicle.mileage.toLocaleString()} km` : null],
+    [t("Chassis (VIN)"), vehicle.vin],
   ];
 
   return (
@@ -167,6 +179,33 @@ export default async function CarDetailPage({ params }: { params: { id: string }
           </CardContent>
         </Card>
       </div>
+
+      {/* Document vault + expiry dates (2.V.17) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Car documents")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {expiries.length > 0 && (
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {expiries.map((e) => {
+                const days = Math.round((new Date(e.date as string).getTime() - Date.now()) / 86400000);
+                const tone = days < 0 ? "text-rose-600" : days <= 30 ? "text-amber-600" : "text-foreground";
+                return (
+                  <div key={e.label} className="rounded-xl border border-border/70 p-3">
+                    <p className="text-[11px] font-medium text-muted-foreground">{e.label}</p>
+                    <p className={cn("mt-0.5 text-sm font-bold", tone)}>{formatDate(e.date as string)}</p>
+                    <p className={cn("text-[11px] font-medium", tone)}>
+                      {days < 0 ? t("expired") : days === 0 ? t("today") : t("in {n} days", { n: days })}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <VehicleDocuments vehicleId={vehicle.id} initial={signedDocs} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

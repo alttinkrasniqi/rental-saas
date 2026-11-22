@@ -44,6 +44,9 @@ export function CarForm({
           <Field label={t("Registration plate")} required>
             <Input name="plate" defaultValue={vehicle?.plate} placeholder="01-777-KS" required />
           </Field>
+          <Field label={t("Chassis (VIN)")}>
+            <Input name="vin" defaultValue={(vehicle as any)?.vin ?? ""} placeholder="WVWZZZ..." />
+          </Field>
           <Field label={t("Year")}>
             <Input name="year" type="number" defaultValue={vehicle?.year ?? ""} placeholder="2020" />
           </Field>
