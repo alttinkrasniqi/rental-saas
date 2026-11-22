@@ -120,7 +120,7 @@ async function updateRentalAction(_prev: EditState, formData: FormData): Promise
   revalidatePath("/rentals");
   revalidatePath("/calendar");
   revalidatePath("/dashboard");
-  redirect(`/rentals/${id}`);
+  redirect(`/rentals/${id}?toast=saved`);
 }
 
 export default async function EditRentalPage({ params }: { params: { id: string } }) {

@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { getT } from "@/lib/i18n/server";
-import { effectiveStatus } from "@/lib/format";
 import { HandoverWizard } from "./handover-wizard";
 import type { Cond } from "@/components/rental-condition";
 
@@ -23,7 +22,7 @@ export default async function HandoverPage({
 
   const { data: rData } = await supabase
     .from("rentals")
-    .select("id, status, pickup_at, return_at, returned_at, open_ended, vehicle:vehicles(make, model, plate), client:clients(id, full_name, phone, email, id_number, license_number)")
+    .select("id, status, pickup_at, return_at, returned_at, open_ended, vehicle:vehicles(id, make, model, plate), client:clients(id, full_name, phone, email, id_number, license_number)")
     .eq("id", params.id)
     .maybeSingle();
   if (!rData) notFound();
@@ -40,11 +39,8 @@ export default async function HandoverPage({
     return { fuel: c.fuel ?? null, odometer: c.odometer ?? null, notes: c.notes ?? null, photos: Array.isArray(c.photos) ? c.photos : [] };
   };
 
-  // Default phase: return if the car is already out and this looks like a drop-off,
-  // otherwise pickup. The wizard lets the owner switch.
-  const eff = effectiveStatus(r);
-  const defaultPhase = searchParams.phase === "return" || r.returned_at || eff === "COMPLETED" ? "return" : "pickup";
-
+  // The phase is decided by which button launched this (Dorëzim vs Rikthim).
+  const phase = searchParams.phase === "return" ? "return" : "pickup";
   const car = r.vehicle ? `${r.vehicle.make} ${r.vehicle.model}${r.vehicle.plate ? ` · ${r.vehicle.plate}` : ""}` : t("Car");
 
   return (
@@ -54,6 +50,7 @@ export default async function HandoverPage({
       </Link>
       <HandoverWizard
         rentalId={r.id}
+        vehicleId={r.vehicle?.id ?? ""}
         car={car}
         client={{
           id: r.client?.id ?? "",
@@ -62,9 +59,8 @@ export default async function HandoverPage({
           id_number: r.client?.id_number ?? "",
           license_number: r.client?.license_number ?? "",
         }}
-        pickup={toCond("pickup")}
-        ret={toCond("return")}
-        defaultPhase={defaultPhase}
+        cond={toCond(phase)}
+        phase={phase}
       />
     </div>
   );

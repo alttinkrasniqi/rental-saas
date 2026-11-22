@@ -92,6 +92,7 @@ create table if not exists public.rentals (
   deposit_cents    int not null default 0,
   paid_cents       int not null default 0,
   payment_method   text,
+  handed_over_at   timestamptz,                      -- set when the car is handed to the client (2.H.9)
   returned_at      timestamptz,
   return_mileage   int,
   notes            text,

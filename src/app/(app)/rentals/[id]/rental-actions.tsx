@@ -32,6 +32,7 @@ export function RentalActions({
   remaining,
   paid,
   depositOutstanding,
+  handedOver,
   currency,
 }: {
   rentalId: string;
@@ -41,6 +42,7 @@ export function RentalActions({
   remaining: number;
   paid: number;
   depositOutstanding: number;
+  handedOver: boolean;
   currency: string;
 }) {
   const t = useT();
@@ -57,12 +59,20 @@ export function RentalActions({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          {isOpen && (
+          {isOpen && !handedOver && (
             <Link
-              href={`/rentals/${rentalId}/handover`}
+              href={`/rentals/${rentalId}/handover?phase=pickup`}
               className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              <ClipboardCheck className="h-4 w-4" /> {t("Guided handover")}
+              <ClipboardCheck className="h-4 w-4" /> {t("Hand over car")}
+            </Link>
+          )}
+          {isOpen && handedOver && (
+            <Link
+              href={`/rentals/${rentalId}/handover?phase=return`}
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              <ClipboardCheck className="h-4 w-4" /> {t("Return car")}
             </Link>
           )}
           <Link

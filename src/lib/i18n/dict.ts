@@ -907,4 +907,10 @@ export const SQ: Record<string, string> = {
   "Print and sign before the car leaves.": "Printo dhe nënshkruaj para se të niset makina.",
   "Finish return": "Përfundo dorëzimin",
   "Finish pickup": "Përfundo marrjen",
+  // success toasts + handover lifecycle
+  "Car handed over": "Makina u dorëzua",
+  "Hand over car": "Dorëzo makinën",
+  "Return car": "Rikthe makinën",
+  "This closes the rental and frees the car.": "Kjo e mbyll qiranë dhe e liron makinën.",
+  "This marks the car handed over to the client.": "Kjo e shënon makinën të dorëzuar te klienti.",
 };

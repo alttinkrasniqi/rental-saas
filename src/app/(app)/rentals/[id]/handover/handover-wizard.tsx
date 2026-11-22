@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useFormState } from "react-dom";
 import { User, Camera, FileText, Check, ArrowRight, ArrowLeft, ClipboardCheck } from "lucide-react";
@@ -12,23 +11,23 @@ import { Button } from "@/components/ui/button";
 import { PhaseBlock, type Cond } from "@/components/rental-condition";
 import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
-import { updateClientDocs, type DocsResult } from "./actions";
+import { updateClientDocs, completeHandover, type DocsResult } from "./actions";
+import { markReturned } from "../../actions";
 
 type Phase = "pickup" | "return";
 type Client = { id: string; full_name: string; phone: string; id_number: string; license_number: string };
 
 export function HandoverWizard({
-  rentalId, car, client, pickup, ret, defaultPhase,
+  rentalId, vehicleId, car, client, cond, phase,
 }: {
   rentalId: string;
+  vehicleId: string;
   car: string;
   client: Client;
-  pickup: Cond;
-  ret: Cond;
-  defaultPhase: Phase;
+  cond: Cond;
+  phase: Phase;
 }) {
   const t = useT();
-  const [phase, setPhase] = useState<Phase>(defaultPhase);
   const [step, setStep] = useState(0);
   const [docsState, docsAction] = useFormState(updateClientDocs, {} as DocsResult);
 
@@ -37,24 +36,9 @@ export function HandoverWizard({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{isReturn ? t("Guided return") : t("Guided pickup")}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">{car}</p>
-        </div>
-        {/* Phase toggle */}
-        <div className="inline-flex rounded-xl border border-border bg-muted/50 p-1 text-sm">
-          {(["pickup", "return"] as Phase[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPhase(p)}
-              className={cn("rounded-lg px-3 py-1.5 font-medium transition", phase === p ? "bg-white text-foreground shadow-sm" : "text-muted-foreground")}
-            >
-              {p === "pickup" ? t("Pickup") : t("Return")}
-            </button>
-          ))}
-        </div>
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold tracking-tight">{isReturn ? t("Guided return") : t("Guided pickup")}</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">{car}</p>
       </div>
 
       {/* Stepper */}
@@ -119,7 +103,7 @@ export function HandoverWizard({
               rentalId={rentalId}
               phase={phase}
               title={isReturn ? t("Fuel, kilometres and photos at return") : t("Fuel, kilometres and photos at pickup")}
-              initial={isReturn ? ret : pickup}
+              initial={cond}
             />
           </CardContent>
         </Card>
@@ -139,13 +123,26 @@ export function HandoverWizard({
               <DocBtn href={`/protocol/${rentalId}`} icon={ClipboardCheck} label={t("Handover protocol")} />
               <DocBtn href={`/authorization/${rentalId}`} icon={FileText} label={t("Cross-border authorization")} />
             </div>
-            <div className="mt-5">
-              <Link
-                href={`/rentals/${rentalId}`}
-                className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                <Check className="h-4 w-4" /> {isReturn ? t("Finish return") : t("Finish pickup")}
-              </Link>
+            <div className="mt-6 border-t border-border/60 pt-5">
+              {isReturn ? (
+                <form action={markReturned}>
+                  <input type="hidden" name="rental_id" value={rentalId} />
+                  <input type="hidden" name="vehicle_id" value={vehicleId} />
+                  <SubmitButton className="h-11 px-6 text-base">
+                    <Check className="h-5 w-5" /> {t("Finish return")}
+                  </SubmitButton>
+                </form>
+              ) : (
+                <form action={completeHandover}>
+                  <input type="hidden" name="rental_id" value={rentalId} />
+                  <SubmitButton className="h-11 px-6 text-base">
+                    <Check className="h-5 w-5" /> {t("Finish pickup")}
+                  </SubmitButton>
+                </form>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {isReturn ? t("This closes the rental and frees the car.") : t("This marks the car handed over to the client.")}
+              </p>
             </div>
           </CardContent>
         </Card>

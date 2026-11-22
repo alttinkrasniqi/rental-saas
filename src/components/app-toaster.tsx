@@ -16,6 +16,7 @@ const MESSAGES: Record<string, string> = {
   refund: "Saved to the history",
   deposit: "Deposit updated",
   returned: "Marked as returned",
+  handover: "Car handed over",
 };
 
 function Flash() {

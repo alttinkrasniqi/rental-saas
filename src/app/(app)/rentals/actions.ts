@@ -426,6 +426,7 @@ export async function markReturned(formData: FormData) {
   revalidatePath("/calendar");
   revalidatePath("/dashboard");
   revalidatePath("/cars");
+  redirect(`/rentals/${rentalId}?toast=returned`);
 }
 
 export async function extendRental(

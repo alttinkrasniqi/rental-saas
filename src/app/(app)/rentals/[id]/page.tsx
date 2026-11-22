@@ -226,6 +226,7 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
         remaining={remaining / 100}
         paid={(r.paid_cents ?? 0) / 100}
         depositOutstanding={depositOutstanding / 100}
+        handedOver={!!r.handed_over_at}
         currency={currency}
       />
 
