@@ -19,7 +19,6 @@ import {
   LayoutGrid,
   List as ListIcon,
   Car as CarIcon,
-  ExternalLink,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { VehicleStatusBadge } from "@/components/status-badges";
@@ -437,8 +436,8 @@ export function CarsList({
 
             <div className="shrink-0 border-t border-border p-4">
               <div className="grid grid-cols-2 gap-2">
-                <Link href={`/cars/${selected.id}/edit`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                  <Pencil className="h-4 w-4" /> {t("Edit car")}
+                <Link href={`/cars/${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+                  <Eye className="h-4 w-4" /> {t("View car")}
                 </Link>
                 <Link href={`/rentals/new?vehicle=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
                   <CalendarPlus className="h-4 w-4" /> {t("New rental")}
@@ -446,8 +445,8 @@ export function CarsList({
                 <Link href={`/rentals?car=${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
                   <History className="h-4 w-4" /> {t("Rental history")}
                 </Link>
-                <Link href={`/cars/${selected.id}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
-                  <ExternalLink className="h-4 w-4" /> {t("Open full page")}
+                <Link href={`/cars/${selected.id}/edit`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-input bg-card text-sm font-medium hover:bg-muted">
+                  <Pencil className="h-4 w-4" /> {t("Edit car")}
                 </Link>
               </div>
             </div>
