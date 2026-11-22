@@ -913,4 +913,12 @@ export const SQ: Record<string, string> = {
   "Return car": "Rikthe makinën",
   "This closes the rental and frees the car.": "Kjo e mbyll qiranë dhe e liron makinën.",
   "This marks the car handed over to the client.": "Kjo e shënon makinën të dorëzuar te klienti.",
+  // 2.H.9 — return flow
+  "Compare & settle": "Krahaso & zgjidh",
+  "Finish": "Përfundo",
+  "Compare pickup vs return": "Krahaso marrjen me kthimin",
+  "Kilometres driven": "Kilometra të bëra",
+  "Settle up": "Zgjidhja financiare",
+  "Collect the balance and handle the deposit on the rental page before closing.": "Arkëto pjesën e mbetur dhe trajto depozitën te faqja e rezervimit para se ta mbyllësh.",
+  "Open rental": "Hap rezervimin",
 };
