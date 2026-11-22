@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useFormState } from "react-dom";
-import { Phone, CreditCard, CheckCircle2, CalendarClock, XCircle, Pencil, Undo2, ShieldMinus } from "lucide-react";
+import { Phone, CreditCard, CheckCircle2, CalendarClock, XCircle, Pencil, Undo2, ShieldMinus, ClipboardCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +57,14 @@ export function RentalActions({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
+          {isOpen && (
+            <Link
+              href={`/rentals/${rentalId}/handover`}
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              <ClipboardCheck className="h-4 w-4" /> {t("Guided handover")}
+            </Link>
+          )}
           <Link
             href={`/rentals/${rentalId}/edit`}
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-muted"

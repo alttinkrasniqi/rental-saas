@@ -59,7 +59,7 @@ async function compress(file: File): Promise<string> {
   }
 }
 
-function PhaseBlock({
+export function PhaseBlock({
   rentalId,
   phase,
   title,
