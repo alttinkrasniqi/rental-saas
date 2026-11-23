@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  LayoutDashboard, TrendingUp, CarFront, Users, CalendarCheck, CreditCard, Wrench,
+  LayoutDashboard, TrendingUp, CarFront, Users, CalendarCheck, CreditCard, Wrench, PiggyBank,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/reports", label: "Overview", icon: LayoutDashboard },
   { href: "/reports/revenue", label: "Revenue", icon: TrendingUp },
   { href: "/reports/cars", label: "Cars", icon: CarFront },
+  { href: "/reports/pnl", label: "Profit per car", icon: PiggyBank },
   { href: "/reports/clients", label: "Clients", icon: Users },
   { href: "/reports/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/reports/payments", label: "Payments & debts", icon: CreditCard },

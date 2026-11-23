@@ -926,4 +926,14 @@ export const SQ: Record<string, string> = {
   "Car documents": "Dokumentet e kerrit",
   "Purchase": "Blerja",
   "Photograph the registration, insurance and inspection.": "Fotografo regjistrimin, siguracionin dhe kontrollin teknik.",
+  // 2.V.7 — P&L per car
+  "Profit per car": "Fitimi për makinë",
+  "Costs": "Kostot",
+  "Net profit": "Fitimi neto",
+  "Margin": "Marzha",
+  "General costs (not tied to a car)": "Kosto të përgjithshme (pa makinë)",
+  "Profit by car": "Fitimi sipas makinës",
+  "Revenue collected minus expenses tied to each car, this period.": "Të ardhurat e arkëtuara minus shpenzimet e lidhura me secilën makinë, për këtë periudhë.",
+  "No revenue or costs in this period.": "Pa të ardhura ose kosto në këtë periudhë.",
+  "Tip: tag expenses to a car (fuel, service, parts) so its profit is accurate.": "Këshillë: lidhi shpenzimet me një makinë (karburant, servis, pjesë) që fitimi i saj të jetë i saktë.",
 };
