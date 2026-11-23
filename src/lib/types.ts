@@ -25,6 +25,7 @@ export interface Business {
   timezone: string;
   welcome_seen?: boolean;
   deposits_enabled?: boolean;
+  monthly_revenue_target_cents?: number;
   fiscal_number?: string | null;
   business_no?: string | null;
   vat_number?: string | null;

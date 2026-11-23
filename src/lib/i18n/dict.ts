@@ -936,4 +936,13 @@ export const SQ: Record<string, string> = {
   "Revenue collected minus expenses tied to each car, this period.": "Të ardhurat e arkëtuara minus shpenzimet e lidhura me secilën makinë, për këtë periudhë.",
   "No revenue or costs in this period.": "Pa të ardhura ose kosto në këtë periudhë.",
   "Tip: tag expenses to a car (fuel, service, parts) so its profit is accurate.": "Këshillë: lidhi shpenzimet me një makinë (karburant, servis, pjesë) që fitimi i saj të jetë i saktë.",
+  // 2.V.23 — monthly goal
+  "This month's goal": "Objektivi i këtij muaji",
+  "Set a monthly revenue goal and track your pace.": "Vendos një objektiv mujor të ardhurash dhe ndiq ritmin.",
+  "of {v}": "nga {v}",
+  "Goal reached! 🎉": "Objektivi u arrit! 🎉",
+  "Ahead by {v}": "Para planit me {v}",
+  "Behind by {v}": "Mbrapa planit me {v}",
+  "{v} to go": "edhe {v}",
+  "e.g. 8000": "p.sh. 8000",
 };

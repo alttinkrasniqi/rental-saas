@@ -22,6 +22,7 @@ create table if not exists public.businesses (
   timezone    text not null default 'Europe/Tirane',
   welcome_seen boolean not null default false,  -- first-login welcome tour shown?
   deposits_enabled boolean not null default false,  -- opt-in deposit tracking (off: not used in Balkan market)
+  monthly_revenue_target_cents int not null default 0,  -- 2.V.23 monthly goal
   created_at  timestamptz not null default now()
 );
 

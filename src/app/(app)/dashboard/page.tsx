@@ -25,6 +25,7 @@ import { getT } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n";
 import type { Vehicle } from "@/lib/types";
 import { GettingStarted } from "@/components/getting-started";
+import { GoalCard } from "./goal-card";
 import { WelcomeModal } from "@/components/welcome-modal";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
@@ -313,6 +314,15 @@ export default async function DashboardPage() {
           ))}
         </div>
       </Card>
+
+      {/* Monthly revenue goal (2.V.23) */}
+      <GoalCard
+        target={business?.monthly_revenue_target_cents ?? 0}
+        earned={revMonth}
+        currency={currency}
+        dayOfMonth={now.getDate()}
+        daysInMonth={endOfMonth(now).getDate()}
+      />
 
       {/* Two columns: main + rail */}
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
