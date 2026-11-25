@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { Globe, Languages, Download, ExternalLink } from "lucide-react";
+import { Globe, Languages, Download, ExternalLink, Tag } from "lucide-react";
 import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "./settings-form";
@@ -10,6 +10,9 @@ import { getTrustedDevices, getMfaStatus } from "./actions";
 import { publicBookingUrl } from "@/lib/brand";
 import { getT } from "@/lib/i18n/server";
 import { LanguageSwitch } from "@/components/language-switch";
+import { createClient } from "@/lib/supabase/server";
+import { ExtrasSettings } from "./extras-settings";
+import type { ExtraDef } from "@/lib/extras";
 
 const TONES: Record<string, string> = {
   primary: "bg-primary/10 text-primary",
@@ -61,6 +64,14 @@ export default async function SettingsPage() {
   const devices = await getTrustedDevices();
   const mfa = await getMfaStatus();
 
+  const supabase = createClient();
+  const { data: extrasData } = await supabase
+    .from("rental_extras")
+    .select("id, name, kind, unit_cents")
+    .eq("active", true)
+    .order("sort", { ascending: true })
+    .order("created_at", { ascending: true });
+
   return (
     <div>
       <PageHeader title={t("Settings")} subtitle={t("Your business profile")} />
@@ -94,6 +105,15 @@ export default async function SettingsPage() {
         <TwoFactorSection enabled={mfa.enabled} />
 
         <DevicesSection devices={devices} />
+
+        <SettingsCard
+          icon={Tag}
+          tone="violet"
+          title={t("Extras & fees")}
+          subtitle={t("Optional charges you can add to any rental.")}
+        >
+          <ExtrasSettings extras={(extrasData ?? []) as ExtraDef[]} currency={business.currency ?? "EUR"} />
+        </SettingsCard>
 
         <SettingsCard
           icon={Languages}

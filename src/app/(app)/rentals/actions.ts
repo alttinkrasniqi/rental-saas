@@ -8,6 +8,7 @@ import { numberToCents, rentalDays, formatMoney } from "@/lib/format";
 import { evalPromo } from "@/lib/promo";
 import { isOverlapViolation } from "@/lib/db-errors";
 import { notifyBookingConfirmed } from "@/lib/notify";
+import { sanitizeExtras, extrasSum, type ExtraItem } from "@/lib/extras";
 import type { RentalStatus } from "@/lib/types";
 
 export type RentalFormState = { error?: string };
@@ -164,6 +165,18 @@ export async function createRental(
   }
   const finalTotalCents = Math.max(0, totalCents - discountCents);
 
+  // Extras / fees (2.H.6): snapshot the chosen extras and add their sum on top.
+  // Stored on the rental (jsonb) so later catalog edits never change past rentals.
+  let extras: ExtraItem[] = [];
+  try {
+    extras = sanitizeExtras(JSON.parse(String(formData.get("extras_json") || "[]")));
+  } catch {
+    extras = [];
+  }
+  const extrasCents = extrasSum(extras);
+  // Open-ended: keep total at 0 now (it adds up on return); extras are re-added then.
+  const grandTotalCents = openEnded ? 0 : finalTotalCents + extrasCents;
+
   const depositCents = moneyToCents(formData.get("deposit"));
   const paidCents = moneyToCents(formData.get("paid"));
   const method = String(formData.get("payment_method") || "").trim() || null;
@@ -183,9 +196,10 @@ export async function createRental(
       pickup_at: pickup.toISOString(),
       return_at: ret.toISOString(),
       daily_rate_cents: dailyRateCents,
-      total_cents: finalTotalCents,
+      total_cents: grandTotalCents,
       discount_cents: discountCents,
       promo_code: promoCode,
+      extras,
       deposit_cents: depositCents,
       paid_cents: paidCents,
       payment_method: method,
@@ -242,7 +256,7 @@ export async function createRental(
         plate: veh?.plate,
         from: pickup.toISOString(),
         to_date: ret.toISOString(),
-        totalText: openEnded ? null : formatMoney(finalTotalCents, business.currency || "EUR"),
+        totalText: openEnded ? null : formatMoney(grandTotalCents, business.currency || "EUR"),
         openEnded,
         businessId: business.id,
       });
@@ -397,7 +411,7 @@ export async function markReturned(formData: FormData) {
   // For an open-ended rental, lock in the real return date and final total now.
   const { data: rental } = await supabase
     .from("rentals")
-    .select("open_ended, pickup_at, daily_rate_cents")
+    .select("open_ended, pickup_at, daily_rate_cents, extras")
     .eq("id", rentalId)
     .single();
 
@@ -410,7 +424,7 @@ export async function markReturned(formData: FormData) {
   if (rental?.open_ended) {
     const days = rentalDays(rental.pickup_at, new Date());
     patch.return_at = nowIso;
-    patch.total_cents = days * (rental.daily_rate_cents ?? 0);
+    patch.total_cents = days * (rental.daily_rate_cents ?? 0) + extrasSum(rental.extras as any);
   }
 
   await supabase.from("rentals").update(patch).eq("id", rentalId);
@@ -448,7 +462,7 @@ export async function extendRental(
 
   const { data: rental } = await supabase
     .from("rentals")
-    .select("pickup_at, daily_rate_cents")
+    .select("pickup_at, daily_rate_cents, extras")
     .eq("id", rentalId)
     .single();
   if (!rental) return { error: "Rental not found." };
@@ -467,7 +481,7 @@ export async function extendRental(
   }
 
   const days = rentalDays(pickup, ret);
-  const totalCents = days * (rental.daily_rate_cents ?? 0);
+  const totalCents = days * (rental.daily_rate_cents ?? 0) + extrasSum(rental.extras as any);
 
   const { error: extErr } = await supabase
     .from("rentals")

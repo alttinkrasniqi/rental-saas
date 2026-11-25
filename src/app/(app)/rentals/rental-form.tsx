@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { createRental, type RentalFormState } from "./actions";
 import { useT } from "@/lib/i18n/provider";
 import { bestPrice, applicablePriceRule, effectiveRates, type PriceRule } from "@/lib/pricing";
+import { defaultQty, extraAmount, type ExtraDef } from "@/lib/extras";
 import { checkPromoCode } from "@/app/(app)/marketing/promo-actions";
 
 interface CarOption {
@@ -45,6 +46,7 @@ export function RentalForm({
   rules,
   clients,
   bookings,
+  extras,
   currency,
   depositsEnabled,
   preselectClientId,
@@ -56,6 +58,7 @@ export function RentalForm({
   rules: PriceRule[];
   clients: ClientOption[];
   bookings: Booking[];
+  extras: ExtraDef[];
   currency: string;
   depositsEnabled?: boolean;
   preselectClientId?: string;
@@ -83,6 +86,8 @@ export function RentalForm({
   const [applied, setApplied] = useState<{ code: string; discount_type: "percent" | "fixed"; discount_value: number; min_total_cents: number | null } | null>(null);
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoErr, setPromoErr] = useState<string | null>(null);
+  // Chosen extras: id -> { on, qty-as-string }.
+  const [exSel, setExSel] = useState<Record<string, { on: boolean; qty: string }>>({});
 
   const days = useMemo(() => {
     if (openEnded || !pickupDate || !returnDate) return 0;
@@ -132,6 +137,16 @@ export function RentalForm({
     setCarId(id);
   }
 
+  function toggleExtra(e: ExtraDef, on: boolean) {
+    setExSel((prev) => ({
+      ...prev,
+      [e.id]: { on, qty: on ? (prev[e.id]?.qty || String(defaultQty(e.kind, days))) : (prev[e.id]?.qty ?? "") },
+    }));
+  }
+  function setExtraQty(id: string, qty: string) {
+    setExSel((prev) => ({ ...prev, [id]: { on: prev[id]?.on ?? true, qty } }));
+  }
+
   const rateNum = Number(dailyRate.replace(",", ".")) || 0;
   const activeRule = carId && pickupDate ? applicablePriceRule(rules, carId, pickupDate) : null;
   const ruleText = activeRule
@@ -166,9 +181,26 @@ export function RentalForm({
     applied && !openEnded && !belowMin
       ? Math.max(0, Math.min(applied.discount_type === "percent" ? Math.round((totalCentsNow * applied.discount_value) / 100) : applied.discount_value, totalCentsNow))
       : 0;
-  const finalTotal = Math.max(0, effectiveTotal - discountCents / 100);
+
+  // Extras selected, with per-line amounts (snapshot shape stored on the rental).
+  const extrasItems = useMemo(
+    () =>
+      extras
+        .filter((e) => exSel[e.id]?.on)
+        .map((e) => {
+          const qty = Math.max(0, Number(exSel[e.id]?.qty ?? "") || 0);
+          return { name: e.name, kind: e.kind, unit_cents: e.unit_cents, qty, amount_cents: extraAmount(e.kind, e.unit_cents, qty) };
+        })
+        .filter((x) => x.amount_cents > 0),
+    [extras, exSel]
+  );
+  const extrasCents = extrasItems.reduce((s, x) => s + x.amount_cents, 0);
+
+  const finalCents = Math.max(0, totalCentsNow - discountCents);
+  const grandCents = finalCents + extrasCents;
   const paidNum = Number(paid.replace(",", ".")) || 0;
-  const remaining = Math.max(0, finalTotal - paidNum);
+  const paidCents = Math.round(paidNum * 100);
+  const remainingCents = Math.max(0, grandCents - paidCents);
 
   async function applyPromo() {
     const code = promoInput.trim();
@@ -455,8 +487,59 @@ export function RentalForm({
               </div>
             )}
             <input type="hidden" name="promo_code" value={applied && !belowMin ? applied.code : ""} />
+            <input type="hidden" name="extras_json" value={JSON.stringify(extrasItems)} />
           </CardContent>
         </Card>
+
+        {/* 5. Extras & fees */}
+        {extras.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("5 · Extras & fees")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {extras.map((e) => {
+                const sel = exSel[e.id];
+                const on = !!sel?.on;
+                const qty = Math.max(0, Number(sel?.qty ?? "") || 0);
+                const amount = on ? extraAmount(e.kind, e.unit_cents, qty) : 0;
+                return (
+                  <div key={e.id} className="rounded-md border border-input p-3">
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={on}
+                        onChange={(ev) => toggleExtra(e, ev.target.checked)}
+                      />
+                      <span className="text-sm font-medium">{e.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatMoney(e.unit_cents, currency)}
+                        {e.kind === "per_day" ? t("/day") : ""}
+                      </span>
+                      {on && <span className="ml-auto text-sm font-semibold">{formatMoney(amount, currency)}</span>}
+                    </label>
+                    {on && (
+                      <div className="mt-2 flex items-center gap-2 pl-6">
+                        <Label className="text-xs text-muted-foreground">
+                          {e.kind === "per_day" ? t("Days") : t("Quantity")}
+                        </Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={sel?.qty ?? ""}
+                          onChange={(ev) => setExtraQty(e.id, ev.target.value)}
+                          className="h-8 w-24"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -486,21 +569,27 @@ export function RentalForm({
               <div className="border-t border-border" />
               <SummaryRow label={t("Rate")} value={rateNum ? `${formatMoney(rateNum * 100, currency)}${t("/day")}` : "—"} />
               {openEnded ? (
-                <SummaryRow label={t("Total")} value={t("Adds up daily")} strong />
-              ) : discountCents > 0 ? (
                 <>
-                  <SummaryRow label={t("Subtotal")} value={formatMoney(effectiveTotal * 100, currency)} />
-                  <SummaryRow label={`${t("Discount")} · ${applied?.code}`} value={`−${formatMoney(discountCents, currency)}`} />
-                  <SummaryRow label={t("Total")} value={formatMoney(finalTotal * 100, currency)} strong />
+                  {extrasCents > 0 && <SummaryRow label={t("Extras")} value={formatMoney(extrasCents, currency)} />}
+                  <SummaryRow label={t("Total")} value={t("Adds up daily")} strong />
                 </>
               ) : (
-                <SummaryRow label={t("Total")} value={formatMoney(effectiveTotal * 100, currency)} strong />
+                <>
+                  {discountCents > 0 && (
+                    <>
+                      <SummaryRow label={t("Subtotal")} value={formatMoney(totalCentsNow, currency)} />
+                      <SummaryRow label={`${t("Discount")} · ${applied?.code}`} value={`−${formatMoney(discountCents, currency)}`} />
+                    </>
+                  )}
+                  {extrasCents > 0 && <SummaryRow label={t("Extras")} value={formatMoney(extrasCents, currency)} />}
+                  <SummaryRow label={t("Total")} value={formatMoney(grandCents, currency)} strong />
+                </>
               )}
               {tieredUsed && !totalTouched && breakdown && (
                 <p className="-mt-2 text-xs text-emerald-700">{t("Best rate")} · {breakdown}</p>
               )}
-              <SummaryRow label={t("Paid:label")} value={formatMoney(paidNum * 100, currency)} />
-              {!openEnded && <SummaryRow label={t("Remaining")} value={formatMoney(remaining * 100, currency)} strong />}
+              <SummaryRow label={t("Paid:label")} value={formatMoney(paidCents, currency)} />
+              {!openEnded && <SummaryRow label={t("Remaining")} value={formatMoney(remainingCents, currency)} strong />}
 
               {state.error && (
                 <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>

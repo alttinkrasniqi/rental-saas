@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBusiness } from "@/lib/business";
 import { numberToCents, rentalDays } from "@/lib/format";
 import { isOverlapViolation } from "@/lib/db-errors";
+import { extrasSum } from "@/lib/extras";
 import { PageHeader } from "@/components/page-header";
 import { EditRentalForm, type EditState } from "../edit-rental-form";
 import { getT } from "@/lib/i18n/server";
@@ -70,16 +71,28 @@ async function updateRentalAction(_prev: EditState, formData: FormData): Promise
     }
   }
 
+  // Current state (to sync vehicle status if the car changed, and to keep the
+  // stored extras in the total when the owner clears it to recalculate).
+  const { data: cur } = await supabase
+    .from("rentals")
+    .select("vehicle_id, status, extras")
+    .eq("id", id)
+    .single();
+  const extrasCents = extrasSum((cur?.extras as any) ?? []);
+
   const days = rentalDays(pickup, ret);
   const dailyRateCents = moneyToCents(formData.get("daily_rate"));
   const totalField = String(formData.get("total") || "").trim();
-  const totalCents = openEnded ? 0 : totalField ? moneyToCents(formData.get("total")) : days * dailyRateCents;
+  // Field left as-is = the full total the owner sees (already includes extras).
+  // Field cleared = recalculate from days × rate, then re-add the stored extras.
+  const totalCents = openEnded
+    ? 0
+    : totalField
+    ? moneyToCents(formData.get("total"))
+    : days * dailyRateCents + extrasCents;
   const depositCents = moneyToCents(formData.get("deposit"));
   const method = String(formData.get("payment_method") || "").trim() || null;
   const notes = String(formData.get("notes") || "").trim() || null;
-
-  // Current state (to sync vehicle status if the car changed).
-  const { data: cur } = await supabase.from("rentals").select("vehicle_id, status").eq("id", id).single();
 
   const { error } = await supabase
     .from("rentals")

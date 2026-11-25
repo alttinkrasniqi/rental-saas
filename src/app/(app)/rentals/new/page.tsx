@@ -3,6 +3,7 @@ import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { RentalForm } from "../rental-form";
 import { getT } from "@/lib/i18n/server";
+import type { ExtraDef } from "@/lib/extras";
 
 export default async function NewRentalPage({
   searchParams,
@@ -13,7 +14,7 @@ export default async function NewRentalPage({
   const business = await getBusiness();
   const supabase = createClient();
 
-  const [{ data: cars }, { data: clients }, { data: bookings }, { data: rules }] = await Promise.all([
+  const [{ data: cars }, { data: clients }, { data: bookings }, { data: rules }, { data: extras }] = await Promise.all([
     supabase
       .from("vehicles")
       .select("id, make, model, plate, daily_price_cents, weekly_price_cents, monthly_price_cents")
@@ -28,6 +29,12 @@ export default async function NewRentalPage({
       .select("vehicle_id, pickup_at, return_at, client:clients(full_name)")
       .in("status", ["ACTIVE", "RESERVED"]),
     supabase.from("price_rules").select("id, vehicle_id, label, start_date, end_date, adjust_type, adjust_value"),
+    supabase
+      .from("rental_extras")
+      .select("id, name, kind, unit_cents")
+      .eq("active", true)
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true }),
   ]);
 
   const bookingsMapped = (bookings ?? []).map((b: any) => ({
@@ -45,6 +52,7 @@ export default async function NewRentalPage({
         rules={rules ?? []}
         clients={clients ?? []}
         bookings={bookingsMapped}
+        extras={(extras ?? []) as ExtraDef[]}
         currency={business?.currency ?? "EUR"}
         depositsEnabled={!!business?.deposits_enabled}
         preselectClientId={searchParams.client}

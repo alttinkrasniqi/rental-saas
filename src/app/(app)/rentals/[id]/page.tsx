@@ -18,6 +18,7 @@ import {
   effectiveStatus,
 } from "@/lib/format";
 import { PAYMENT_METHODS } from "@/lib/constants";
+import { extrasSum, type ExtraItem } from "@/lib/extras";
 import { getT } from "@/lib/i18n/server";
 
 function methodLabel(m: string | null) {
@@ -96,7 +97,9 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
   const effStatus = effectiveStatus(r);
   const ongoing = openEnded && effStatus === "ACTIVE";
   const liveDays = ongoing ? rentalDays(r.pickup_at, new Date()) : days;
-  const displayTotal = ongoing ? liveDays * (r.daily_rate_cents ?? 0) : r.total_cents;
+  const extraItems: ExtraItem[] = Array.isArray(r.extras) ? (r.extras as ExtraItem[]) : [];
+  const extrasC = extrasSum(extraItems);
+  const displayTotal = ongoing ? liveDays * (r.daily_rate_cents ?? 0) + extrasC : r.total_cents;
   const remaining = Math.max(0, displayTotal - (r.paid_cents ?? 0));
   const shortId = r.id.slice(0, 8).toUpperCase();
 
@@ -187,6 +190,22 @@ export default async function RentalDetailPage({ params }: { params: { id: strin
             <Money label={t("Paid:label")} value={formatMoney(r.paid_cents, currency)} />
             <Money label={t("Remaining")} value={formatMoney(remaining, currency)} highlight={remaining > 0} />
           </div>
+          {extraItems.length > 0 && (
+            <div className="mt-4 rounded-lg border border-border/70 bg-muted/40 p-4">
+              <p className="mb-2 text-xs font-semibold text-muted-foreground">{t("Extras & fees")}</p>
+              <div className="space-y-1">
+                {extraItems.map((e, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span>
+                      {e.name}
+                      {e.kind === "per_day" ? ` · ${e.qty}× ${t("day")}` : e.qty > 1 ? ` · ${e.qty}×` : ""}
+                    </span>
+                    <span className="font-medium">{formatMoney(e.amount_cents, currency)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {depositHeld > 0 && (
             <div className="mt-4 rounded-lg border border-border/70 bg-muted/40 p-4">
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
