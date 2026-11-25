@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { Globe, Languages, Download, ExternalLink, Tag } from "lucide-react";
+import { Globe, Languages, Download, ExternalLink, Tag, Star } from "lucide-react";
 import { getBusiness } from "@/lib/business";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "./settings-form";
@@ -12,6 +12,7 @@ import { getT } from "@/lib/i18n/server";
 import { LanguageSwitch } from "@/components/language-switch";
 import { createClient } from "@/lib/supabase/server";
 import { ExtrasSettings } from "./extras-settings";
+import { ReviewSettings } from "./review-settings";
 import type { ExtraDef } from "@/lib/extras";
 
 const TONES: Record<string, string> = {
@@ -72,6 +73,11 @@ export default async function SettingsPage() {
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
 
+  const { data: reviewRows } = await supabase.from("reviews").select("rating");
+  const reviewCount = (reviewRows ?? []).length;
+  const reviewAvg = reviewCount ? (reviewRows as any[]).reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviewCount : 0;
+  const reviewLink = publicUrl ? `${publicUrl}/review` : null;
+
   return (
     <div>
       <PageHeader title={t("Settings")} subtitle={t("Your business profile")} />
@@ -113,6 +119,15 @@ export default async function SettingsPage() {
           subtitle={t("Optional charges you can add to any rental.")}
         >
           <ExtrasSettings extras={(extrasData ?? []) as ExtraDef[]} currency={business.currency ?? "EUR"} />
+        </SettingsCard>
+
+        <SettingsCard
+          icon={Star}
+          tone="amber"
+          title={t("Reviews")}
+          subtitle={t("Turn happy customers into Google reviews.")}
+        >
+          <ReviewSettings googleUrl={(business as any).google_review_url ?? null} reviewLink={reviewLink} avg={reviewAvg} count={reviewCount} />
         </SettingsCard>
 
         <SettingsCard
