@@ -6,6 +6,7 @@ import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
 import { NavLinks } from "@/components/nav/nav-links";
+import { SearchTrigger } from "@/components/search-trigger";
 import { useT } from "@/lib/i18n/provider";
 
 export function Sidebar({ businessName, badges }: { businessName: string; badges?: Record<string, number> }) {
@@ -26,6 +27,10 @@ export function Sidebar({ businessName, badges }: { businessName: string; badges
           <Plus className="h-4 w-4" />
           {t("New Rental")}
         </Link>
+      </div>
+
+      <div className="mt-3 px-3">
+        <SearchTrigger />
       </div>
 
       <nav className="mt-4 flex-1 overflow-y-auto px-3">

@@ -30,6 +30,13 @@ export const SQ: Record<string, string> = {
   "Optional charges you can add to any rental. Per-day items multiply by the number of days.": "Tarifa shtesë që mund t'i shtosh çdo rezervimi. Artikujt 'për ditë' shumëzohen me numrin e ditëve.",
   "e.g. Extra driver": "p.sh. Shofer shtesë",
   "Reports": "Raportet",
+  // global search (2.H.12)
+  "Search…": "Kërko…",
+  "Search": "Kërko",
+  "Search clients, cars, plates…": "Kërko klientë, makina, targa…",
+  "Type to search clients, cars and plates.": "Shkruaj për të kërkuar klientë, makina dhe targa.",
+  "No results": "Asnjë rezultat",
+  "Close": "Mbyll",
   // reports section (sidebar + per-report)
   "Overview": "Përmbledhje",
   "Revenue": "Të ardhurat",

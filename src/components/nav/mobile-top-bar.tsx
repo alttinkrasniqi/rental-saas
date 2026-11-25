@@ -7,6 +7,7 @@ import { logout } from "@/app/actions";
 import { APP_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
 import { NavLinks } from "@/components/nav/nav-links";
+import { SearchTrigger } from "@/components/search-trigger";
 import { useT } from "@/lib/i18n/provider";
 import { LanguageSwitch } from "@/components/language-switch";
 
@@ -22,13 +23,16 @@ export function MobileTopBar({ businessName, badges }: { businessName: string; b
           <Logo className="h-7 w-7" />
           <span className="font-semibold">{APP_NAME}</span>
         </Link>
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-          className="flex h-10 w-10 items-center justify-center rounded-md text-foreground hover:bg-muted"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+        <div className="flex items-center gap-1">
+          <SearchTrigger variant="icon" />
+          <button
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+            className="flex h-10 w-10 items-center justify-center rounded-md text-foreground hover:bg-muted"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
       </header>
 
       {/* Full menu drawer */}
