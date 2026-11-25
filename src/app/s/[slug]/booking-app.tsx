@@ -27,6 +27,7 @@ import { createOnlineReservation, type BookingState } from "./actions";
 import type { SiteSettings } from "@/lib/site";
 import { useLang, dict } from "./i18n";
 import { DatePicker, dmy } from "./date-picker";
+import { LeadRequest } from "./lead-request";
 
 interface Car2 {
   id: string;
@@ -673,6 +674,9 @@ export function BookingApp({
           </div>
         )}
       </section>
+
+      {/* LEAD CAPTURE — request a car */}
+      <LeadRequest slug={slug} />
 
       {/* HOW IT WORKS */}
       {settings.show.how && (

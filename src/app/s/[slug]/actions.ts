@@ -145,3 +145,46 @@ export async function createOnlineReservation(
 
   return { ok: true, waPhone, waText, carName, from: fromLabel, to: toLabel };
 }
+
+export type LeadState = { ok?: boolean; error?: string };
+
+// Public "request a car" lead when the customer can't find an available car.
+export async function createLead(_prev: LeadState, formData: FormData): Promise<LeadState> {
+  const rl = await rateLimit(`lead:ip:${clientIp()}`, 15, 3600);
+  if (!rl.allowed) return { error: "Too many requests. Please try again later." };
+
+  const admin = createAdminClient();
+  const slug = String(formData.get("slug") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const email = String(formData.get("email") || "").trim() || null;
+  const pickup = String(formData.get("pickup_date") || "").trim() || null;
+  const ret = String(formData.get("return_date") || "").trim() || null;
+  const carType = String(formData.get("car_type") || "").trim() || null;
+  const note = String(formData.get("note") || "").trim() || null;
+
+  if (!slug) return { error: "Something went wrong. Please reload the page." };
+  if (!name) return { error: "Please enter your name." };
+  if (!phone) return { error: "Please enter your phone number." };
+
+  const { data: biz } = await admin.from("businesses").select("id").eq("slug", slug).maybeSingle();
+  if (!biz?.id) return { error: "Not available right now. Please contact us directly." };
+
+  const { error } = await admin.from("leads").insert({
+    business_id: biz.id,
+    name,
+    phone,
+    email,
+    pickup_date: pickup,
+    return_date: ret,
+    car_type: carType,
+    note,
+    status: "new",
+    source: "public",
+  });
+  if (error) return { error: "Couldn't send your request. Please try again." };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}

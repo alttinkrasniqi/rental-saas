@@ -223,6 +223,30 @@ create policy "own rental_extras" on public.rental_extras
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
 
+-- Lead capture (2.V.6): "request a car" submissions from the public site.
+create table if not exists public.leads (
+  id           uuid primary key default gen_random_uuid(),
+  business_id  uuid not null references public.businesses (id) on delete cascade,
+  name         text not null,
+  phone        text,
+  email        text,
+  pickup_date  date,
+  return_date  date,
+  car_type     text,
+  note         text,
+  status       text not null default 'new',
+  source       text not null default 'public',
+  created_at   timestamptz not null default now()
+);
+create index if not exists leads_business_status_idx on public.leads (business_id, status);
+alter table public.leads enable row level security;
+
+drop policy if exists "own leads" on public.leads;
+create policy "own leads" on public.leads
+  for all
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()))
+  with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
 drop policy if exists "own businesses" on public.businesses;
 create policy "own businesses" on public.businesses
   for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
