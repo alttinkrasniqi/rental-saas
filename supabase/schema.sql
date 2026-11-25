@@ -21,7 +21,8 @@ create table if not exists public.businesses (
   currency    text not null default 'EUR',
   timezone    text not null default 'Europe/Tirane',
   welcome_seen boolean not null default false,  -- first-login welcome tour shown?
-  deposits_enabled boolean not null default false,  -- opt-in deposit tracking (off: not used in Balkan market)
+  deposits_enabled boolean not null default false,
+  google_review_url text,  -- opt-in deposit tracking (off: not used in Balkan market)
   monthly_revenue_target_cents int not null default 0,  -- 2.V.23 monthly goal
   created_at  timestamptz not null default now()
 );
@@ -243,6 +244,24 @@ alter table public.leads enable row level security;
 
 drop policy if exists "own leads" on public.leads;
 create policy "own leads" on public.leads
+  for all
+  using (business_id in (select id from public.businesses where owner_id = auth.uid()))
+  with check (business_id in (select id from public.businesses where owner_id = auth.uid()));
+
+-- Reviews & reputation (2.V.4).
+create table if not exists public.reviews (
+  id          uuid primary key default gen_random_uuid(),
+  business_id uuid not null references public.businesses (id) on delete cascade,
+  rating      int,
+  comment     text,
+  name        text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists reviews_business_idx on public.reviews (business_id, created_at desc);
+alter table public.reviews enable row level security;
+
+drop policy if exists "own reviews" on public.reviews;
+create policy "own reviews" on public.reviews
   for all
   using (business_id in (select id from public.businesses where owner_id = auth.uid()))
   with check (business_id in (select id from public.businesses where owner_id = auth.uid()));

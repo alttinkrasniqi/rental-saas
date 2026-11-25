@@ -188,3 +188,34 @@ export async function createLead(_prev: LeadState, formData: FormData): Promise<
   revalidatePath("/dashboard");
   return { ok: true };
 }
+
+export type ReviewState = { ok?: boolean; error?: string; googleUrl?: string | null };
+
+// Public review submission. Happy ratings (>=4) are offered the Google link;
+// low ratings become private feedback the owner reads in the app.
+export async function submitReview(_prev: ReviewState, formData: FormData): Promise<ReviewState> {
+  const rl = await rateLimit(`review:ip:${clientIp()}`, 20, 3600);
+  if (!rl.allowed) return { error: "Too many submissions. Please try again later." };
+
+  const admin = createAdminClient();
+  const slug = String(formData.get("slug") || "").trim();
+  const rating = Math.max(0, Math.min(5, parseInt(String(formData.get("rating") || "0"), 10) || 0));
+  const comment = String(formData.get("comment") || "").trim() || null;
+  const name = String(formData.get("name") || "").trim() || null;
+
+  if (!slug) return { error: "Something went wrong. Please reload the page." };
+  if (rating < 1) return { error: "Please choose a rating." };
+
+  const { data: biz } = await admin
+    .from("businesses")
+    .select("id, google_review_url")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!biz?.id) return { error: "Not available right now." };
+
+  await admin.from("reviews").insert({ business_id: biz.id, rating, comment, name });
+
+  revalidatePath("/reviews");
+  revalidatePath("/dashboard");
+  return { ok: true, googleUrl: rating >= 4 ? (biz.google_review_url || null) : null };
+}
