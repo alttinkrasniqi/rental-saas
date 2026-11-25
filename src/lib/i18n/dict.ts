@@ -16,6 +16,7 @@ export const SQ: Record<string, string> = {
   "Clients": "Klientët",
   // extras & fees (2.H.6)
   "Extras & fees": "Ekstra & tarifa",
+  "+ Add common rent-a-car extras": "+ Shto tarifat e zakonshme të rent-a-car",
   "5 · Extras & fees": "5 · Ekstra & tarifa",
   "Extras": "Ekstra",
   "Per day": "Për ditë",

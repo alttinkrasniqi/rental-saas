@@ -2,7 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SubmitButton } from "@/components/submit-button";
-import { addExtra, updateExtra, deleteExtra } from "./extras-actions";
+import { addExtra, updateExtra, deleteExtra, addCommonExtras } from "./extras-actions";
 import type { ExtraDef } from "@/lib/extras";
 
 export function ExtrasSettings({ extras, currency }: { extras: ExtraDef[]; currency: string }) {
@@ -12,6 +12,12 @@ export function ExtrasSettings({ extras, currency }: { extras: ExtraDef[]; curre
       <p className="text-xs text-muted-foreground">
         {t("Optional charges you can add to any rental. Per-day items multiply by the number of days.")}
       </p>
+
+      <form action={addCommonExtras}>
+        <SubmitButton className="h-9 border border-border bg-transparent font-medium text-foreground hover:bg-muted">
+          {t("+ Add common rent-a-car extras")}
+        </SubmitButton>
+      </form>
 
       {extras.length > 0 && (
         <div className="space-y-2">
