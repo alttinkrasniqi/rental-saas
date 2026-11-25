@@ -12,7 +12,7 @@ import {
 import {
   ArrowRight, ArrowDownLeft, AlertTriangle, KeyRound, Globe, BellRing, RotateCcw, CalendarPlus,
   Plus, Car, ClipboardList, Wallet, Gauge, Wrench,
-  CalendarCheck, UserPlus, CarFront, ArrowUpRight, ArrowDownRight,
+  CalendarCheck, UserPlus, CarFront, ArrowUpRight, ArrowDownRight, Inbox,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -85,6 +85,14 @@ export default async function DashboardPage() {
       .filter((r) => !overdue.some((o) => o.id === r.id))
       .map((r) => ({ r, kind: "today" as const })),
   ];
+
+  const { data: waitlistRows } = await supabase
+    .from("leads")
+    .select("id, name, phone, car_type, pickup_date, return_date, created_at")
+    .eq("status", "new")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const waitlist = waitlistRows ?? [];
 
   const onlineBookings = rentals
     .filter((r) => r.source === "online")
@@ -463,6 +471,36 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <span className="shrink-0 text-xs text-muted-foreground">{formatDate(r.created_at)}</span>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {waitlist.length > 0 && (
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Inbox className="h-4 w-4 text-violet-600" /> {t("Waitlist")}
+                </CardTitle>
+                <Link href="/waitlist" className="text-xs font-semibold text-primary hover:underline">{t("View all")}</Link>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {waitlist.map((w: any) => (
+                  <Link
+                    key={w.id}
+                    href="/waitlist"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {w.name} <span className="text-muted-foreground">{w.phone}</span>
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {w.car_type || (w.pickup_date ? formatDate(w.pickup_date) : t("Requested a car"))}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{formatDate(w.created_at)}</span>
                   </Link>
                 ))}
               </CardContent>

@@ -184,7 +184,7 @@ export async function createLead(_prev: LeadState, formData: FormData): Promise<
   });
   if (error) return { error: "Couldn't send your request. Please try again." };
 
-  revalidatePath("/leads");
+  revalidatePath("/waitlist");
   revalidatePath("/dashboard");
   return { ok: true };
 }

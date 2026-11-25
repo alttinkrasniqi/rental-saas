@@ -12,7 +12,6 @@ import {
   Receipt,
   FileText,
   Wallet,
-  Inbox,
   type LucideIcon,
 } from "lucide-react";
 
@@ -40,7 +39,6 @@ const CALENDAR: NavItem = { href: "/calendar", label: "Calendar", icon: Calendar
 const RENTALS: NavItem = { href: "/rentals", label: "Rentals", icon: ClipboardList };
 const CARS: NavItem = { href: "/cars", label: "Cars", icon: Car };
 const CLIENTS: NavItem = { href: "/clients", label: "Clients", icon: Users };
-const LEADS: NavItem = { href: "/leads", label: "Leads", icon: Inbox };
 const MARKETING: NavItem = { href: "/marketing", label: "Marketing", icon: Megaphone };
 const WEBSITE: NavItem = { href: "/website", label: "Website", icon: Globe };
 const SETTINGS: NavItem = { href: "/settings", label: "Settings", icon: Settings };
@@ -64,7 +62,6 @@ export const NAV_TREE: NavEntry[] = [
   RENTALS,
   CARS,
   CLIENTS,
-  LEADS,
   MARKETING,
   FINANCE_GROUP,
   WEBSITE,

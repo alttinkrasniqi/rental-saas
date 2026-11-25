@@ -23,11 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq("source", "online")
     .eq("approved", false)
     .neq("status", "CANCELLED");
-  const { count: leadCount } = await supabase
-    .from("leads")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "new");
-  const badges = { "/rentals": count ?? 0, "/leads": leadCount ?? 0 };
+  const badges = { "/rentals": count ?? 0 };
 
   return (
     <LocaleProvider locale={locale}>

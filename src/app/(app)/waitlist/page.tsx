@@ -33,7 +33,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { stat
 
   return (
     <div>
-      <PageHeader title={t("Leads")} subtitle={t("Requests from customers who couldn't find a car — follow up and win them.")} />
+      <PageHeader title={t("Waitlist")} subtitle={t("Requests from customers who couldn't find a car — follow up and win them.")} />
 
       <form action={addManualLead} className="mb-5 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-card p-3">
         <div className="min-w-[140px] flex-1 space-y-1">
@@ -52,9 +52,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: { stat
       </form>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <Tab href="/leads" label={t("All")} active={!filter} />
+        <Tab href="/waitlist" label={t("All")} active={!filter} />
         {TABS.map((s) => (
-          <Tab key={s} href={`/leads?status=${s}`} label={`${t(STATUS_META[s].label)} (${counts[s] ?? 0})`} active={filter === s} />
+          <Tab key={s} href={`/waitlist?status=${s}`} label={`${t(STATUS_META[s].label)} (${counts[s] ?? 0})`} active={filter === s} />
         ))}
       </div>
 

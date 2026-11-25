@@ -14,7 +14,7 @@ export async function setLeadStatus(formData: FormData) {
   if (id && STATUSES.includes(status)) {
     await supabase.from("leads").update({ status }).eq("id", id).eq("business_id", business.id);
   }
-  revalidatePath("/leads");
+  revalidatePath("/waitlist");
   revalidatePath("/dashboard");
 }
 
@@ -27,7 +27,7 @@ export async function addManualLead(formData: FormData) {
   if (name) {
     await supabase.from("leads").insert({ business_id: business.id, name, phone, note, status: "new", source: "manual" });
   }
-  revalidatePath("/leads");
+  revalidatePath("/waitlist");
   revalidatePath("/dashboard");
 }
 
@@ -36,6 +36,6 @@ export async function deleteLead(formData: FormData) {
   const supabase = createClient();
   const id = String(formData.get("id") || "");
   if (id) await supabase.from("leads").delete().eq("id", id).eq("business_id", business.id);
-  revalidatePath("/leads");
+  revalidatePath("/waitlist");
   revalidatePath("/dashboard");
 }

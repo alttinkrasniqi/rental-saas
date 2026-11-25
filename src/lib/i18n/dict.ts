@@ -38,6 +38,9 @@ export const SQ: Record<string, string> = {
   "No results": "Asnjë rezultat",
   // leads (2.V.6)
   "Leads": "Leads",
+  "Waitlist": "Lista e pritjes",
+  "View all": "Shiko të gjitha",
+  "Requested a car": "Kërkoi një kerr",
   "Requests from customers who couldn't find a car — follow up and win them.": "Kërkesa nga klientë që s'gjetën kerr — ndiqi dhe fitoji.",
   "Customer name": "Emri i klientit",
   "What they wanted…": "Çfarë kërkuan…",
