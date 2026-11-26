@@ -26,6 +26,7 @@ export interface DrawAssets {
   format: FormatKey;
   darken: number;
   fam: string;
+  filter?: string;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -146,7 +147,7 @@ export function drawScene(canvas: HTMLCanvasElement, scene: Scene, o: DrawAssets
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  if (o.img) cover(ctx, o.img, W, H);
+  if (o.img) { if (o.filter) ctx.filter = o.filter; cover(ctx, o.img, W, H); ctx.filter = "none"; }
   else {
     const g = ctx.createLinearGradient(0, 0, W, H);
     g.addColorStop(0, "#334155"); g.addColorStop(1, "#0f172a");

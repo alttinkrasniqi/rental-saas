@@ -44,6 +44,23 @@ export const SQ: Record<string, string> = {
   // reviews (2.V.4)
   "Reviews": "Vlerësime",
   "Pricing & promos": "Çmime & promo",
+  // Post Studio v4 (editor pro)
+  "Undo": "Zhbëj",
+  "Redo": "Ribëj",
+  "Save my design": "Ruaj dizajnin tim",
+  "Apply my design": "Zbato dizajnin tim",
+  "Reset": "Rikthe",
+  "Copy image": "Kopjo imazhin",
+  "Stickers": "Ngjitëse",
+  "Photo filter": "Filtri i fotos",
+  "Original": "Origjinal",
+  "Vivid": "Gjallë",
+  "Warm": "Ngrohtë",
+  "Cool": "Ftohtë",
+  "Mono": "Mono",
+  "Moody": "Errët",
+  "Edit text on post": "Ndrysho tekstin në post",
+  "Tip: tap any element to move it; double-tap text to edit it.": "Këshillë: prek çdo element për ta lëvizur; prek dy herë tekstin për ta ndryshuar.",
   // Post Studio v3 (editor)
   "Designs": "Dizajnet",
   "Text": "Tekst",
