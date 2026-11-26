@@ -44,6 +44,22 @@ export const SQ: Record<string, string> = {
   // reviews (2.V.4)
   "Reviews": "Vlerësime",
   "Pricing & promos": "Çmime & promo",
+  // Post Studio v3 (editor)
+  "Designs": "Dizajnet",
+  "Text": "Tekst",
+  "Badge": "Etiketë",
+  "Your text": "Teksti yt",
+  "Edit element": "Ndrysho elementin",
+  "Done": "U krye",
+  "(auto from car)": "(auto nga kerri)",
+  "Reset to car data": "Rikthe te të dhënat e kerrit",
+  "Size": "Madhësia",
+  "Logo size": "Madhësia e logos",
+  "Text colour": "Ngjyra e tekstit",
+  "Fill": "Mbushja",
+  "Bring forward": "Sill përpara",
+  "Send back": "Dërgo prapa",
+  "Tip: tap any element on the post to move or edit it.": "Këshillë: prek çdo element në post për ta lëvizur ose ndryshuar.",
   // Post Studio v2 (layouts)
   "Layout": "Faqosja",
   "Classic": "Klasik",
