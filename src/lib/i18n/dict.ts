@@ -44,6 +44,21 @@ export const SQ: Record<string, string> = {
   // reviews (2.V.4)
   "Reviews": "Vlerësime",
   "Pricing & promos": "Çmime & promo",
+  // Post Studio v2 (layouts)
+  "Layout": "Faqosja",
+  "Classic": "Klasik",
+  "Minimal": "Minimal",
+  "Side panel": "Panel anësor",
+  "Ribbon": "Shirit",
+  "Framed": "Me kornizë",
+  "Upload logo": "Ngarko logo",
+  "Replace logo": "Ndërro logon",
+  "Saved in this browser. Transparent PNG works best.": "Ruhet në këtë shfletues. PNG transparent funksionon më mirë.",
+  "Show on post": "Shfaq në post",
+  "Specs": "Specifikat",
+  "Booking link": "Linku i rezervimit",
+  "Logo": "Logo",
+  "Photo darkness": "Errësimi i fotos",
   // 2.V.2 Post Studio
   "Post Studio": "Post Studio",
   "Turn a car into a ready-to-post image for Instagram & Facebook.": "Kthe një kerr në një post gati për Instagram & Facebook.",

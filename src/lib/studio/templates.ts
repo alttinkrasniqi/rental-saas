@@ -152,3 +152,19 @@ export function buildCaptions(ctx: PostContext, occasion: PostOccasion, lang: Po
 
   return heads.map((h) => `${ctx.businessName}\n${h}${specSuffix}${contactBlock}\n\n${tags}`);
 }
+
+// Post layouts the owner can pick between. Each is a distinct designed look.
+export type PostTemplate = "classic" | "minimal" | "sidebar" | "ribbon" | "framed";
+export const TEMPLATES: { id: PostTemplate; labelEn: string }[] = [
+  { id: "classic", labelEn: "Classic" },
+  { id: "minimal", labelEn: "Minimal" },
+  { id: "sidebar", labelEn: "Side panel" },
+  { id: "ribbon", labelEn: "Ribbon" },
+  { id: "framed", labelEn: "Framed" },
+];
+
+// Brand accent swatches offered in the picker (first is the app's cherry).
+export const ACCENT_PRESETS = [
+  "#B12A32", "#0F172A", "#1E9E6A", "#1D4ED8",
+  "#C2410C", "#7C3AED", "#DB2777", "#FED600",
+];
