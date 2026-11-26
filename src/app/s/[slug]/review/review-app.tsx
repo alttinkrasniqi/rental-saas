@@ -17,11 +17,7 @@ const T = {
     send: "Dërgo",
     thanks: "Faleminderit për vlerësimin!",
     googleMsg: "Na ndihmon shumë nëse e lini edhe në Google:",
-<<<<<<< HEAD
     googleBtn: "Lër vlerësim në Google",
-=======
-    googleBtn: "Lër recension në Google",
->>>>>>> a15c1f53b8252a602eaafa1f02b8a3bd605a485d
     choose: "Zgjidh një vlerësim.",
   },
   en: {
