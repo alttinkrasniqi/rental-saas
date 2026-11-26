@@ -14,6 +14,7 @@ import {
   Wallet,
   Star,
   Tag,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,12 +44,13 @@ const CARS: NavItem = { href: "/cars", label: "Cars", icon: Car };
 const CLIENTS: NavItem = { href: "/clients", label: "Clients", icon: Users };
 const MARKETING_PRICING: NavItem = { href: "/marketing", label: "Pricing & promos", icon: Tag };
 const REVIEWS: NavItem = { href: "/reviews", label: "Reviews", icon: Star };
+const STUDIO: NavItem = { href: "/studio", label: "Post Studio", icon: Sparkles };
 
 // Growth & reputation tools grouped under Marketing.
 export const MARKETING_GROUP: NavGroup = {
   label: "Marketing",
   icon: Megaphone,
-  items: [MARKETING_PRICING, REVIEWS],
+  items: [MARKETING_PRICING, REVIEWS, STUDIO],
 };
 const WEBSITE: NavItem = { href: "/website", label: "Website", icon: Globe };
 const SETTINGS: NavItem = { href: "/settings", label: "Settings", icon: Settings };
