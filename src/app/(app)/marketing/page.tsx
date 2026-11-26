@@ -44,7 +44,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
 
   return (
     <div>
-      <PageHeader title={t("Marketing")} subtitle={t("Scheduled pricing and discount codes — in one place.")} />
+      <PageHeader title={t("Pricing & promos")} subtitle={t("Scheduled pricing and discount codes — in one place.")} />
 
       {/* Segmented control */}
       <div className="mb-6">

@@ -12,6 +12,8 @@ import {
   Receipt,
   FileText,
   Wallet,
+  Star,
+  Tag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,7 +41,15 @@ const CALENDAR: NavItem = { href: "/calendar", label: "Calendar", icon: Calendar
 const RENTALS: NavItem = { href: "/rentals", label: "Rentals", icon: ClipboardList };
 const CARS: NavItem = { href: "/cars", label: "Cars", icon: Car };
 const CLIENTS: NavItem = { href: "/clients", label: "Clients", icon: Users };
-const MARKETING: NavItem = { href: "/marketing", label: "Marketing", icon: Megaphone };
+const MARKETING_PRICING: NavItem = { href: "/marketing", label: "Pricing & promos", icon: Tag };
+const REVIEWS: NavItem = { href: "/reviews", label: "Reviews", icon: Star };
+
+// Growth & reputation tools grouped under Marketing.
+export const MARKETING_GROUP: NavGroup = {
+  label: "Marketing",
+  icon: Megaphone,
+  items: [MARKETING_PRICING, REVIEWS],
+};
 const WEBSITE: NavItem = { href: "/website", label: "Website", icon: Globe };
 const SETTINGS: NavItem = { href: "/settings", label: "Settings", icon: Settings };
 
@@ -62,7 +72,7 @@ export const NAV_TREE: NavEntry[] = [
   RENTALS,
   CARS,
   CLIENTS,
-  MARKETING,
+  MARKETING_GROUP,
   FINANCE_GROUP,
   WEBSITE,
   SETTINGS,
