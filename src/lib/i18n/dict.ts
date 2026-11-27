@@ -44,6 +44,7 @@ export const SQ: Record<string, string> = {
   // reviews (2.V.4)
   "Reviews": "Vlerësime",
   "Pricing & promos": "Çmime & promo",
+  "Pick a photo for this car, or upload one right here.": "Zgjedh një foto për këtë kerr, ose ngarko një këtu.",
   // Post Studio v4 (editor pro)
   "Undo": "Zhbëj",
   "Redo": "Ribëj",

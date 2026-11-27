@@ -5,12 +5,13 @@ import Link from "next/link";
 import {
   Download, Copy, Check, ImageOff, Sparkles, Upload, Trash2, Type, Tag, BadgeCheck, ImagePlus,
   Plus, Minus, Bold, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, CopyPlus,
-  Undo2, Redo2, ClipboardCopy, Save, RotateCcw, X,
+  Undo2, Redo2, ClipboardCopy, Save, RotateCcw, X, Loader2,
 } from "lucide-react";
 import { useT } from "@/lib/i18n/provider";
 import { OCCASIONS, occasionById, badgeText, carTitle, priceLabel, specLine, buildCaptions, ACCENT_PRESETS, type PostOccasion, type PostLang, type PostContext } from "@/lib/studio/templates";
 import { TEMPLATES, createScene, resolveColor, resolveBg, resolveText, type Scene, type El, type SceneData, type ColorToken, type BgToken } from "@/lib/studio/scene";
 import { drawScene, DIMS, type FormatKey } from "@/lib/studio/render";
+import { addCarPhoto } from "@/app/(app)/website/photos-actions";
 
 type Car = { id: string; make: string; model: string; year: number | null; priceValue: string; photos: string[]; transmission: string | null; seats: number | null; fuel: string | null };
 type Business = { name: string; phone: string | null; bookingUrl: string | null };
@@ -31,12 +32,28 @@ const FILTERS: { id: string; labelEn: string; css: string }[] = [
 ];
 const STICKERS = ["ME QIRA", "I LIRË", "ME ULJE", "24/7", "I RI", "LIRIM", "PA DEPOZITË", "KM PA LIMIT"];
 
+// Resize/compress a picked image to a <=1600px JPEG data URL before upload.
+async function compress(file: File): Promise<string> {
+  const dataUrl: string = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result as string); fr.onerror = rej; fr.readAsDataURL(file); });
+  try {
+    const img = document.createElement("img");
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+    const max = 1600; let w = img.width, h = img.height;
+    if (w > max || h > max) { if (w >= h) { h = Math.round((h * max) / w); w = max; } else { w = Math.round((w * max) / h); h = max; } }
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const ctx = c.getContext("2d"); if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, w, h); return c.toDataURL("image/jpeg", 0.82);
+  } catch { return dataUrl; }
+}
+
 export function PostStudio({ business, cars }: { business: Business; cars: Car[] }) {
   const t = useT();
   const stageRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string; sx: number; sy: number; ex: number; ey: number; rw: number; rh: number } | null>(null);
 
   const [carId, setCarId] = useState(cars[0]?.id ?? "");
+  const [carsState, setCarsState] = useState<Car[]>(cars);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoIdx, setPhotoIdx] = useState(0);
   const [occasion, setOccasion] = useState<PostOccasion>("offer");
   const [format, setFormat] = useState<FormatKey>("square");
@@ -63,7 +80,7 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
   const [imgCopied, setImgCopied] = useState(false);
   const [exportErr, setExportErr] = useState(false);
 
-  const car = useMemo(() => cars.find((c) => c.id === carId) ?? cars[0], [cars, carId]);
+  const car = useMemo(() => carsState.find((c) => c.id === carId) ?? carsState[0], [carsState, carId]);
   const photo = car?.photos?.[photoIdx] ?? car?.photos?.[0] ?? null;
   const fam = fontsReady ? "Poppins" : "system-ui";
   const filterCss = FILTERS.find((f) => f.id === filterId)?.css ?? "";
@@ -193,6 +210,16 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
   }
   function removeLogo() { setLogo(null); try { localStorage.removeItem(LOGO_KEY); } catch {} }
 
+  async function uploadCarPhoto(file: File) {
+    if (!car) return;
+    setUploadingPhoto(true);
+    try {
+      const dataUrl = await compress(file);
+      const r = await addCarPhoto(car.id, dataUrl);
+      if (r.ok && r.photos) { const np = r.photos; setCarsState((cs) => cs.map((c) => (c.id === car.id ? { ...c, photos: np } : c))); setPhotoIdx(np.length - 1); }
+    } finally { setUploadingPhoto(false); }
+  }
+
   // my design
   function saveDesign() { try { localStorage.setItem(DESIGN_KEY, JSON.stringify(scene)); setHasSaved(true); } catch {} }
   function applyDesign() { try { const d = localStorage.getItem(DESIGN_KEY); if (d) { apply(JSON.parse(d)); setSelId(null); } } catch {} }
@@ -221,7 +248,7 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
   }
   async function copyCaption() { try { await navigator.clipboard.writeText(caption); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} }
 
-  if (cars.length === 0) return <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{t("Add a car with photos first, then come back to create posts.")}</div>;
+  if (carsState.length === 0) return <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{t("Add a car with photos first, then come back to create posts.")}</div>;
 
   const dims = DIMS[format];
   const stageMax = format === "square" ? 520 : 360;
@@ -242,7 +269,7 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
             <button type="button" onClick={resetDesign} className="flex h-9 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted"><RotateCcw className="h-3.5 w-3.5" /> {t("Reset")}</button>
           </div>
 
-          <div className="flex items-center justify-center rounded-xl border border-border bg-muted/40 p-4">
+          <div className="flex items-center justify-center rounded-2xl border border-border/50 p-6" style={{ background: "radial-gradient(circle at 50% 28%, #222a3d 0%, #0e121b 100%)" }}>
             <div ref={stageRef} onPointerDown={() => { setSelId(null); setEditId(null); }}
               className="relative overflow-hidden rounded-lg shadow-md"
               style={{ width: "100%", maxWidth: stageMax, aspectRatio: `${dims.w} / ${dims.h}`, containerType: "inline-size", fontFamily: `'${fam}', system-ui, sans-serif` } as React.CSSProperties}>
@@ -268,7 +295,7 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
             <AddBtn icon={ImagePlus} label={t("Logo")} onClick={() => addEl("logo")} />
             <div className="ml-auto flex gap-2">
               <button type="button" onClick={copyImage} className="flex h-10 items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-medium hover:bg-muted">{imgCopied ? <Check className="h-4 w-4 text-emerald-600" /> : <ClipboardCopy className="h-4 w-4" />}{imgCopied ? t("Copied") : t("Copy image")}</button>
-              <button type="button" onClick={download} className="flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Download className="h-4 w-4" /> {t("Download image")}</button>
+              <button type="button" onClick={download} className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Download className="h-4 w-4" /> {t("Download image")}</button>
             </div>
           </div>
           {/* sticker chips */}
@@ -284,12 +311,12 @@ export function PostStudio({ business, cars }: { business: Business; cars: Car[]
           {selected ? (
             <Inspector el={selected} accent={accent} t={t} patch={patch} remove={removeEl} dup={dupEl} reorder={reorder} startEdit={() => setEditId(selected.id)} deselect={() => setSelId(null)} />
           ) : (
-            <BaseControls {...{ cars, carId, setCarId, car, photoIdx, setPhotoIdx, imgState, occasion, setOccasion, format, setFormat, lang, setLang, accent, setAccent, darken, setDarken, filterId, setFilterId, logo, onLogoFile, removeLogo, t }} />
+            <BaseControls {...{ cars: carsState, carId, setCarId, car, photoIdx, setPhotoIdx, imgState, uploadCarPhoto, uploadingPhoto, occasion, setOccasion, format, setFormat, lang, setLang, accent, setAccent, darken, setDarken, filterId, setFilterId, logo, onLogoFile, removeLogo, t }} />
           )}
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="rounded-2xl border border-border/70 bg-card p-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-sm font-medium"><Sparkles className="h-4 w-4 text-primary" /> {t("Caption")}</span>
           <div className="flex items-center gap-2">
@@ -360,7 +387,7 @@ function TemplateGallery({ current, onPick, img, logo, accent, data, fam, darken
       <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t("Designs")}</div>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {TEMPLATES.map((tp) => (
-          <button key={tp.id} type="button" onClick={() => onPick(tp.id)} className={"shrink-0 rounded-lg border p-1 transition-colors " + (current === tp.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50")}>
+          <button key={tp.id} type="button" onClick={() => onPick(tp.id)} className={"shrink-0 rounded-xl border p-1.5 transition-all hover:-translate-y-0.5 " + (current === tp.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50")}>
             <Thumb templateId={tp.id} img={img} logo={logo} accent={accent} data={data} fam={fam} darken={darken} filter={filter} />
             <div className="mt-1 text-center text-[10px] font-medium text-muted-foreground">{t(tp.labelEn)}</div>
           </button>
@@ -372,14 +399,14 @@ function TemplateGallery({ current, onPick, img, logo, accent, data, fam, darken
 function Thumb({ templateId, img, logo, accent, data, fam, darken, filter }: { templateId: string; img: HTMLImageElement | null; logo: HTMLImageElement | null; accent: string; data: SceneData; fam: string; darken: number; filter: string }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => { const cv = ref.current; if (!cv) return; drawScene(cv, createScene(templateId), { img, logo, accent, data, format: "square", darken, fam, filter }); }, [templateId, img, logo, accent, data, fam, darken, filter]);
-  return <canvas ref={ref} style={{ width: 96, height: 96 }} className="rounded-md" />;
+  return <canvas ref={ref} style={{ width: 108, height: 108 }} className="rounded-lg" />;
 }
 
 function Inspector({ el, accent, t, patch, remove, dup, reorder, startEdit, deselect }: { el: El; accent: string; t: (k: string) => string; patch: (id: string, p: Partial<El>) => void; remove: (id: string) => void; dup: (id: string) => void; reorder: (id: string, d: -1 | 1) => void; startEdit: () => void; deselect: () => void }) {
   const isText = el.kind === "text" || el.kind === "pill" || el.kind === "badge";
   const size = el.fontFrac ?? (el.kind === "logo" ? el.w ?? 0.1 : 0.04);
   return (
-    <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+    <div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4">
       <div className="flex items-center justify-between"><span className="text-sm font-semibold">{t("Edit element")}</span><button type="button" onClick={deselect} className="text-xs text-muted-foreground hover:underline">{t("Done")}</button></div>
       {isText && (
         <div className="space-y-1.5">
@@ -428,20 +455,27 @@ function Inspector({ el, accent, t, patch, remove, dup, reorder, startEdit, dese
 }
 
 function BaseControls(p: any) {
-  const { cars, carId, setCarId, car, photoIdx, setPhotoIdx, imgState, occasion, setOccasion, format, setFormat, lang, setLang, accent, setAccent, darken, setDarken, filterId, setFilterId, logo, onLogoFile, removeLogo, t } = p;
+  const { cars, carId, setCarId, car, photoIdx, setPhotoIdx, imgState, uploadCarPhoto, uploadingPhoto, occasion, setOccasion, format, setFormat, lang, setLang, accent, setAccent, darken, setDarken, filterId, setFilterId, logo, onLogoFile, removeLogo, t } = p;
   const photos: string[] = car?.photos ?? [];
   return (
-    <div className="space-y-5 rounded-xl border border-border bg-card p-4">
+    <div className="space-y-5 rounded-2xl border border-border/70 bg-card p-4">
       <Field label={t("Car")}>
         <select value={carId} onChange={(e) => setCarId(e.target.value)} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
           {cars.map((c: Car) => <option key={c.id} value={c.id}>{c.make} {c.model}{c.year ? ` ${c.year}` : ""}{c.photos.length ? "" : ` — ${t("no photo")}`}</option>)}
         </select>
-        {photos.length > 1 && (
-          <div className="mt-2 flex gap-2 overflow-x-auto">
-            {photos.map((ph, i) => <button key={i} type="button" onClick={() => setPhotoIdx(i)} className={"h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 " + (photoIdx === i ? "border-primary" : "border-transparent")}><img src={ph} alt="" className="h-full w-full object-cover" /></button>)}
-          </div>
-        )}
-        {imgState === "none" && <p className="mt-1 text-[11px] text-muted-foreground">{t("This car has no photo — add one under Cars for a better post.")}</p>}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {photos.map((ph: string, i: number) => (
+            <button key={i} type="button" onClick={() => setPhotoIdx(i)} className={"h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 " + (photoIdx === i ? "border-primary" : "border-transparent")}>
+              <img src={ph} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+          <label className="flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-border text-muted-foreground hover:bg-muted">
+            {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+            <span className="text-[9px] font-medium">{t("Add")}</span>
+            <input type="file" accept="image/*" className="hidden" disabled={uploadingPhoto} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCarPhoto(f); e.target.value = ""; }} />
+          </label>
+        </div>
+        <p className="mt-1 text-[11px] text-muted-foreground">{t("Pick a photo for this car, or upload one right here.")}</p>
       </Field>
       <Field label={t("Photo filter")}>
         <div className="flex flex-wrap gap-2">{FILTERS.map((f) => <button key={f.id} type="button" onClick={() => setFilterId(f.id)} className={"rounded-md border px-2.5 py-1.5 text-xs font-medium " + (filterId === f.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted")}>{t(f.labelEn)}</button>)}</div>
