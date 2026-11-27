@@ -44,6 +44,21 @@ export const SQ: Record<string, string> = {
   // reviews (2.V.4)
   "Reviews": "Vlerësime",
   "Pricing & promos": "Çmime & promo",
+  // 2.V.5 Loyalty & win-back
+  "Loyalty": "Besnikëri",
+  "Loyalty & win-back": "Besnikëri & rikthim",
+  "Reward your regulars and bring past customers back — from data you already have.": "Shpërble klientët e rregullt dhe rikthe ata të vjetrit — nga të dhënat që i ke.",
+  "Gold after N rentals": "I artë pas N rentave",
+  "Inactive after N days": "Joaktiv pas N ditësh",
+  "Loyalty discount %": "Zbritje besnikërie %",
+  "Gold customers": "Klientë të artë",
+  "No repeat customers yet — they'll show up here as rentals add up.": "Ende s'ka klientë të përsëritur — do të dalin këtu sa të shtohen rentat.",
+  "Offer on WhatsApp": "Ofertë në WhatsApp",
+  "Bring them back": "Kthehi",
+  "No one to win back right now — nice, your customers are active.": "Askush për t'u rikthyer tani — klientët e tu janë aktivë.",
+  "Away {n} days": "Munguar {n} ditë",
+  "last": "fundit",
+  "Win back on WhatsApp": "Rikthe në WhatsApp",
   "Pick a photo for this car, or upload one right here.": "Zgjedh një foto për këtë kerr, ose ngarko një këtu.",
   // Post Studio v4 (editor pro)
   "Undo": "Zhbëj",
